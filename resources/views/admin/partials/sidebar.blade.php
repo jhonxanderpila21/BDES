@@ -15,7 +15,8 @@
                     request()->routeIs('assets.*') ||
                     request()->routeIs('accessories.*') ||
                     request()->routeIs('attachments.*') ||
-                    request()->routeIs('operational-requirements.*')
+                    request()->routeIs('operational-requirements.*') ||
+                    request()->routeIs('asset-needs.*')
                 );
             @endphp
 
@@ -42,7 +43,7 @@
                 <x-sidebar-menu-item
                     icon="fas fa-boxes-stacked"
                     label="Asset Management"
-                    :active="request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*')"
+                    :active="request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*','asset-needs.*')"
                     :expanded="$assetManagementOpen"
                     setExpanded="openDropdown = openDropdown === 'asset-management' ? null : 'asset-management'"
                 >
@@ -73,6 +74,13 @@
                                 label="Operational Requirements"
                                 href="{{ route('operational-requirements.index') }}"
                                 :active="request()->routeIs('operational-requirements.*')"
+                            />
+                        </li>
+                        <li>
+                            <x-sidebar-submenu-item
+                                label="Asset Needs"
+                                href="{{ route('asset-needs.index') }}"
+                                :active="request()->routeIs('asset-needs.*')"
                             />
                         </li>
                         <li>
@@ -129,7 +137,26 @@
                 <span>Return</span>
             </a>
 
+            {{-- 6. Asset Needs --}}
+            <a href="{{ route('asset-needs.index') }}" 
+               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('asset-needs.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
+                <i class="fas fa-gas-pump w-5 text-center {{ request()->routeIs('asset-needs.*') ? 'text-blue-700' : 'text-gray-400' }}"></i>
+                Asset Needs
+            </a>
+
+            {{-- 6.5. Asset Accessories --}}
+            <a href="{{ route('asset-accessories.index') }}" 
+               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('asset-accessories.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
+                <i class="fas fa-tools w-5 text-center {{ request()->routeIs('asset-accessories.*') ? 'text-blue-700' : 'text-gray-400' }}"></i>
+                Asset Accessories
+            </a>
+
             {{-- 8. Maintenance --}}
+            <a href="{{ route('maintenance-schedules.index') }}" 
+               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('maintenance-schedules.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
+                <i class="fas fa-calendar-check w-5 text-center {{ request()->routeIs('maintenance-schedules.*') ? 'text-blue-700' : 'text-gray-400' }}"></i>
+                Preventive Maintenance
+            </a>
             <a
                 href="{{ route('maintenance.index') }}"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('maintenance.*') ? 'bg-blue-50 text-blue-600' : '' }}"
@@ -154,6 +181,15 @@
             >
                 <i class="fas fa-exclamation-triangle {{ $isActive('incident-reports.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
                 <span>Incident Reports</span>
+            </a>
+
+            {{-- 10.5. Reported Asset --}}
+            <a
+                href="{{ route('reported-assets.index') }}"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('reported-assets.*') ? 'bg-blue-50 text-blue-600' : '' }}"
+            >
+                <i class="fas fa-flag {{ $isActive('reported-assets.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
+                <span>Reported Asset</span>
             </a>
 
             {{-- 11. Asset History --}}

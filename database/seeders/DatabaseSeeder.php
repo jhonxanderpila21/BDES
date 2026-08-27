@@ -51,6 +51,10 @@ class DatabaseSeeder extends Seeder
             DeploymentSeeder::class,
             MaintenanceSeeder::class,
             InspectionSeeder::class,
+            AssetNeedSeeder::class,
+            MaintenanceScheduleSeeder::class,
+            AssetAccessorySeeder::class,
+            ReportedAssetSeeder::class,
         ]);
     }
 }

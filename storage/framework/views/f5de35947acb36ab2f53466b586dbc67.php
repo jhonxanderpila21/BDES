@@ -15,7 +15,8 @@
                     request()->routeIs('assets.*') ||
                     request()->routeIs('accessories.*') ||
                     request()->routeIs('attachments.*') ||
-                    request()->routeIs('operational-requirements.*')
+                    request()->routeIs('operational-requirements.*') ||
+                    request()->routeIs('asset-needs.*')
                 );
             ?>
 
@@ -41,14 +42,14 @@
             <div>
                 <?php if (isset($component)) { $__componentOriginalb4dc1e680a94e5cffd4f77271bb15fae = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb4dc1e680a94e5cffd4f77271bb15fae = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-menu-item','data' => ['icon' => 'fas fa-boxes-stacked','label' => 'Asset Management','active' => request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*'),'expanded' => $assetManagementOpen,'setExpanded' => 'openDropdown = openDropdown === \'asset-management\' ? null : \'asset-management\'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-menu-item','data' => ['icon' => 'fas fa-boxes-stacked','label' => 'Asset Management','active' => request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*','asset-needs.*'),'expanded' => $assetManagementOpen,'setExpanded' => 'openDropdown = openDropdown === \'asset-management\' ? null : \'asset-management\'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-menu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['icon' => 'fas fa-boxes-stacked','label' => 'Asset Management','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*')),'expanded' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($assetManagementOpen),'setExpanded' => 'openDropdown = openDropdown === \'asset-management\' ? null : \'asset-management\'']); ?>
+<?php $component->withAttributes(['icon' => 'fas fa-boxes-stacked','label' => 'Asset Management','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*','asset-needs.*')),'expanded' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($assetManagementOpen),'setExpanded' => 'openDropdown = openDropdown === \'asset-management\' ? null : \'asset-management\'']); ?>
                     <ul class="mt-1 space-y-1">
                         <li>
                             <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
@@ -127,6 +128,28 @@
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
 <?php $component->withAttributes(['label' => 'Operational Requirements','href' => ''.e(route('operational-requirements.index')).'','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('operational-requirements.*'))]); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
+<?php $attributes = $__attributesOriginal997557fad3caf2daf17902cc73dc0423; ?>
+<?php unset($__attributesOriginal997557fad3caf2daf17902cc73dc0423); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal997557fad3caf2daf17902cc73dc0423)): ?>
+<?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
+<?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
+<?php endif; ?>
+                        </li>
+                        <li>
+                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Needs','href' => ''.e(route('asset-needs.index')).'','active' => request()->routeIs('asset-needs.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('sidebar-submenu-item'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['label' => 'Asset Needs','href' => ''.e(route('asset-needs.index')).'','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('asset-needs.*'))]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -232,6 +255,25 @@
             </a>
 
             
+            <a href="<?php echo e(route('asset-needs.index')); ?>" 
+               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg <?php echo e(request()->routeIs('asset-needs.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'); ?>">
+                <i class="fas fa-gas-pump w-5 text-center <?php echo e(request()->routeIs('asset-needs.*') ? 'text-blue-700' : 'text-gray-400'); ?>"></i>
+                Asset Needs
+            </a>
+
+            
+            <a href="<?php echo e(route('asset-accessories.index')); ?>" 
+               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg <?php echo e(request()->routeIs('asset-accessories.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'); ?>">
+                <i class="fas fa-tools w-5 text-center <?php echo e(request()->routeIs('asset-accessories.*') ? 'text-blue-700' : 'text-gray-400'); ?>"></i>
+                Asset Accessories
+            </a>
+
+            
+            <a href="<?php echo e(route('maintenance-schedules.index')); ?>" 
+               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg <?php echo e(request()->routeIs('maintenance-schedules.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'); ?>">
+                <i class="fas fa-calendar-check w-5 text-center <?php echo e(request()->routeIs('maintenance-schedules.*') ? 'text-blue-700' : 'text-gray-400'); ?>"></i>
+                Preventive Maintenance
+            </a>
             <a
                 href="<?php echo e(route('maintenance.index')); ?>"
                 class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 <?php echo e($isActive('maintenance.*') ? 'bg-blue-50 text-blue-600' : ''); ?>"
@@ -256,6 +298,15 @@
             >
                 <i class="fas fa-exclamation-triangle <?php echo e($isActive('incident-reports.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900'); ?>"></i>
                 <span>Incident Reports</span>
+            </a>
+
+            
+            <a
+                href="<?php echo e(route('reported-assets.index')); ?>"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 <?php echo e($isActive('reported-assets.*') ? 'bg-blue-50 text-blue-600' : ''); ?>"
+            >
+                <i class="fas fa-flag <?php echo e($isActive('reported-assets.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900'); ?>"></i>
+                <span>Reported Asset</span>
             </a>
 
             

@@ -21,7 +21,9 @@ return new class extends Migration
             $table->decimal('minimum_level', 10, 2)->default(0)->after('maximum_capacity');
         });
 
-        DB::statement('ALTER TABLE operational_requirements MODIFY description TEXT NULL');
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement('ALTER TABLE operational_requirements MODIFY description TEXT NULL');
+        }
     }
 
     /**

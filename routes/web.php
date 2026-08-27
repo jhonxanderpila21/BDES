@@ -12,9 +12,13 @@ use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ReturnController;
 use App\Http\Controllers\MaintenanceController;
+use App\Http\Controllers\MaintenanceScheduleController;
 use App\Http\Controllers\InspectionController;
 use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\OperationalRequirementController;
+use App\Http\Controllers\AssetNeedController;
+use App\Http\Controllers\AssetAccessoryController;
+use App\Http\Controllers\ReportedAssetController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -54,9 +58,27 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/operational-requirements/{operationalRequirement}/refill', [OperationalRequirementController::class, 'refill'])->name('operational-requirements.refill');
     Route::post('/operational-requirements/{operationalRequirement}/consume', [OperationalRequirementController::class, 'consume'])->name('operational-requirements.consume');
 
+    // Asset Needs
+    Route::resource('asset-needs', AssetNeedController::class)->except(['show', 'create', 'edit']);
+    Route::post('asset-needs/{asset_need}/replenish', [AssetNeedController::class, 'replenish'])->name('asset-needs.replenish');
+
+    // Asset Accessories
+    Route::post('asset-accessories/{asset_accessory}/adjust-quantity', [AssetAccessoryController::class, 'adjustQuantity'])->name('asset-accessories.adjust-quantity');
+    Route::resource('asset-accessories', AssetAccessoryController::class)->except(['create', 'show', 'edit']);
+
     // Operations
     Route::resource('deployment', DeploymentController::class);
     Route::resource('returns', ReturnController::class);
+    
+    // Maintenance Schedules (Preventive Maintenance)
+    Route::post('maintenance-schedules/{maintenance_schedule}/complete', [MaintenanceScheduleController::class, 'complete'])->name('maintenance-schedules.complete');
+    Route::resource('maintenance-schedules', MaintenanceScheduleController::class)->except(['create', 'show', 'edit']);
+
+    // Reported Assets
+    Route::post('reported-assets/{reported_asset}/change-status', [ReportedAssetController::class, 'changeStatus'])->name('reported-assets.change-status');
+    Route::resource('reported-assets', ReportedAssetController::class);
+
+    // Reactive Maintenance
     Route::resource('maintenance', MaintenanceController::class);
     Route::resource('inspection', InspectionController::class);
     Route::resource('incident-reports', IncidentReportController::class);

@@ -37,7 +37,17 @@ return new class extends Migration
         DB::table('users')->where('role', 'admin')->update(['role' => 'administrator']);
         DB::table('users')->where('role', 'staff')->update(['role' => 'viewer']);
 
-        DB::statement("ALTER TABLE users MODIFY role ENUM('administrator', 'barangay_captain', 'inventory_officer', 'maintenance_officer', 'bdrrmc_officer', 'viewer') NOT NULL DEFAULT 'viewer'");
+        if (DB::connection()->getDriverName() === 'sqlite') {
+            // SQLite doesn't support ALTER TABLE MODIFY; rebuild the column.
+            Schema::table('users', function (Blueprint $table) {
+                $table->dropColumn('role');
+            });
+            Schema::table('users', function (Blueprint $table) {
+                $table->enum('role', ['administrator', 'barangay_captain', 'inventory_officer', 'maintenance_officer', 'bdrrmc_officer', 'viewer'])->default('viewer')->after('password');
+            });
+        } else {
+            DB::statement("ALTER TABLE users MODIFY role ENUM('administrator', 'barangay_captain', 'inventory_officer', 'maintenance_officer', 'bdrrmc_officer', 'viewer') NOT NULL DEFAULT 'viewer'");
+        }
     }
 
     /**
@@ -48,7 +58,9 @@ return new class extends Migration
         DB::table('users')->whereNotIn('role', ['admin', 'staff'])->update(['role' => 'staff']);
         DB::table('users')->where('role', 'administrator')->update(['role' => 'admin']);
 
-        DB::statement("ALTER TABLE users MODIFY role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff'");
+        if (DB::connection()->getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE users MODIFY role ENUM('admin', 'staff') NOT NULL DEFAULT 'staff'");
+        }
 
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'username')) {
