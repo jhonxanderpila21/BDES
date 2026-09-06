@@ -75,11 +75,11 @@
                     class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                 >
                     <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                        JD
+                        {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 2)) }}
                     </div>
                     <div class="hidden sm:block text-left">
-                        <p class="text-sm font-medium text-gray-900">John Doe</p>
-                        <p class="text-xs text-gray-600">Administrator</p>
+                        <p class="text-sm font-medium text-gray-900">{{ Auth::user()->name ?? 'User' }}</p>
+                        <p class="text-xs text-gray-600">{{ ucfirst(Auth::user()->role ?? 'Administrator') }}</p>
                     </div>
                     <i class="fas fa-chevron-down text-xs text-gray-600 hidden sm:block"></i>
                 </button>
@@ -93,18 +93,15 @@
                 >
                     <div class="p-4">
                         <p class="text-sm font-semibold text-gray-900">Logged in as</p>
-                        <p class="text-sm text-gray-600">john.doe@barangay.gov</p>
+                        <p class="text-sm text-gray-600 truncate">{{ Auth::user()->email ?? '' }}</p>
                     </div>
                     <div class="py-2">
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                        <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                             <i class="fas fa-user-circle mr-2"></i> My Profile
                         </a>
-                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
-                            <i class="fas fa-cog mr-2"></i> Settings
-                        </a>
                     </div>
                     <div class="py-2">
-                        <form action="#" method="POST" class="px-4 py-2">
+                        <form action="{{ route('logout') }}" method="POST" class="px-4 py-2">
                             @csrf
                             <button type="submit" class="w-full text-left text-sm text-red-600 hover:bg-red-50 rounded py-2 px-2 transition-colors">
                                 <i class="fas fa-sign-out-alt mr-2"></i> Logout

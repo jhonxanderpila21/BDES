@@ -4,7 +4,8 @@ $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'label' => '',
     'href' => '#',
-    'active' => false
+    'active' => false,
+    'icon' => null,
 ]));
 
 foreach ($attributes->all() as $__key => $__value) {
@@ -23,7 +24,8 @@ unset($__newAttributes);
 foreach (array_filter(([
     'label' => '',
     'href' => '#',
-    'active' => false
+    'active' => false,
+    'icon' => null,
 ]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
@@ -38,10 +40,14 @@ unset($__defined_vars, $__key, $__value); ?>
 
 <a 
     href="<?php echo e($href); ?>"
-    class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-600 text-sm hover:text-gray-900 <?php echo e($active ? 'bg-blue-50 text-blue-600' : ''); ?>"
+    class="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-gray-600 text-sm hover:text-gray-900 <?php echo e($active ? 'bg-blue-50 text-blue-600 font-medium' : ''); ?>"
 >
-    <i class="fas fa-angle-right text-xs"></i>
-    <?php echo e($label); ?>
-
+    <?php if($icon): ?>
+        <i class="<?php echo e($icon); ?> w-4 text-center text-xs <?php echo e($active ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'); ?>"></i>
+    <?php else: ?>
+        <i class="fas fa-angle-right text-xs"></i>
+    <?php endif; ?>
+    <span><?php echo e($label); ?></span>
 </a>
+
 <?php /**PATH C:\Capstone\laravel\CapstoneFinal\BDES\resources\views/components/sidebar-submenu-item.blade.php ENDPATH**/ ?>

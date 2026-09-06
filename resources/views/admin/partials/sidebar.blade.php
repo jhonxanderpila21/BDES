@@ -3,21 +3,13 @@
     :class="{'w-64': sidebarOpen, 'w-0': !sidebarOpen}"
     class="w-64 flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden transition-all duration-300 ease-in-out shadow-sm"
 >
-    <nav class="h-screen overflow-y-auto" x-data="{ openDropdown: null }">
+    <nav class="h-screen overflow-y-auto">
         {{-- Sidebar Content --}}
         <div class="p-6 space-y-2">
             @php
                 $isActive = function (string $routePattern) {
                     return request()->routeIs($routePattern);
                 };
-
-                $assetManagementOpen = (
-                    request()->routeIs('assets.*') ||
-                    request()->routeIs('accessories.*') ||
-                    request()->routeIs('attachments.*') ||
-                    request()->routeIs('operational-requirements.*') ||
-                    request()->routeIs('asset-needs.*')
-                );
             @endphp
 
             {{-- 1. Dashboard --}}
@@ -38,67 +30,74 @@
                 <span>User Management</span>
             </a>
 
-            {{-- 3. Asset Management (dropdown) --}}
-            <div>
-                <x-sidebar-menu-item
-                    icon="fas fa-boxes-stacked"
-                    label="Asset Management"
-                    :active="request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*','asset-needs.*')"
-                    :expanded="$assetManagementOpen"
-                    setExpanded="openDropdown = openDropdown === 'asset-management' ? null : 'asset-management'"
+            {{-- 3. Asset Management --}}
+            <div class="space-y-1">
+                <a
+                    href="{{ route('assets.index') }}"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'bg-blue-50 text-blue-600' : '' }}"
                 >
-                    <ul class="mt-1 space-y-1">
-                        <li>
-                            <x-sidebar-submenu-item
-                                label="Asset Registry"
-                                href="{{ route('assets.index') }}"
-                                :active="request()->routeIs('assets.*')"
-                            />
-                        </li>
-                        <li>
-                            <x-sidebar-submenu-item
-                                label="Asset Accessories"
-                                href="{{ route('accessories.index') }}"
-                                :active="request()->routeIs('accessories.*')"
-                            />
-                        </li>
-                        <li>
-                            <x-sidebar-submenu-item
-                                label="Asset Attachments"
-                                href="{{ route('attachments.index') }}"
-                                :active="request()->routeIs('attachments.*')"
-                            />
-                        </li>
-                        <li>
-                            <x-sidebar-submenu-item
-                                label="Operational Requirements"
-                                href="{{ route('operational-requirements.index') }}"
-                                :active="request()->routeIs('operational-requirements.*')"
-                            />
-                        </li>
-                        <li>
-                            <x-sidebar-submenu-item
-                                label="Asset Needs"
-                                href="{{ route('asset-needs.index') }}"
-                                :active="request()->routeIs('asset-needs.*')"
-                            />
-                        </li>
-                        <li>
-                            <x-sidebar-submenu-item
-                                label="Depreciation Tracking"
-                                href="#"
-                                :active="false"
-                            />
-                        </li>
-                        <li>
-                            <x-sidebar-submenu-item
-                                label="Salvage Value Records"
-                                href="#"
-                                :active="false"
-                            />
-                        </li>
-                    </ul>
-                </x-sidebar-menu-item>
+                    <i class="fas fa-boxes-stacked {{ request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
+                    <span>Asset Management</span>
+                </a>
+
+                <ul class="pl-2 space-y-1">
+                    <li>
+                        <x-sidebar-submenu-item
+                            label="Asset Registry"
+                            href="{{ route('assets.index') }}"
+                            icon="fas fa-clipboard-list"
+                            :active="request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*')"
+                        />
+                    </li>
+                    <li>
+                        <x-sidebar-submenu-item
+                            label="Asset Accessories"
+                            href="{{ route('asset-accessories.index') }}"
+                            icon="fas fa-tools"
+                            :active="request()->routeIs('asset-accessories.*') || request()->routeIs('accessories.*')"
+                        />
+                    </li>
+                    <li>
+                        <x-sidebar-submenu-item
+                            label="Asset Attachments"
+                            href="{{ route('attachments.index') }}"
+                            icon="fas fa-paperclip"
+                            :active="request()->routeIs('attachments.*')"
+                        />
+                    </li>
+                    <li>
+                        <x-sidebar-submenu-item
+                            label="Operational Requirements"
+                            href="{{ route('operational-requirements.index') }}"
+                            icon="fas fa-list-check"
+                            :active="request()->routeIs('operational-requirements.*')"
+                        />
+                    </li>
+                    <li>
+                        <x-sidebar-submenu-item
+                            label="Asset Needs"
+                            href="{{ route('asset-needs.index') }}"
+                            icon="fas fa-gas-pump"
+                            :active="request()->routeIs('asset-needs.*')"
+                        />
+                    </li>
+                    <li>
+                        <x-sidebar-submenu-item
+                            label="Depreciation Tracking"
+                            href="#"
+                            icon="fas fa-arrow-trend-down"
+                            :active="false"
+                        />
+                    </li>
+                    <li>
+                        <x-sidebar-submenu-item
+                            label="Salvage Value Records"
+                            href="#"
+                            icon="fas fa-recycle"
+                            :active="false"
+                        />
+                    </li>
+                </ul>
             </div>
 
             {{-- 4. Asset Categories --}}
@@ -135,20 +134,6 @@
             >
                 <i class="fas fa-undo-alt {{ $isActive('returns.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
                 <span>Return</span>
-            </a>
-
-            {{-- 6. Asset Needs --}}
-            <a href="{{ route('asset-needs.index') }}" 
-               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('asset-needs.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
-                <i class="fas fa-gas-pump w-5 text-center {{ request()->routeIs('asset-needs.*') ? 'text-blue-700' : 'text-gray-400' }}"></i>
-                Asset Needs
-            </a>
-
-            {{-- 6.5. Asset Accessories --}}
-            <a href="{{ route('asset-accessories.index') }}" 
-               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('asset-accessories.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
-                <i class="fas fa-tools w-5 text-center {{ request()->routeIs('asset-accessories.*') ? 'text-blue-700' : 'text-gray-400' }}"></i>
-                Asset Accessories
             </a>
 
             {{-- 8. Maintenance --}}

@@ -82,25 +82,13 @@ class DashboardController extends Controller
 
         // Chart data
         $assetsByCategory = $this->charts->assetsByCategory();
-        $deploymentTrend = $this->charts->monthlyDeploymentTrend();
-
-        // Data for the Add Asset modal dropdowns
-        $categories = AssetCategory::where('status', 'active')
-            ->orderBy('name')
-            ->get();
-        $types = \App\Models\AssetType::orderBy('name')->get();
-        $locations = \App\Models\Location::orderBy('name')->get();
 
         return view('admin.dashboard.index', compact(
             'stats',
             'recentActivities',
             'upcomingInspections',
             'maintenanceReminders',
-            'assetsByCategory',
-            'deploymentTrend',
-            'categories',
-            'types',
-            'locations'
+            'assetsByCategory'
         ));
     }
 }

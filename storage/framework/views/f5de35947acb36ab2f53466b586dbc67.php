@@ -3,21 +3,13 @@
     :class="{'w-64': sidebarOpen, 'w-0': !sidebarOpen}"
     class="w-64 flex-shrink-0 bg-white border-r border-gray-200 overflow-hidden transition-all duration-300 ease-in-out shadow-sm"
 >
-    <nav class="h-screen overflow-y-auto" x-data="{ openDropdown: null }">
+    <nav class="h-screen overflow-y-auto">
         
         <div class="p-6 space-y-2">
             <?php
                 $isActive = function (string $routePattern) {
                     return request()->routeIs($routePattern);
                 };
-
-                $assetManagementOpen = (
-                    request()->routeIs('assets.*') ||
-                    request()->routeIs('accessories.*') ||
-                    request()->routeIs('attachments.*') ||
-                    request()->routeIs('operational-requirements.*') ||
-                    request()->routeIs('asset-needs.*')
-                );
             ?>
 
             
@@ -39,29 +31,27 @@
             </a>
 
             
-            <div>
-                <?php if (isset($component)) { $__componentOriginalb4dc1e680a94e5cffd4f77271bb15fae = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginalb4dc1e680a94e5cffd4f77271bb15fae = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-menu-item','data' => ['icon' => 'fas fa-boxes-stacked','label' => 'Asset Management','active' => request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*','asset-needs.*'),'expanded' => $assetManagementOpen,'setExpanded' => 'openDropdown = openDropdown === \'asset-management\' ? null : \'asset-management\'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('sidebar-menu-item'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['icon' => 'fas fa-boxes-stacked','label' => 'Asset Management','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('assets.*','accessories.*','attachments.*','operational-requirements.*','asset-needs.*')),'expanded' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($assetManagementOpen),'setExpanded' => 'openDropdown = openDropdown === \'asset-management\' ? null : \'asset-management\'']); ?>
-                    <ul class="mt-1 space-y-1">
-                        <li>
-                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+            <div class="space-y-1">
+                <a
+                    href="<?php echo e(route('assets.index')); ?>"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 <?php echo e(request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'bg-blue-50 text-blue-600' : ''); ?>"
+                >
+                    <i class="fas fa-boxes-stacked <?php echo e(request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900'); ?>"></i>
+                    <span>Asset Management</span>
+                </a>
+
+                <ul class="pl-2 space-y-1">
+                    <li>
+                        <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Registry','href' => ''.e(route('assets.index')).'','active' => request()->routeIs('assets.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Registry','href' => ''.e(route('assets.index')).'','icon' => 'fas fa-clipboard-list','active' => request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-submenu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['label' => 'Asset Registry','href' => ''.e(route('assets.index')).'','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('assets.*'))]); ?>
+<?php $component->withAttributes(['label' => 'Asset Registry','href' => ''.e(route('assets.index')).'','icon' => 'fas fa-clipboard-list','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*'))]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -72,18 +62,18 @@
 <?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
 <?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
 <?php endif; ?>
-                        </li>
-                        <li>
-                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+                    </li>
+                    <li>
+                        <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Accessories','href' => ''.e(route('accessories.index')).'','active' => request()->routeIs('accessories.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Accessories','href' => ''.e(route('asset-accessories.index')).'','icon' => 'fas fa-tools','active' => request()->routeIs('asset-accessories.*') || request()->routeIs('accessories.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-submenu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['label' => 'Asset Accessories','href' => ''.e(route('accessories.index')).'','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('accessories.*'))]); ?>
+<?php $component->withAttributes(['label' => 'Asset Accessories','href' => ''.e(route('asset-accessories.index')).'','icon' => 'fas fa-tools','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('asset-accessories.*') || request()->routeIs('accessories.*'))]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -94,18 +84,18 @@
 <?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
 <?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
 <?php endif; ?>
-                        </li>
-                        <li>
-                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+                    </li>
+                    <li>
+                        <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Attachments','href' => ''.e(route('attachments.index')).'','active' => request()->routeIs('attachments.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Attachments','href' => ''.e(route('attachments.index')).'','icon' => 'fas fa-paperclip','active' => request()->routeIs('attachments.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-submenu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['label' => 'Asset Attachments','href' => ''.e(route('attachments.index')).'','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('attachments.*'))]); ?>
+<?php $component->withAttributes(['label' => 'Asset Attachments','href' => ''.e(route('attachments.index')).'','icon' => 'fas fa-paperclip','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('attachments.*'))]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -116,18 +106,18 @@
 <?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
 <?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
 <?php endif; ?>
-                        </li>
-                        <li>
-                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+                    </li>
+                    <li>
+                        <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Operational Requirements','href' => ''.e(route('operational-requirements.index')).'','active' => request()->routeIs('operational-requirements.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Operational Requirements','href' => ''.e(route('operational-requirements.index')).'','icon' => 'fas fa-list-check','active' => request()->routeIs('operational-requirements.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-submenu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['label' => 'Operational Requirements','href' => ''.e(route('operational-requirements.index')).'','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('operational-requirements.*'))]); ?>
+<?php $component->withAttributes(['label' => 'Operational Requirements','href' => ''.e(route('operational-requirements.index')).'','icon' => 'fas fa-list-check','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('operational-requirements.*'))]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -138,18 +128,18 @@
 <?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
 <?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
 <?php endif; ?>
-                        </li>
-                        <li>
-                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+                    </li>
+                    <li>
+                        <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Needs','href' => ''.e(route('asset-needs.index')).'','active' => request()->routeIs('asset-needs.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Asset Needs','href' => ''.e(route('asset-needs.index')).'','icon' => 'fas fa-gas-pump','active' => request()->routeIs('asset-needs.*')]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-submenu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['label' => 'Asset Needs','href' => ''.e(route('asset-needs.index')).'','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('asset-needs.*'))]); ?>
+<?php $component->withAttributes(['label' => 'Asset Needs','href' => ''.e(route('asset-needs.index')).'','icon' => 'fas fa-gas-pump','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(request()->routeIs('asset-needs.*'))]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -160,18 +150,18 @@
 <?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
 <?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
 <?php endif; ?>
-                        </li>
-                        <li>
-                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+                    </li>
+                    <li>
+                        <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Depreciation Tracking','href' => '#','active' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Depreciation Tracking','href' => '#','icon' => 'fas fa-arrow-trend-down','active' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-submenu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['label' => 'Depreciation Tracking','href' => '#','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
+<?php $component->withAttributes(['label' => 'Depreciation Tracking','href' => '#','icon' => 'fas fa-arrow-trend-down','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -182,18 +172,18 @@
 <?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
 <?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
 <?php endif; ?>
-                        </li>
-                        <li>
-                            <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
+                    </li>
+                    <li>
+                        <?php if (isset($component)) { $__componentOriginal997557fad3caf2daf17902cc73dc0423 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal997557fad3caf2daf17902cc73dc0423 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Salvage Value Records','href' => '#','active' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.sidebar-submenu-item','data' => ['label' => 'Salvage Value Records','href' => '#','icon' => 'fas fa-recycle','active' => false]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('sidebar-submenu-item'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['label' => 'Salvage Value Records','href' => '#','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
+<?php $component->withAttributes(['label' => 'Salvage Value Records','href' => '#','icon' => 'fas fa-recycle','active' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(false)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal997557fad3caf2daf17902cc73dc0423)): ?>
@@ -204,18 +194,8 @@
 <?php $component = $__componentOriginal997557fad3caf2daf17902cc73dc0423; ?>
 <?php unset($__componentOriginal997557fad3caf2daf17902cc73dc0423); ?>
 <?php endif; ?>
-                        </li>
-                    </ul>
-                 <?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginalb4dc1e680a94e5cffd4f77271bb15fae)): ?>
-<?php $attributes = $__attributesOriginalb4dc1e680a94e5cffd4f77271bb15fae; ?>
-<?php unset($__attributesOriginalb4dc1e680a94e5cffd4f77271bb15fae); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginalb4dc1e680a94e5cffd4f77271bb15fae)): ?>
-<?php $component = $__componentOriginalb4dc1e680a94e5cffd4f77271bb15fae; ?>
-<?php unset($__componentOriginalb4dc1e680a94e5cffd4f77271bb15fae); ?>
-<?php endif; ?>
+                    </li>
+                </ul>
             </div>
 
             
@@ -252,20 +232,6 @@
             >
                 <i class="fas fa-undo-alt <?php echo e($isActive('returns.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900'); ?>"></i>
                 <span>Return</span>
-            </a>
-
-            
-            <a href="<?php echo e(route('asset-needs.index')); ?>" 
-               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg <?php echo e(request()->routeIs('asset-needs.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'); ?>">
-                <i class="fas fa-gas-pump w-5 text-center <?php echo e(request()->routeIs('asset-needs.*') ? 'text-blue-700' : 'text-gray-400'); ?>"></i>
-                Asset Needs
-            </a>
-
-            
-            <a href="<?php echo e(route('asset-accessories.index')); ?>" 
-               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg <?php echo e(request()->routeIs('asset-accessories.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600'); ?>">
-                <i class="fas fa-tools w-5 text-center <?php echo e(request()->routeIs('asset-accessories.*') ? 'text-blue-700' : 'text-gray-400'); ?>"></i>
-                Asset Accessories
             </a>
 
             

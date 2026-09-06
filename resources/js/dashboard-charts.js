@@ -3,12 +3,7 @@ import {
 	CategoryScale,
 	Chart,
 	DoughnutController,
-	Filler,
 	Legend,
-	LineController,
-	LineElement,
-	LinearScale,
-	PointElement,
 	Tooltip,
 } from 'chart.js';
 
@@ -16,12 +11,7 @@ Chart.register(
 	ArcElement,
 	CategoryScale,
 	DoughnutController,
-	Filler,
 	Legend,
-	LineController,
-	LineElement,
-	LinearScale,
-	PointElement,
 	Tooltip,
 );
 
@@ -31,8 +21,6 @@ const SERIES = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300'
 
 const SURFACE = '#ffffff';
 const INK_SECONDARY = '#52514e';
-const INK_MUTED = '#898781';
-const GRIDLINE = '#e1e0d9';
 
 Chart.defaults.font.family = 'system-ui, -apple-system, "Segoe UI", sans-serif';
 Chart.defaults.color = INK_SECONDARY;
@@ -96,52 +84,6 @@ function renderAssetsByCategory() {
 	});
 }
 
-function renderDeploymentTrend() {
-	const canvas = document.querySelector('[data-chart="deployment-trend"]');
-	const payload = readChartData('deployment-trend');
-	if (!canvas || !payload) return;
-
-	new Chart(canvas, {
-		type: 'line',
-		data: {
-			labels: payload.labels,
-			datasets: [{
-				label: 'Deployments',
-				data: payload.data,
-				borderColor: SERIES[0],
-				backgroundColor: 'rgba(42, 120, 214, 0.08)',
-				borderWidth: 2,
-				pointRadius: 4,
-				pointHoverRadius: 8,
-				pointBackgroundColor: SERIES[0],
-				tension: 0.3,
-				fill: true,
-			}],
-		},
-		options: {
-			responsive: true,
-			maintainAspectRatio: false,
-			// Single series: the panel title names it, so no legend box.
-			plugins: { legend: { display: false } },
-			interaction: { mode: 'index', intersect: false },
-			scales: {
-				x: {
-					grid: { display: false },
-					border: { color: GRIDLINE },
-					ticks: { color: INK_MUTED },
-				},
-				y: {
-					beginAtZero: true,
-					grid: { color: GRIDLINE },
-					border: { display: false },
-					ticks: { color: INK_MUTED, precision: 0 },
-				},
-			},
-		},
-	});
-}
-
 document.addEventListener('DOMContentLoaded', () => {
 	renderAssetsByCategory();
-	renderDeploymentTrend();
 });

@@ -11,7 +11,7 @@
     </div>
 
     {{-- Quick Stats --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8 auto-rows-fr items-stretch">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8 auto-rows-fr items-stretch">
         <x-statistic-card
             title="Total Assets"
             value="{{ number_format($stats['total_assets']) }}"
@@ -57,18 +57,9 @@
             trendDirection="down"
             :href="route('inspection.index')"
         />
-        <x-statistic-card
-            title="Reported Incidents"
-            value="{{ number_format($stats['incidents']) }}"
-            icon="fas fa-exclamation-triangle"
-            color="red"
-            trend="Open/Investigating"
-            trendDirection="down"
-            :href="route('incident-reports.index')"
-        />
     </div>
 
-    {{-- Charts and Recent Activity --}}
+    {{-- Charts and Reminders --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {{-- Charts Section --}}
         <div class="lg:col-span-2 space-y-6">
@@ -115,58 +106,10 @@
                     @endif
                 </div>
             </x-card>
-
-            {{-- Monthly Deployment Chart --}}
-            <x-card>
-                <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-lg font-semibold text-gray-900">Monthly Deployment Trend</h2>
-                </div>
-                <div class="p-6">
-                    @if(array_sum($deploymentTrend['data']) > 0)
-                        <div class="w-full h-80">
-                            <canvas data-chart="deployment-trend"></canvas>
-                        </div>
-                        <script type="application/json" id="deployment-trend-data">{!! json_encode($deploymentTrend, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!}</script>
-                    @else
-                        <div class="w-full h-80 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center">
-                            <div class="text-center">
-                                <i class="fas fa-chart-line text-5xl text-gray-300 mb-4 block"></i>
-                                <p class="text-gray-500">No deployments in the last 12 months</p>
-                                <p class="text-xs text-gray-400 mt-2">Deploy an asset to start tracking the trend</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </x-card>
         </div>
 
         {{-- Right Sidebar --}}
         <div class="space-y-6">
-            {{-- Quick Actions --}}
-            <x-card>
-                <div class="p-6 border-b border-gray-200">
-                    <h2 class="text-lg font-semibold text-gray-900">Quick Actions</h2>
-                </div>
-                <div class="p-6 space-y-3">
-                    <button onclick="openAddAssetModal()" class="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors font-medium text-sm">
-                        <i class="fas fa-plus"></i>
-                        Add New Asset
-                    </button>
-                    <button onclick="openDeploymentModal()" class="w-full flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-700 rounded-lg hover:bg-purple-100 transition-colors font-medium text-sm">
-                        <i class="fas fa-truck"></i>
-                        Deploy Asset
-                    </button>
-                    <button onclick="openMaintenanceModal()" class="w-full flex items-center gap-3 px-4 py-3 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors font-medium text-sm">
-                        <i class="fas fa-wrench"></i>
-                        Schedule Maintenance
-                    </button>
-                    <button onclick="openIncidentModal()" class="w-full flex items-center gap-3 px-4 py-3 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Report Incident
-                    </button>
-                </div>
-            </x-card>
-
             {{-- Upcoming Inspections --}}
             <x-card>
                 <div class="p-6 border-b border-gray-200">
@@ -215,7 +158,7 @@
     </div>
 
     {{-- Recent Activities --}}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="mb-8">
         {{-- Recent Activities Table --}}
         <x-card>
             <div class="p-6 border-b border-gray-200 flex items-center justify-between">
@@ -251,91 +194,9 @@
                 </table>
             </div>
         </x-card>
-
-        {{-- System Health --}}
-        <x-card>
-            <div class="p-6 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-900">System Health</h2>
-            </div>
-            <div class="p-6 space-y-6">
-                {{-- Data Accuracy --}}
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm font-medium text-gray-900">Data Accuracy</p>
-                        <span class="text-sm font-bold text-green-600">98%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-green-500 h-2 rounded-full" style="width: 98%"></div>
-                    </div>
-                </div>
-
-                {{-- Asset Deployment Rate --}}
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm font-medium text-gray-900">Deployment Rate</p>
-                        <span class="text-sm font-bold text-blue-600">76%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-blue-500 h-2 rounded-full" style="width: 76%"></div>
-                    </div>
-                </div>
-
-                {{-- Maintenance Compliance --}}
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm font-medium text-gray-900">Maintenance Compliance</p>
-                        <span class="text-sm font-bold text-yellow-600">89%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-yellow-500 h-2 rounded-full" style="width: 89%"></div>
-                    </div>
-                </div>
-
-                {{-- Inspection Status --}}
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-sm font-medium text-gray-900">Inspection Status</p>
-                        <span class="text-sm font-bold text-red-600">84%</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="bg-red-500 h-2 rounded-full" style="width: 84%"></div>
-                    </div>
-                </div>
-
-                {{-- System Uptime --}}
-                <div class="pt-4 border-t border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-gray-600">System Uptime</span>
-                        <span class="text-sm font-bold text-gray-900">99.9%</span>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-1">Last Updated: 5 minutes ago</p>
-                </div>
-            </div>
-        </x-card>
     </div>
-
-    {{-- Add Asset Modal --}}
-    @include('admin.assets.partials._add_asset_modal')
 
     @push('scripts')
         @vite('resources/js/dashboard-charts.js')
-
-        <script>
-            function openAddAssetModal() {
-                window.openModal('add-asset-modal');
-            }
-
-            function openDeploymentModal() {
-                alert('Open Deployment Modal - To be implemented');
-            }
-
-            function openMaintenanceModal() {
-                alert('Open Maintenance Modal - To be implemented');
-            }
-
-            function openIncidentModal() {
-                alert('Open Incident Report Modal - To be implemented');
-            }
-        </script>
     @endpush
 @endsection
