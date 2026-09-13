@@ -17,53 +17,7 @@ class MaintenanceScheduleController extends Controller
      */
     public function index(Request $request)
     {
-        // Dynamically update status before rendering to ensure accuracy
-        // In a real prod environment, this might be handled completely by a cron job
-        $allSchedules = MaintenanceSchedule::all();
-        foreach ($allSchedules as $schedule) {
-            $schedule->refreshStatus();
-        }
-
-        $query = MaintenanceSchedule::with('asset');
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('maintenance_task', 'like', "%{$search}%")
-                  ->orWhere('asset_type', 'like', "%{$search}%")
-                  ->orWhereHas('asset', function ($aq) use ($search) {
-                      $aq->where('name', 'like', "%{$search}%")
-                         ->orWhere('code', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        if ($request->filled('asset_type')) {
-            $query->where('asset_type', $request->asset_type);
-        }
-
-        if ($request->filled('interval_type')) {
-            $query->where('interval_type', $request->interval_type);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $schedules = $query->latest()->paginate(10)->withQueryString();
-
-        $assetTypes = MaintenanceSchedule::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
-        $intervalTypes = MaintenanceScheduleService::intervalTypes();
-        $statuses = MaintenanceScheduleService::statuses();
-        $assets = Asset::with('type')->orderBy('name')->get();
-
-        return view('admin.maintenance-schedules.index', compact(
-            'schedules',
-            'assetTypes',
-            'intervalTypes',
-            'statuses',
-            'assets'
-        ));
+        return app(MaintenanceController::class)->index($request->merge(['tab' => 'schedules']));
     }
 
     /**

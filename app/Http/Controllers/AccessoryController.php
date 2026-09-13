@@ -10,12 +10,11 @@ use Illuminate\Http\Request;
 class AccessoryController extends Controller
 {
     /**
-     * Display a listing of accessories.
+     * Display a listing of accessories within the unified Attachments & Accessories hub.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $accessories = Accessory::with(['assetType', 'supplier'])->paginate(10);
-        return view('admin.accessories.index', ['accessories' => $accessories]);
+        return app(AttachmentController::class)->index($request->merge(['tab' => $request->get('tab', 'accessories')]));
     }
 
     /**

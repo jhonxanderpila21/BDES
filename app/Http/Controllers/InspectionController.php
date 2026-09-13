@@ -10,24 +10,7 @@ class InspectionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Inspection::with('asset');
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->whereHas('asset', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $inspections = $query->latest()->paginate(10)->withQueryString();
-        $assets = Asset::orderBy('name')->get();
-
-        return view('admin.inspection.index', compact('inspections', 'assets'));
+        return app(MaintenanceController::class)->index($request->merge(['tab' => 'inspections']));
     }
 
     public function store(Request $request)
@@ -44,7 +27,7 @@ class InspectionController extends Controller
 
         Inspection::create($validated);
 
-        return redirect()->route('inspection.index')
+        return redirect()->route('maintenance.index', ['tab' => 'inspections'])
             ->with('success', 'Inspection record created successfully!');
     }
 
@@ -62,7 +45,7 @@ class InspectionController extends Controller
 
         $inspection->update($validated);
 
-        return redirect()->route('inspection.index')
+        return redirect()->route('maintenance.index', ['tab' => 'inspections'])
             ->with('success', 'Inspection record updated successfully!');
     }
 
@@ -70,7 +53,7 @@ class InspectionController extends Controller
     {
         $inspection->delete();
 
-        return redirect()->route('inspection.index')
+        return redirect()->route('maintenance.index', ['tab' => 'inspections'])
             ->with('success', 'Inspection record deleted successfully!');
     }
 }

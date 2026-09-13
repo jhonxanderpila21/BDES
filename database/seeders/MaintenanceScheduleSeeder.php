@@ -29,6 +29,7 @@ class MaintenanceScheduleSeeder extends Seeder
                 'interval_days' => 30,
                 'last_maintenance_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
             ],
+
             // Generator / Spark Plug Check / Quarterly (90 days) / last done 88 days ago → Monitoring Only (but close to due)
             [
                 'asset_id' => $gen001?->id,
@@ -38,6 +39,7 @@ class MaintenanceScheduleSeeder extends Seeder
                 'interval_days' => 90,
                 'last_maintenance_date' => Carbon::now()->subDays(88)->format('Y-m-d'),
             ],
+
             // Chainsaw / Blade Sharpening / Quarterly (90 days) / last done 95 days ago → Maintenance Due
             [
                 'asset_id' => $saw001?->id,
@@ -47,6 +49,7 @@ class MaintenanceScheduleSeeder extends Seeder
                 'interval_days' => 90,
                 'last_maintenance_date' => Carbon::now()->subDays(95)->format('Y-m-d'),
             ],
+
             // Rescue Boat / Hull Inspection / Yearly (365 days) / last done 400 days ago → Overdue
             [
                 'asset_id' => $bot001?->id,
@@ -56,6 +59,7 @@ class MaintenanceScheduleSeeder extends Seeder
                 'interval_days' => 365,
                 'last_maintenance_date' => Carbon::now()->subDays(400)->format('Y-m-d'),
             ],
+
             // Patrol Vehicle / Brake Fluid Flush / Yearly (365 days) / last done 366 days ago → Maintenance Due
             [
                 'asset_id' => $veh001?->id,
@@ -65,6 +69,7 @@ class MaintenanceScheduleSeeder extends Seeder
                 'interval_days' => 365,
                 'last_maintenance_date' => Carbon::now()->subDays(366)->format('Y-m-d'),
             ],
+
             // Patrol Vehicle / Oil Filter Replacement / Quarterly (90 days) / last done 110 days ago → Overdue
             [
                 'asset_id' => $veh001?->id,
@@ -78,6 +83,13 @@ class MaintenanceScheduleSeeder extends Seeder
 
         foreach ($schedules as $schedule) {
             if ($schedule['asset_id']) {
+                // Calculate the next maintenance due date
+                $schedule['next_due_date'] = Carbon::parse(
+                    $schedule['last_maintenance_date']
+                )
+                    ->addDays($schedule['interval_days'])
+                    ->format('Y-m-d');
+
                 MaintenanceSchedule::create($schedule);
             }
         }

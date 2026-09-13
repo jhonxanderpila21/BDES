@@ -34,35 +34,27 @@
             <div class="space-y-1">
                 <a
                     href="{{ route('assets.index') }}"
-                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'bg-blue-50 text-blue-600' : '' }}"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ (request()->routeIs('assets.*') || request()->routeIs('asset-categories.*') || request()->routeIs('asset-types.*')) && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'bg-blue-50 text-blue-600' : '' }}"
                 >
-                    <i class="fas fa-boxes-stacked {{ request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
+                    <i class="fas fa-boxes-stacked {{ (request()->routeIs('assets.*') || request()->routeIs('asset-categories.*') || request()->routeIs('asset-types.*')) && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
                     <span>Asset Management</span>
                 </a>
 
                 <ul class="pl-2 space-y-1">
                     <li>
                         <x-sidebar-submenu-item
-                            label="Asset Registry"
+                            label="Assets"
                             href="{{ route('assets.index') }}"
-                            icon="fas fa-clipboard-list"
-                            :active="request()->routeIs('assets.*') && !request()->routeIs('accessories.*', 'asset-accessories.*', 'attachments.*', 'operational-requirements.*', 'asset-needs.*')"
+                            icon="fas fa-boxes-stacked"
+                            :active="request()->routeIs('assets.*') || request()->routeIs('asset-categories.*') || request()->routeIs('asset-types.*')"
                         />
                     </li>
                     <li>
                         <x-sidebar-submenu-item
-                            label="Asset Accessories"
-                            href="{{ route('asset-accessories.index') }}"
-                            icon="fas fa-tools"
-                            :active="request()->routeIs('asset-accessories.*') || request()->routeIs('accessories.*')"
-                        />
-                    </li>
-                    <li>
-                        <x-sidebar-submenu-item
-                            label="Asset Attachments"
+                            label="Attachments & Accessories"
                             href="{{ route('attachments.index') }}"
                             icon="fas fa-paperclip"
-                            :active="request()->routeIs('attachments.*')"
+                            :active="request()->routeIs('attachments.*') || request()->routeIs('asset-accessories.*') || request()->routeIs('accessories.*')"
                         />
                     </li>
                     <li>
@@ -100,63 +92,22 @@
                 </ul>
             </div>
 
-            {{-- 4. Asset Categories --}}
-            <a
-                href="{{ route('asset-categories.index') }}"
-                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('asset-categories.*') ? 'bg-blue-50 text-blue-600' : '' }}"
-            >
-                <i class="fas fa-folder-open {{ $isActive('asset-categories.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
-                <span>Asset Categories</span>
-            </a>
-
-            {{-- 5. Asset Types --}}
-            <a
-                href="{{ route('asset-types.index') }}"
-                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('asset-types.*') ? 'bg-blue-50 text-blue-600' : '' }}"
-            >
-                <i class="fas fa-tags {{ $isActive('asset-types.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
-                <span>Asset Types</span>
-            </a>
-
-            {{-- 6. Deployment --}}
+            {{-- 6. Deployments & Returns --}}
             <a
                 href="{{ route('deployment.index') }}"
-                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('deployment.*') ? 'bg-blue-50 text-blue-600' : '' }}"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ ($isActive('deployment.*') || $isActive('returns.*')) ? 'bg-blue-50 text-blue-600' : '' }}"
             >
-                <i class="fas fa-truck {{ $isActive('deployment.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
-                <span>Deployment</span>
-            </a>
-
-            {{-- 7. Return --}}
-            <a
-                href="{{ route('returns.index') }}"
-                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('returns.*') ? 'bg-blue-50 text-blue-600' : '' }}"
-            >
-                <i class="fas fa-undo-alt {{ $isActive('returns.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
-                <span>Return</span>
+                <i class="fas fa-truck-ramp-box {{ ($isActive('deployment.*') || $isActive('returns.*')) ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
+                <span>Deployments & Returns</span>
             </a>
 
             {{-- 8. Maintenance --}}
-            <a href="{{ route('maintenance-schedules.index') }}" 
-               class="flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-lg {{ request()->routeIs('maintenance-schedules.*') ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600' }}">
-                <i class="fas fa-calendar-check w-5 text-center {{ request()->routeIs('maintenance-schedules.*') ? 'text-blue-700' : 'text-gray-400' }}"></i>
-                Preventive Maintenance
-            </a>
             <a
                 href="{{ route('maintenance.index') }}"
-                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('maintenance.*') ? 'bg-blue-50 text-blue-600' : '' }}"
+                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ ($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) ? 'bg-blue-50 text-blue-600' : '' }}"
             >
-                <i class="fas fa-wrench {{ $isActive('maintenance.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
+                <i class="fas fa-screwdriver-wrench {{ ($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
                 <span>Maintenance</span>
-            </a>
-
-            {{-- 9. Inspection --}}
-            <a
-                href="{{ route('inspection.index') }}"
-                class="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-gray-700 text-sm font-medium hover:bg-gray-50 {{ $isActive('inspection.*') ? 'bg-blue-50 text-blue-600' : '' }}"
-            >
-                <i class="fas fa-clipboard-check {{ $isActive('inspection.*') ? 'text-blue-600' : 'text-gray-600 group-hover:text-gray-900' }}"></i>
-                <span>Inspection</span>
             </a>
 
             {{-- 10. Incident Reports --}}

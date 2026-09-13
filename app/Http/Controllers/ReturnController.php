@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\AssetReturn;
+use App\Models\Deployment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -12,25 +13,7 @@ class ReturnController extends Controller
 {
     public function index(Request $request)
     {
-        $query = AssetReturn::with('asset');
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-
-            $query->whereHas('asset', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $returns = $query->latest()->paginate(10)->withQueryString();
-        $assets = Asset::where('status', 'deployed')->orderBy('name')->get();
-
-        return view('admin.returns.index', compact('returns', 'assets'));
+        return redirect()->route('deployment.index', array_merge(['status' => 'returned'], $request->all()));
     }
 
     public function store(Request $request)
@@ -50,6 +33,17 @@ class ReturnController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
+            // Find and link active deployment if one exists
+            $activeDeployment = Deployment::where('asset_id', $validated['asset_id'])
+                ->whereIn('status', ['active', 'pending_return'])
+                ->latest()
+                ->first();
+
+            if ($activeDeployment) {
+                $validated['deployment_id'] = $activeDeployment->id;
+                $activeDeployment->update(['status' => 'returned']);
+            }
+
             AssetReturn::create($validated);
 
             $asset = Asset::find($validated['asset_id']);
@@ -60,7 +54,7 @@ class ReturnController extends Controller
             }
         });
 
-        return redirect()->route('returns.index')
+        return redirect()->route('deployment.index')
             ->with('success', 'Return recorded successfully and asset status updated!');
     }
 
