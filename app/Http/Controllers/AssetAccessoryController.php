@@ -12,52 +12,11 @@ use Illuminate\Http\Request;
 class AssetAccessoryController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource within the unified Attachments & Accessories hub.
      */
     public function index(Request $request)
     {
-        $query = AssetAccessory::with('asset');
-
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('accessory_name', 'like', "%{$search}%")
-                  ->orWhere('asset_type', 'like', "%{$search}%")
-                  ->orWhereHas('asset', function ($aq) use ($search) {
-                      $aq->where('name', 'like', "%{$search}%")
-                         ->orWhere('code', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        if ($request->filled('asset_type')) {
-            $query->where('asset_type', $request->asset_type);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $accessories = $query->latest()->paginate(10)->withQueryString();
-
-        $assetTypes = AssetAccessory::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
-        $statuses = AssetAccessoryService::statuses();
-        $assets = Asset::with('type')->orderBy('name')->get();
-
-        // Calculate budgeting summary
-        $budgetSummary = AssetAccessory::all()
-            ->groupBy('asset_type')
-            ->map(function ($items) {
-                return $items->sum('total_value');
-            });
-
-        return view('admin.asset-accessories.index', compact(
-            'accessories',
-            'assetTypes',
-            'statuses',
-            'assets',
-            'budgetSummary'
-        ));
+        return app(AttachmentController::class)->index($request->merge(['tab' => $request->get('tab', 'accessories')]));
     }
 
     /**

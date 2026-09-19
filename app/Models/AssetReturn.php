@@ -10,6 +10,7 @@ class AssetReturn extends Model
     protected $table = 'returns';
 
     protected $fillable = [
+        'deployment_id',
         'asset_id',
         'returned_by',
         'return_date',
@@ -32,5 +33,13 @@ class AssetReturn extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class, 'asset_id');
+    }
+
+    /**
+     * Get the deployment associated with this return
+     */
+    public function deployment(): BelongsTo
+    {
+        return $this->belongsTo(Deployment::class, 'deployment_id');
     }
 }

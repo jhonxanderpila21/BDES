@@ -8,12 +8,11 @@ use Illuminate\Http\Request;
 class AssetCategoryController extends Controller
 {
     /**
-     * Display a listing of asset categories.
+     * Display a listing of asset categories within the unified Assets hub.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $categories = AssetCategory::paginate(10);
-        return view('admin.asset-categories.index', ['categories' => $categories]);
+        return app(AssetController::class)->index($request->merge(['tab' => 'categories']));
     }
 
     /**
@@ -22,14 +21,14 @@ class AssetCategoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:asset_categories,name',
+            'name'        => 'required|string|max:255|unique:asset_categories,name',
             'description' => 'nullable|string',
-            'status' => 'in:active,inactive',
+            'status'      => 'in:active,inactive',
         ]);
 
         AssetCategory::create($validated);
 
-        return redirect()->route('asset-categories.index')
+        return redirect()->route('assets.index', ['tab' => 'categories'])
             ->with('success', 'Category created successfully!');
     }
 
@@ -39,14 +38,14 @@ class AssetCategoryController extends Controller
     public function update(Request $request, AssetCategory $assetCategory)
     {
         $validated = $request->validate([
-            'name' => 'required|string|unique:asset_categories,name,' . $assetCategory->id,
+            'name'        => 'required|string|max:255|unique:asset_categories,name,' . $assetCategory->id,
             'description' => 'nullable|string',
-            'status' => 'in:active,inactive',
+            'status'      => 'in:active,inactive',
         ]);
 
         $assetCategory->update($validated);
 
-        return redirect()->route('asset-categories.index')
+        return redirect()->route('assets.index', ['tab' => 'categories'])
             ->with('success', 'Category updated successfully!');
     }
 
@@ -57,7 +56,7 @@ class AssetCategoryController extends Controller
     {
         $assetCategory->delete();
 
-        return redirect()->route('asset-categories.index')
+        return redirect()->route('assets.index', ['tab' => 'categories'])
             ->with('success', 'Category deleted successfully!');
     }
 }

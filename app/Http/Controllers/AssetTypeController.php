@@ -3,23 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssetType;
-use App\Models\AssetCategory;
 use Illuminate\Http\Request;
 
 class AssetTypeController extends Controller
 {
     /**
-     * Display a listing of asset types.
+     * Display a listing of asset types within the unified Assets hub.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $types = AssetType::with('category')->paginate(10);
-        $categories = AssetCategory::orderBy('name')->get();
-
-        return view('admin.asset-types.index', [
-            'types' => $types,
-            'categories' => $categories,
-        ]);
+        return app(AssetController::class)->index($request->merge(['tab' => 'types']));
     }
 
     /**
@@ -28,20 +21,30 @@ class AssetTypeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'category_id' => 'nullable|exists:asset_categories,id',
-            'name' => 'required|string',
-            'serialized' => 'boolean',
-            'borrowable' => 'boolean',
-            'requires_maintenance' => 'boolean',
-            'requires_inspection' => 'boolean',
-            'has_accessories' => 'boolean',
-            'has_attachments' => 'boolean',
+            'category_id'                       => 'nullable|exists:asset_categories,id',
+            'name'                              => 'required|string|max:255',
+            'serialized'                        => 'boolean',
+            'borrowable'                        => 'boolean',
+            'requires_maintenance'              => 'boolean',
+            'requires_inspection'               => 'boolean',
+            'has_accessories'                   => 'boolean',
+            'has_attachments'                   => 'boolean',
             'requires_operational_requirements' => 'boolean',
         ]);
 
+        // Cast checkboxes boolean
+        $checkboxes = [
+            'serialized', 'borrowable', 'requires_maintenance', 
+            'requires_inspection', 'has_accessories', 'has_attachments', 
+            'requires_operational_requirements'
+        ];
+        foreach ($checkboxes as $cb) {
+            $validated[$cb] = $request->boolean($cb);
+        }
+
         AssetType::create($validated);
 
-        return redirect()->route('asset-types.index')
+        return redirect()->route('assets.index', ['tab' => 'types'])
             ->with('success', 'Asset type created successfully!');
     }
 
@@ -51,20 +54,29 @@ class AssetTypeController extends Controller
     public function update(Request $request, AssetType $assetType)
     {
         $validated = $request->validate([
-            'category_id' => 'nullable|exists:asset_categories,id',
-            'name' => 'required|string',
-            'serialized' => 'boolean',
-            'borrowable' => 'boolean',
-            'requires_maintenance' => 'boolean',
-            'requires_inspection' => 'boolean',
-            'has_accessories' => 'boolean',
-            'has_attachments' => 'boolean',
+            'category_id'                       => 'nullable|exists:asset_categories,id',
+            'name'                              => 'required|string|max:255',
+            'serialized'                        => 'boolean',
+            'borrowable'                        => 'boolean',
+            'requires_maintenance'              => 'boolean',
+            'requires_inspection'               => 'boolean',
+            'has_accessories'                   => 'boolean',
+            'has_attachments'                   => 'boolean',
             'requires_operational_requirements' => 'boolean',
         ]);
 
+        $checkboxes = [
+            'serialized', 'borrowable', 'requires_maintenance', 
+            'requires_inspection', 'has_accessories', 'has_attachments', 
+            'requires_operational_requirements'
+        ];
+        foreach ($checkboxes as $cb) {
+            $validated[$cb] = $request->boolean($cb);
+        }
+
         $assetType->update($validated);
 
-        return redirect()->route('asset-types.index')
+        return redirect()->route('assets.index', ['tab' => 'types'])
             ->with('success', 'Asset type updated successfully!');
     }
 
@@ -75,7 +87,7 @@ class AssetTypeController extends Controller
     {
         $assetType->delete();
 
-        return redirect()->route('asset-types.index')
+        return redirect()->route('assets.index', ['tab' => 'types'])
             ->with('success', 'Asset type deleted successfully!');
     }
 }

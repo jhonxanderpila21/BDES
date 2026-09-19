@@ -40,6 +40,7 @@ class ReportedAssetSeeder extends Seeder
                     ['to' => 'Ongoing', 'notes' => 'Approved. Technician dispatched.'],
                 ],
             ],
+
             // 2. AED Missing — Escalated
             [
                 'asset'         => $med001,
@@ -54,6 +55,7 @@ class ReportedAssetSeeder extends Seeder
                     ['to' => 'Escalated', 'notes' => 'Cannot locate. Escalated to city disaster office.'],
                 ],
             ],
+
             // 3. Radio Malfunction — Pending
             [
                 'asset'         => $com001,
@@ -65,6 +67,7 @@ class ReportedAssetSeeder extends Seeder
                 'reported_date' => Carbon::now()->subDays(1)->format('Y-m-d'),
                 'transitions'   => [],
             ],
+
             // 4. Fire Extinguisher Maintenance — Done
             [
                 'asset'         => $res001,
@@ -82,19 +85,24 @@ class ReportedAssetSeeder extends Seeder
         ];
 
         foreach ($reports as $data) {
-            if (!$data['asset']) {
+            if (!$data['asset'] || !$reporter) {
                 continue;
             }
 
+            // Load the category relationship so we can store its name.
+            $data['asset']->load('category');
+
             $report = ReportedAsset::create([
-                'asset_id'      => $data['asset']->id,
-                'reported_by'   => $reporter->id,
-                'reported_type' => $data['reported_type'],
-                'status'        => ReportedAssetService::STATUS_PENDING,
-                'location'      => $data['location'],
-                'description'   => $data['description'],
-                'action'        => $data['action'],
-                'reported_date' => $data['reported_date'],
+                'asset_id'       => $data['asset']->id,
+                'asset_category' => $data['asset']->category?->name ?? 'Uncategorized',
+                'asset_name'     => $data['asset']->name,
+                'reported_by'    => $reporter->id,
+                'reported_type'  => $data['reported_type'],
+                'status'         => ReportedAssetService::STATUS_PENDING,
+                'location'       => $data['location'],
+                'description'    => $data['description'],
+                'action'         => $data['action'],
+                'reported_date'  => $data['reported_date'],
             ]);
 
             // Log initial status
@@ -109,7 +117,7 @@ class ReportedAssetSeeder extends Seeder
             foreach ($data['transitions'] as $transition) {
                 $report->changeStatus(
                     $transition['to'],
-                    $admin->id ?? $reporter->id,
+                    $admin?->id ?? $reporter->id,
                     $transition['notes']
                 );
             }

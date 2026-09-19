@@ -71,6 +71,14 @@ class Asset extends Model
     }
 
     /**
+     * Get all return records of this asset
+     */
+    public function returns(): HasMany
+    {
+        return $this->hasMany(AssetReturn::class, 'asset_id');
+    }
+
+    /**
      * Get all maintenance records for this asset
      */
     public function maintenance(): HasMany

@@ -67,7 +67,21 @@ class DeploymentSeeder extends Seeder
             if (isset($deployment['code'])) {
                 unset($deployment['code']);
             }
-            Deployment::create($deployment);
+            $created = Deployment::create($deployment);
+
+            if ($created->status === 'returned') {
+                \App\Models\AssetReturn::create([
+                    'deployment_id'       => $created->id,
+                    'asset_id'            => $created->asset_id,
+                    'returned_by'         => $created->assigned_team ?? 'Logistics Team',
+                    'return_date'         => now()->subDays(24),
+                    'condition'           => 'good',
+                    'damage_notes'        => 'Operated normally with minor exterior dust.',
+                    'missing_accessories' => null,
+                    'actual_location'     => 'Barangay Hall Storage',
+                    'status'              => 'received',
+                ]);
+            }
         }
     }
 }

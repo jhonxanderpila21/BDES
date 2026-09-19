@@ -66,7 +66,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('asset-accessories/{asset_accessory}/adjust-quantity', [AssetAccessoryController::class, 'adjustQuantity'])->name('asset-accessories.adjust-quantity');
     Route::resource('asset-accessories', AssetAccessoryController::class)->except(['create', 'show', 'edit']);
 
-    // Operations
+    // Operations (Deployments & Returns)
+    Route::post('deployment/{deployment}/return', [DeploymentController::class, 'returnAsset'])->name('deployment.return');
     Route::resource('deployment', DeploymentController::class);
     Route::resource('returns', ReturnController::class);
     
@@ -78,7 +79,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('reported-assets/{reported_asset}/change-status', [ReportedAssetController::class, 'changeStatus'])->name('reported-assets.change-status');
     Route::resource('reported-assets', ReportedAssetController::class);
 
-    // Reactive Maintenance
+    // Maintenance & Inspection Hub
+    Route::post('maintenance/{maintenance}/complete', [MaintenanceController::class, 'complete'])->name('maintenance.complete');
     Route::resource('maintenance', MaintenanceController::class);
     Route::resource('inspection', InspectionController::class);
     Route::resource('incident-reports', IncidentReportController::class);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Deployment extends Model
 {
@@ -30,5 +31,31 @@ class Deployment extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class, 'asset_id');
+    }
+
+    /**
+     * Get the return record associated with this deployment.
+     */
+    public function returnRecord(): HasOne
+    {
+        return $this->hasOne(AssetReturn::class, 'deployment_id');
+    }
+
+    /**
+     * Check if the deployment is returned.
+     */
+    public function isReturned(): bool
+    {
+        return $this->status === 'returned';
+    }
+
+    /**
+     * Check if the deployment is overdue for return.
+     */
+    public function isOverdue(): bool
+    {
+        return $this->status !== 'returned'
+            && $this->expected_return_date !== null
+            && $this->expected_return_date->isPast();
     }
 }
