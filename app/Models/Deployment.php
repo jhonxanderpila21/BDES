@@ -12,17 +12,20 @@ class Deployment extends Model
         'asset_id',
         'destination',
         'assigned_team',
+        'responsible_person',
         'deployment_date',
         'expected_return_date',
         'purpose',
+        'condition_before',
         'status',
+        'approved_by',
     ];
 
     protected $casts = [
-        'deployment_date' => 'date',
+        'deployment_date'      => 'date',
         'expected_return_date' => 'date',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'created_at'           => 'datetime',
+        'updated_at'           => 'datetime',
     ];
 
     /**
@@ -31,6 +34,22 @@ class Deployment extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class, 'asset_id');
+    }
+
+    /**
+     * Approving officer user
+     */
+    public function approvedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * User alias for approving officer
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     /**

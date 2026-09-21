@@ -227,7 +227,7 @@ class AssetSeeder extends Seeder
         ];
 
         foreach ($assets as $asset) {
-            Asset::create($asset);
+            Asset::updateOrCreate(['code' => $asset['code']], $asset);
         }
     }
 }

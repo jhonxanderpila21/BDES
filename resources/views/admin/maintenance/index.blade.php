@@ -45,48 +45,64 @@
     @endif
 
     {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
         {{-- Total Schedules --}}
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
+        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Preventive Schedules</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_schedules'] }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Schedules</p>
+                <p class="text-xl font-bold text-gray-900">{{ $metrics['total_schedules'] }}</p>
+                <p class="text-[10px] text-gray-400">Preventive routines</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
                 <i class="fas fa-calendar-check"></i>
             </div>
         </div>
 
         {{-- Attention Due --}}
-        <div class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm flex items-center justify-between">
+        <div class="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-1">Due / Overdue</p>
-                <p class="text-2xl font-bold text-amber-700">{{ $metrics['schedules_due'] }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-0.5">Due / Overdue</p>
+                <p class="text-xl font-bold text-amber-700">{{ $metrics['schedules_due'] }}</p>
+                <p class="text-[10px] text-amber-600">Requires attention</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-lg">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
         </div>
 
         {{-- Active Maintenance --}}
-        <div class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
+        <div class="bg-white rounded-xl p-4 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Active Work Orders</p>
-                <p class="text-2xl font-bold text-indigo-700">{{ $metrics['active_maintenance'] }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-0.5">Active Orders</p>
+                <p class="text-xl font-bold text-indigo-700">{{ $metrics['active_maintenance'] }}</p>
+                <p class="text-[10px] text-indigo-600">In-progress repairs</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
                 <i class="fas fa-wrench"></i>
             </div>
         </div>
 
         {{-- Inspections Count --}}
-        <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+        <div class="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Inspections</p>
-                <p class="text-2xl font-bold text-emerald-700">{{ $metrics['total_inspections'] }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-0.5">Inspections</p>
+                <p class="text-xl font-bold text-emerald-700">{{ $metrics['total_inspections'] }}</p>
+                <p class="text-[10px] text-emerald-600">Quality audits</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">
                 <i class="fas fa-clipboard-check"></i>
+            </div>
+        </div>
+
+        {{-- Cumulative Cost --}}
+        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Repair Expenses</p>
+                <p class="text-xl font-bold text-gray-900">₱{{ number_format($metrics['total_repair_cost'] ?? 0, 0) }}</p>
+                <p class="text-[10px] text-gray-400">Total upkeep cost</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center text-lg">
+                <i class="fas fa-receipt"></i>
             </div>
         </div>
     </div>
@@ -94,22 +110,11 @@
     {{-- Main Module Tabs Navigation --}}
     <div class="flex border-b border-gray-200 mb-6 space-x-1">
         <a 
-            href="{{ route('maintenance.index', ['tab' => 'schedules']) }}"
-            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'schedules' ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
-        >
-            <i class="fas fa-calendar-check"></i>
-            <span>Preventive Schedules</span>
-            <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'schedules' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
-                {{ $schedules->total() }}
-            </span>
-        </a>
-
-        <a 
             href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
             class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'logs' ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
         >
             <i class="fas fa-wrench"></i>
-            <span>Maintenance Logs & Repairs</span>
+            <span>Maintenance Logs & Work Orders</span>
             <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'logs' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
                 {{ $maintenances->total() }}
             </span>
@@ -117,15 +122,42 @@
 
         <a 
             href="{{ route('maintenance.index', ['tab' => 'inspections']) }}"
-            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'inspections' ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ ($activeTab === 'inspections' || $activeTab === 'schedules') ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
         >
             <i class="fas fa-clipboard-check"></i>
-            <span>Asset Inspections</span>
-            <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'inspections' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
-                {{ $inspections->total() }}
+            <span>Asset Inspection</span>
+            <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ ($activeTab === 'inspections' || $activeTab === 'schedules') ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
+                {{ $schedules->total() + $inspections->total() }}
             </span>
         </a>
     </div>
+
+    @if($activeTab === 'inspections' || $activeTab === 'schedules')
+        {{-- Asset Inspection Sub-navigation Pills --}}
+        <div class="flex items-center gap-2 mb-6 p-1.5 bg-gray-100/80 rounded-xl w-fit border border-gray-200">
+            <a
+                href="{{ route('maintenance.index', ['tab' => 'schedules']) }}"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all {{ $activeTab === 'schedules' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-white/50' }}"
+            >
+                <i class="fas fa-calendar-check text-blue-600"></i>
+                <span>Preventive Schedules</span>
+                <span class="px-1.5 py-0.2 text-[10px] rounded-full {{ $activeTab === 'schedules' ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700' }}">
+                    {{ $schedules->total() }}
+                </span>
+            </a>
+
+            <a
+                href="{{ route('maintenance.index', ['tab' => 'inspections']) }}"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all {{ $activeTab === 'inspections' ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600 hover:text-gray-900 hover:bg-white/50' }}"
+            >
+                <i class="fas fa-clipboard-check text-emerald-600"></i>
+                <span>Asset Inspections</span>
+                <span class="px-1.5 py-0.2 text-[10px] rounded-full {{ $activeTab === 'inspections' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-700' }}">
+                    {{ $inspections->total() }}
+                </span>
+            </a>
+        </div>
+    @endif
 
     {{-- ========================================================================= --}}
     {{-- TAB 1: PREVENTIVE SCHEDULES                                               --}}
@@ -345,43 +377,69 @@
                 <table class="w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Technician / Provider</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Duration & Notes</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type & Priority</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Technician / Assigned</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Cost & Parts</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service Dates</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($maintenances as $item)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4">
-                                    <span class="inline-block px-2 py-0.5 text-xs font-mono font-semibold rounded bg-gray-100 text-gray-700 border border-gray-200 mb-0.5">
-                                        {{ $item->asset->code ?? 'N/A' }}
-                                    </span>
-                                    <p class="text-sm font-semibold text-gray-900">{{ $item->asset->name ?? 'Unknown Asset' }}</p>
-                                    <p class="text-xs text-gray-500">{{ $item->asset->category->name ?? 'Uncategorized' }}</p>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <x-badge variant="info" size="sm">{{ ucfirst($item->type) }}</x-badge>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
-                                    {{ $item->technician ?? 'In-house / Unassigned' }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    {{ $item->scheduled_date ? \Carbon\Carbon::parse($item->scheduled_date)->format('M d, Y') : 'N/A' }}
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-600 max-w-xs">
-                                    @if($item->estimated_duration)
-                                        <span class="inline-block text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded mr-1">
-                                            {{ $item->estimated_duration }}
+                                <td class="px-5 py-3.5">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                                            {{ $item->work_order_number ?? ('WO-' . str_pad($item->id, 5, '0', STR_PAD_LEFT)) }}
                                         </span>
-                                    @endif
-                                    <span class="truncate block mt-0.5" title="{{ $item->notes }}">{{ Str::limit($item->notes, 40) ?: 'No notes' }}</span>
+                                        @if($item->asset)
+                                            <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
+                                                [{{ $item->asset->code }}]
+                                            </a>
+                                        @endif
+                                    </div>
+                                    <p class="text-sm font-bold text-gray-900">{{ $item->asset->name ?? 'Unknown Asset' }}</p>
+                                    <p class="text-[11px] text-gray-400">{{ $item->asset->category->name ?? 'Uncategorized' }}</p>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <div class="space-y-1">
+                                        <x-badge variant="info" size="sm">{{ ucfirst($item->type) }}</x-badge>
+                                        @php
+                                            $priBadge = match($item->priority ?? 'medium') {
+                                                'urgent' => 'bg-rose-100 text-rose-800',
+                                                'high'   => 'bg-amber-100 text-amber-800',
+                                                'low'    => 'bg-blue-100 text-blue-800',
+                                                default  => 'bg-gray-100 text-gray-800',
+                                            };
+                                        @endphp
+                                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase rounded {{ $priBadge }}">
+                                            {{ $item->priority ?? 'medium' }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap text-sm text-gray-700">
+                                    <p class="font-medium text-gray-900">{{ $item->assignedUser?->name ?? $item->technician ?? 'Unassigned' }}</p>
+                                    @if($item->assignedUser && $item->technician && $item->technician !== $item->assignedUser->name)
+                                        <p class="text-xs text-gray-400">Shop: {{ $item->technician }}</p>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 text-xs">
+                                    <p class="font-bold text-gray-900">₱{{ number_format($item->cost ?? 0, 2) }}</p>
+                                    @if($item->parts_used)
+                                        <p class="text-gray-500 mt-0.5 truncate max-w-[150px]" title="{{ $item->parts_used }}">
+                                            <i class="fas fa-puzzle-piece text-gray-400 mr-0.5"></i> {{ $item->parts_used }}
+                                        </p>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-600">
+                                    <div>Sched: {{ $item->scheduled_date ? \Carbon\Carbon::parse($item->scheduled_date)->format('M d, Y') : 'N/A' }}</div>
+                                    @if($item->completed_at)
+                                        <div class="text-emerald-700 font-medium">Done: {{ $item->completed_at->format('M d, Y') }}</div>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 whitespace-nowrap">
                                     @php
                                         $mColor = match($item->status) {
                                             'completed'   => 'success',
@@ -393,28 +451,30 @@
                                     @endphp
                                     <x-badge variant="{{ $mColor }}" size="sm">{{ ucfirst(str_replace('_', ' ', $item->status)) }}</x-badge>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
+                                <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
+                                    <div class="flex items-center justify-end gap-1.5">
                                         @if(in_array($item->status, ['in_progress', 'scheduled', 'pending']))
-                                            <form action="{{ route('maintenance.complete', $item) }}" method="POST" class="inline-block">
-                                                @csrf
-                                                <button type="submit" class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm" title="Mark as Completed">
-                                                    <i class="fas fa-check"></i> Done
-                                                </button>
-                                            </form>
+                                            <button 
+                                                type="button"
+                                                onclick="openCompleteWorkOrderModal({{ $item->id }}, '{{ $item->work_order_number ?? ('WO-' . $item->id) }}', '{{ $item->cost ?? 0 }}')"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm" 
+                                                title="Mark as Completed"
+                                            >
+                                                <i class="fas fa-check"></i> Complete
+                                            </button>
                                         @endif
                                         <button 
                                             type="button" 
                                             onclick='openEditMaintenanceModal(@json($item))'
-                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-                                            title="Edit Record"
+                                            class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                                            title="Edit Work Order"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this maintenance record?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
+                                            <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -719,7 +779,7 @@
             @csrf
 
             <x-form-group label="Select Asset" required>
-                <select name="asset_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <select name="asset_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
                     <option value="">-- Choose Asset --</option>
                     @foreach($assets as $asset)
                         <option value="{{ $asset->id }}">{{ $asset->code }} — {{ $asset->name }}</option>
@@ -727,18 +787,29 @@
                 </select>
             </x-form-group>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-form-group label="Maintenance Type" required>
-                    <select name="type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <select name="type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
                         <option value="routine">Routine</option>
                         <option value="repair" selected>Repair / Corrective</option>
                         <option value="preventive">Preventive</option>
                         <option value="inspection">Inspection</option>
+                        <option value="overhaul">Overhaul</option>
+                        <option value="emergency">Emergency</option>
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Priority" required>
+                    <select name="priority" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
                     </select>
                 </x-form-group>
 
                 <x-form-group label="Status" required>
-                    <select name="status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <select name="status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
                         <option value="scheduled">Scheduled</option>
                         <option value="in_progress" selected>In Progress (Set Under Maintenance)</option>
                         <option value="pending">Pending</option>
@@ -748,8 +819,23 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Assigned Technician / Shop">
+                <x-form-group label="Assigned Internal Staff / Officer">
+                    <select name="assigned_to" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                        <option value="">-- Optional: Assign Staff Officer --</option>
+                        @foreach($users as $u)
+                            <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->role }})</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Technician / Service Shop">
                     <input type="text" name="technician" placeholder="e.g. In-house Mechanic, AutoFix" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Cost (PHP)">
+                    <input type="number" step="0.01" min="0" name="cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </x-form-group>
 
                 <x-form-group label="Scheduled / Service Date">
@@ -757,17 +843,23 @@
                 </x-form-group>
             </div>
 
-            <x-form-group label="Estimated Duration">
-                <input type="text" name="estimated_duration" placeholder="e.g. 2 hours, 3 days" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Estimated Duration">
+                    <input type="text" name="estimated_duration" placeholder="e.g. 2 hours, 3 days" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
+
+                <x-form-group label="Spare Parts Used / Replaced">
+                    <input type="text" name="parts_used" placeholder="e.g. Spark plug, hydraulic seals" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
+            </div>
 
             <x-form-group label="Work Notes & Description">
-                <textarea name="notes" rows="3" placeholder="Describe the problem, service required, or components..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                <textarea name="notes" rows="2" placeholder="Describe the problem, service required, or components..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
             </x-form-group>
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">
-                    Create Record
+                    Create Work Order
                 </x-button>
                 <x-button variant="secondary" type="button" onclick="window.closeModal('create-maintenance-modal')" class="flex-1">
                     Cancel
@@ -777,31 +869,42 @@
     </x-modal>
 
     {{-- 5. Edit Maintenance Modal --}}
-    <x-modal id="edit-maintenance-modal" title="Edit Maintenance Record">
+    <x-modal id="edit-maintenance-modal" title="Edit Maintenance Work Order">
         <form id="editMaintenanceForm" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
 
             <x-form-group label="Asset" required>
-                <select name="asset_id" id="edit_maint_asset_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <select name="asset_id" id="edit_maint_asset_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
                     @foreach($assets as $asset)
                         <option value="{{ $asset->id }}">{{ $asset->code }} — {{ $asset->name }}</option>
                     @endforeach
                 </select>
             </x-form-group>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-form-group label="Maintenance Type" required>
-                    <select name="type" id="edit_maint_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <select name="type" id="edit_maint_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
                         <option value="routine">Routine</option>
                         <option value="repair">Repair</option>
                         <option value="preventive">Preventive</option>
                         <option value="inspection">Inspection</option>
+                        <option value="overhaul">Overhaul</option>
+                        <option value="emergency">Emergency</option>
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Priority" required>
+                    <select name="priority" id="edit_maint_priority" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
                     </select>
                 </x-form-group>
 
                 <x-form-group label="Status" required>
-                    <select name="status" id="edit_maint_status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <select name="status" id="edit_maint_status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
                         <option value="scheduled">Scheduled</option>
                         <option value="in_progress">In Progress</option>
                         <option value="pending">Pending</option>
@@ -811,21 +914,40 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Technician">
+                <x-form-group label="Assigned Staff Officer">
+                    <select name="assigned_to" id="edit_maint_assigned_to" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
+                        <option value="">-- Unassigned --</option>
+                        @foreach($users as $u)
+                            <option value="{{ $u->id }}">{{ $u->name }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Technician / Shop">
                     <input type="text" name="technician" id="edit_maint_technician" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <x-form-group label="Cost (PHP)">
+                    <input type="number" step="0.01" min="0" name="cost" id="edit_maint_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </x-form-group>
 
                 <x-form-group label="Service Date">
                     <input type="date" name="scheduled_date" id="edit_maint_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </x-form-group>
+
+                <x-form-group label="Estimated Duration">
+                    <input type="text" name="estimated_duration" id="edit_maint_duration" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
             </div>
 
-            <x-form-group label="Estimated Duration">
-                <input type="text" name="estimated_duration" id="edit_maint_duration" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+            <x-form-group label="Parts Used">
+                <input type="text" name="parts_used" id="edit_maint_parts" placeholder="Spare parts or materials" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
             </x-form-group>
 
             <x-form-group label="Notes">
-                <textarea name="notes" id="edit_maint_notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
+                <textarea name="notes" id="edit_maint_notes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
             </x-form-group>
 
             <div class="flex gap-3 mt-6">
@@ -835,6 +957,37 @@
                 <x-button variant="secondary" type="button" onclick="window.closeModal('edit-maintenance-modal')" class="flex-1">
                     Cancel
                 </x-button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- Complete Work Order Modal --}}
+    <x-modal id="complete-workorder-modal" title="Complete Maintenance Work Order">
+        <form id="completeWorkOrderForm" method="POST" class="space-y-4">
+            @csrf
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                <p class="text-xs text-emerald-900 font-medium">
+                    Signing off work order <strong id="complete_wo_number" class="font-mono font-bold text-emerald-950"></strong>. This will mark the maintenance as completed, log final expenditures, and restore the asset's status to <strong>Available</strong>.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Final Service Cost (PHP)">
+                    <input type="number" step="0.01" min="0" name="cost" id="complete_wo_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                </x-form-group>
+
+                <x-form-group label="Parts & Materials Used">
+                    <input type="text" name="parts_used" placeholder="e.g. 2L hydraulic oil, filter seal" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                </x-form-group>
+            </div>
+
+            <x-form-group label="Sign-Off & Quality Notes">
+                <textarea name="notes" rows="2" placeholder="Quality verification remarks, technician sign-off..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"></textarea>
+            </x-form-group>
+
+            <div class="flex gap-3 pt-3 border-t border-gray-200">
+                <x-button variant="primary" type="submit" class="flex-1">Confirm & Sign Off</x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('complete-workorder-modal')" class="flex-1">Cancel</x-button>
             </div>
         </form>
     </x-modal>
@@ -1013,8 +1166,12 @@
 
                 document.getElementById('edit_maint_asset_id').value = item.asset_id;
                 document.getElementById('edit_maint_type').value = item.type || 'routine';
+                document.getElementById('edit_maint_priority').value = item.priority || 'medium';
                 document.getElementById('edit_maint_status').value = item.status || 'scheduled';
+                document.getElementById('edit_maint_assigned_to').value = item.assigned_to || '';
                 document.getElementById('edit_maint_technician').value = item.technician || '';
+                document.getElementById('edit_maint_cost').value = item.cost || '';
+                document.getElementById('edit_maint_parts').value = item.parts_used || '';
 
                 let sDate = item.scheduled_date || '';
                 if (sDate.includes('T')) sDate = sDate.split('T')[0];
@@ -1024,6 +1181,14 @@
                 document.getElementById('edit_maint_notes').value = item.notes || '';
 
                 window.openModal('edit-maintenance-modal');
+            }
+
+            function openCompleteWorkOrderModal(id, woNumber, cost) {
+                const form = document.getElementById('completeWorkOrderForm');
+                form.action = '/maintenance/' + id + '/complete';
+                document.getElementById('complete_wo_number').textContent = woNumber;
+                document.getElementById('complete_wo_cost').value = cost || '';
+                window.openModal('complete-workorder-modal');
             }
 
             // Inspections

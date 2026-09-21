@@ -51,6 +51,11 @@ class AssetCategorySeeder extends Seeder
             ],
         ];
 
-        DB::table('asset_categories')->insert($categories);
+        foreach ($categories as $category) {
+            DB::table('asset_categories')->updateOrInsert(
+                ['name' => $category['name']],
+                $category
+            );
+        }
     }
 }

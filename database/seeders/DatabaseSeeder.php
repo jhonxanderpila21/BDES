@@ -15,46 +15,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create or update Administrator User
-        User::updateOrCreate(
-            ['email' => 'admin@bdes.gov'],
-            [
-                'name' => 'Admin User',
-                'username' => 'admin',
-                'email_verified_at' => now(),
-                'password' => bcrypt('password'),
-                'role' => 'administrator',
-                'is_active' => true,
-            ]
-        );
-
-        // Create or update Viewer User
-        User::updateOrCreate(
-            ['email' => 'staff@bdes.gov'],
-            [
-                'name' => 'Staff Member',
-                'username' => 'staff',
-                'email_verified_at' => now(),
-                'password' => bcrypt('password'),
-                'role' => 'viewer',
-                'is_active' => true,
-            ]
-        );
-
-        // Call Seeders in dependency order
+        // Call Seeders in dependency order (UserSeeder first to provide actor references)
         $this->call([
+            UserSeeder::class,
             AssetCategorySeeder::class,
             AssetTypeSeeder::class,
             LocationSeeder::class,
-            SupplierSeeder::class,
             AssetSeeder::class,
+            AssetFinancialsSeeder::class,
             DeploymentSeeder::class,
             MaintenanceSeeder::class,
             InspectionSeeder::class,
             AssetNeedSeeder::class,
+            OperationalRequirementSeeder::class,
             MaintenanceScheduleSeeder::class,
             AssetAccessorySeeder::class,
             ReportedAssetSeeder::class,
+            AssetHistorySeeder::class,
         ]);
     }
 }

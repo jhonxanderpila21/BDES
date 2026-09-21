@@ -56,10 +56,18 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user is an administrator.
+     * Check if the user is an administrator or executive barangay captain.
      */
     public function isAdmin(): bool
     {
-        return $this->hasRole('administrator');
+        return $this->hasRole('administrator', 'barangay_captain');
+    }
+
+    /**
+     * Check if the user is an operational member / editor.
+     */
+    public function isMember(): bool
+    {
+        return !$this->isAdmin();
     }
 }

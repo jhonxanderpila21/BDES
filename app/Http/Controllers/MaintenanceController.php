@@ -6,9 +6,13 @@ use App\Models\Asset;
 use App\Models\Inspection;
 use App\Models\Maintenance;
 use App\Models\MaintenanceSchedule;
+use App\Models\User;
+use App\Services\AssetLifecycleService;
+use App\Services\AuditTrailService;
 use App\Services\MaintenanceScheduleService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class MaintenanceController extends Controller
 {
@@ -37,10 +41,12 @@ class MaintenanceController extends Controller
             ])->count(),
             'active_maintenance' => Maintenance::whereIn('status', ['in_progress', 'scheduled'])->count(),
             'total_inspections'  => Inspection::count(),
+            'total_repair_cost'  => Maintenance::sum('cost') ?? 0,
         ];
 
-        // Assets catalogue for modals
+        // Assets and Users datasets
         $assets = Asset::with(['type', 'category'])->orderBy('name')->get();
+        $users = User::orderBy('name')->get();
 
         // 1. Preventive Schedules Tab Data
         $schedulesQuery = MaintenanceSchedule::with(['asset.type', 'asset.category']);
@@ -69,13 +75,15 @@ class MaintenanceController extends Controller
         $intervalTypes = MaintenanceScheduleService::intervalTypes();
         $scheduleStatuses = MaintenanceScheduleService::statuses();
 
-        // 2. Maintenance Logs & Repairs Tab Data
-        $maintenancesQuery = Maintenance::with(['asset.category']);
+        // 2. Maintenance Logs & Work Orders Tab Data
+        $maintenancesQuery = Maintenance::with(['asset.category', 'assignedUser']);
         if ($request->filled('search') && $activeTab === 'logs') {
             $search = $request->search;
             $maintenancesQuery->where(function ($q) use ($search) {
-                $q->where('technician', 'like', "%{$search}%")
+                $q->where('work_order_number', 'like', "%{$search}%")
+                  ->orWhere('technician', 'like', "%{$search}%")
                   ->orWhere('notes', 'like', "%{$search}%")
+                  ->orWhere('parts_used', 'like', "%{$search}%")
                   ->orWhereHas('asset', function ($aq) use ($search) {
                       $aq->where('name', 'like', "%{$search}%")
                          ->orWhere('code', 'like', "%{$search}%");
@@ -85,12 +93,16 @@ class MaintenanceController extends Controller
         if ($request->filled('type')) {
             $maintenancesQuery->where('type', $request->type);
         }
+        if ($request->filled('priority')) {
+            $maintenancesQuery->where('priority', $request->priority);
+        }
         if ($request->filled('status') && $activeTab === 'logs') {
             $maintenancesQuery->where('status', $request->status);
         }
         $maintenances = $maintenancesQuery->latest('id')->paginate(10, ['*'], 'logs_page')->withQueryString();
-        $maintenanceTypes = ['routine', 'preventive', 'repair', 'inspection'];
+        $maintenanceTypes = ['routine', 'preventive', 'repair', 'inspection', 'overhaul', 'emergency'];
         $maintenanceStatuses = ['scheduled', 'in_progress', 'completed', 'pending'];
+        $priorityLevels = ['low', 'medium', 'high', 'urgent'];
 
         // 3. Inspections Tab Data
         $inspectionsQuery = Inspection::with(['asset.category']);
@@ -119,6 +131,7 @@ class MaintenanceController extends Controller
             'activeTab',
             'metrics',
             'assets',
+            'users',
             'schedules',
             'assetTypes',
             'intervalTypes',
@@ -126,6 +139,7 @@ class MaintenanceController extends Controller
             'maintenances',
             'maintenanceTypes',
             'maintenanceStatuses',
+            'priorityLevels',
             'inspections',
             'inspectionResults',
             'inspectionStatuses'
@@ -133,33 +147,57 @@ class MaintenanceController extends Controller
     }
 
     /**
-     * Store a newly created maintenance record.
+     * Store a newly created maintenance record / work order.
      */
     public function store(Request $request)
     {
+        Gate::authorize('create', Maintenance::class);
+
         $validated = $request->validate([
             'asset_id'           => 'required|exists:assets,id',
-            'type'               => 'required|in:routine,preventive,repair,inspection',
+            'type'               => 'required|in:routine,preventive,repair,inspection,overhaul,emergency',
+            'priority'           => 'nullable|in:low,medium,high,urgent',
             'technician'         => 'nullable|string|max:255',
+            'assigned_to'        => 'nullable|exists:users,id',
             'scheduled_date'     => 'nullable|date',
             'estimated_duration' => 'nullable|string|max:255',
+            'cost'               => 'nullable|numeric|min:0',
+            'parts_used'         => 'nullable|string|max:500',
             'notes'              => 'nullable|string',
             'status'             => 'required|in:scheduled,in_progress,completed,pending',
         ]);
 
-        DB::transaction(function () use ($validated) {
-            Maintenance::create($validated);
+        if (empty($validated['priority'])) {
+            $validated['priority'] = 'medium';
+        }
 
-            if ($validated['status'] === 'in_progress') {
-                $asset = Asset::find($validated['asset_id']);
-                if ($asset) {
-                    $asset->update(['status' => 'under_maintenance']);
+        if ($validated['status'] === 'completed') {
+            $validated['completed_at'] = now();
+        }
+
+        $maintenance = DB::transaction(function () use ($validated) {
+            $created = Maintenance::create($validated);
+            $asset = Asset::find($validated['asset_id']);
+
+            if ($asset && $validated['status'] === 'in_progress') {
+                if (AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_UNDER_MAINTENANCE)) {
+                    AssetLifecycleService::transition($asset, AssetLifecycleService::STATUS_UNDER_MAINTENANCE, "Work order [{$created->work_order_number}] started.");
                 }
             }
+
+            AuditTrailService::log(
+                'created',
+                $created,
+                "Work Order [{$created->work_order_number}] ({$created->type}) opened for asset [{$asset?->code}].",
+                null,
+                $created->only(['work_order_number', 'asset_id', 'type', 'priority', 'status', 'cost'])
+            );
+
+            return $created;
         });
 
         return redirect()->route('maintenance.index', ['tab' => 'logs'])
-            ->with('success', 'Maintenance record created successfully!');
+            ->with('success', "Work Order [{$maintenance->work_order_number}] created successfully!");
     }
 
     /**
@@ -167,31 +205,64 @@ class MaintenanceController extends Controller
      */
     public function update(Request $request, Maintenance $maintenance)
     {
+        Gate::authorize('update', $maintenance);
+
         $validated = $request->validate([
             'asset_id'           => 'required|exists:assets,id',
-            'type'               => 'required|in:routine,preventive,repair,inspection',
+            'type'               => 'required|in:routine,preventive,repair,inspection,overhaul,emergency',
+            'priority'           => 'nullable|in:low,medium,high,urgent',
             'technician'         => 'nullable|string|max:255',
+            'assigned_to'        => 'nullable|exists:users,id',
             'scheduled_date'     => 'nullable|date',
             'estimated_duration' => 'nullable|string|max:255',
+            'cost'               => 'nullable|numeric|min:0',
+            'parts_used'         => 'nullable|string|max:500',
             'notes'              => 'nullable|string',
             'status'             => 'required|in:scheduled,in_progress,completed,pending',
         ]);
 
+        if (empty($validated['priority'])) {
+            $validated['priority'] = 'medium';
+        }
+
+        if ($validated['status'] === 'completed' && empty($maintenance->completed_at)) {
+            $validated['completed_at'] = now();
+        }
+
         DB::transaction(function () use ($validated, $maintenance) {
+            $oldValues = $maintenance->only(['type', 'priority', 'technician', 'assigned_to', 'status', 'cost', 'parts_used']);
             $maintenance->update($validated);
+            $newValues = $maintenance->only(['type', 'priority', 'technician', 'assigned_to', 'status', 'cost', 'parts_used']);
 
             $asset = Asset::find($validated['asset_id']);
             if ($asset) {
-                if ($validated['status'] === 'in_progress') {
-                    $asset->update(['status' => 'under_maintenance']);
-                } elseif ($validated['status'] === 'completed' && $asset->status === 'under_maintenance') {
-                    $asset->update(['status' => 'available']);
+                if ($validated['status'] === 'in_progress' && $asset->status !== AssetLifecycleService::STATUS_UNDER_MAINTENANCE) {
+                    if (AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_UNDER_MAINTENANCE)) {
+                        AssetLifecycleService::transition($asset, AssetLifecycleService::STATUS_UNDER_MAINTENANCE, "Work order [{$maintenance->work_order_number}] in progress.");
+                    }
+                } elseif ($validated['status'] === 'completed' && $asset->status === AssetLifecycleService::STATUS_UNDER_MAINTENANCE) {
+                    $hasOther = Maintenance::where('asset_id', $asset->id)
+                        ->where('id', '!=', $maintenance->id)
+                        ->where('status', 'in_progress')
+                        ->exists();
+
+                    if (!$hasOther && AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_AVAILABLE)) {
+                        AssetLifecycleService::transition($asset, AssetLifecycleService::STATUS_AVAILABLE, "Work order [{$maintenance->work_order_number}] completed.");
+                    }
                 }
             }
+
+            AuditTrailService::log(
+                'updated',
+                $maintenance,
+                "Work Order [{$maintenance->work_order_number}] updated.",
+                $oldValues,
+                $newValues
+            );
         });
 
         return redirect()->route('maintenance.index', ['tab' => 'logs'])
-            ->with('success', 'Maintenance record updated successfully!');
+            ->with('success', "Work Order [{$maintenance->work_order_number}] updated successfully!");
     }
 
     /**
@@ -199,17 +270,55 @@ class MaintenanceController extends Controller
      */
     public function complete(Request $request, Maintenance $maintenance)
     {
-        DB::transaction(function () use ($maintenance) {
-            $maintenance->update(['status' => 'completed']);
+        Gate::authorize('complete', $maintenance);
+
+        $validated = $request->validate([
+            'cost'       => 'nullable|numeric|min:0',
+            'parts_used' => 'nullable|string|max:500',
+            'notes'      => 'nullable|string',
+        ]);
+
+        DB::transaction(function () use ($maintenance, $validated) {
+            $updateData = [
+                'status'       => 'completed',
+                'completed_at' => now(),
+            ];
+
+            if (isset($validated['cost']) && $validated['cost'] !== null) {
+                $updateData['cost'] = $validated['cost'];
+            }
+            if (!empty($validated['parts_used'])) {
+                $updateData['parts_used'] = $validated['parts_used'];
+            }
+            if (!empty($validated['notes'])) {
+                $updateData['notes'] = $maintenance->notes ? ($maintenance->notes . "\n[Completion Notes]: " . $validated['notes']) : $validated['notes'];
+            }
+
+            $maintenance->update($updateData);
 
             $asset = $maintenance->asset;
-            if ($asset && $asset->status === 'under_maintenance') {
-                $asset->update(['status' => 'available']);
+            if ($asset && $asset->status === AssetLifecycleService::STATUS_UNDER_MAINTENANCE) {
+                $hasOther = Maintenance::where('asset_id', $asset->id)
+                    ->where('id', '!=', $maintenance->id)
+                    ->where('status', 'in_progress')
+                    ->exists();
+
+                if (!$hasOther && AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_AVAILABLE)) {
+                    AssetLifecycleService::transition($asset, AssetLifecycleService::STATUS_AVAILABLE, "Work order [{$maintenance->work_order_number}] completed.");
+                }
             }
+
+            AuditTrailService::log(
+                'status_changed',
+                $maintenance,
+                "Work Order [{$maintenance->work_order_number}] signed off as completed. Final cost: ₱" . number_format($maintenance->cost ?? 0, 2),
+                ['status' => 'in_progress'],
+                ['status' => 'completed', 'completed_at' => $maintenance->completed_at]
+            );
         });
 
         return redirect()->route('maintenance.index', ['tab' => 'logs'])
-            ->with('success', 'Maintenance task marked as completed!');
+            ->with('success', "Work Order [{$maintenance->work_order_number}] completed and signed off!");
     }
 
     /**
@@ -217,15 +326,20 @@ class MaintenanceController extends Controller
      */
     public function destroy(Maintenance $maintenance)
     {
+        Gate::authorize('delete', $maintenance);
+
         DB::transaction(function () use ($maintenance) {
             $asset = $maintenance->asset;
             $status = $maintenance->status;
+            $woNumber = $maintenance->work_order_number;
+
+            AuditTrailService::log('deleted', $maintenance, "Work Order [{$woNumber}] deleted.");
             $maintenance->delete();
 
-            if ($status === 'in_progress' && $asset && $asset->status === 'under_maintenance') {
+            if ($status === 'in_progress' && $asset && $asset->status === AssetLifecycleService::STATUS_UNDER_MAINTENANCE) {
                 $hasOther = Maintenance::where('asset_id', $asset->id)->where('status', 'in_progress')->exists();
-                if (!$hasOther) {
-                    $asset->update(['status' => 'available']);
+                if (!$hasOther && AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_AVAILABLE)) {
+                    AssetLifecycleService::transition($asset, AssetLifecycleService::STATUS_AVAILABLE, "Active work order [{$woNumber}] was deleted.");
                 }
             }
         });

@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
-use App\Models\AssetCategory;
+use App\Models\AuditLog;
 use App\Models\Deployment;
 use App\Models\Inspection;
 use App\Models\Maintenance;
-use App\Models\IncidentReport;
 use App\Services\DashboardChartService;
 
 class DashboardController extends Controller
@@ -17,54 +16,55 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display the dashboard with live statistics.
+     * Display the executive dashboard with reconciled metrics and operational attention alerts.
      */
     public function index()
     {
+        // Reconciled enterprise KPIs
         $stats = [
-            'total_assets' => Asset::count(),
-            'available' => Asset::where('status', 'available')->count(),
-            'deployed' => Asset::where('status', 'deployed')->count(),
-            'under_maintenance' => Asset::where('status', 'under_maintenance')->count(),
+            'total_assets'       => Asset::count(),
+            'total_value'        => Asset::sum('acquisition_cost') ?? 0,
+            'available'          => Asset::where('status', 'available')->count(),
+            'deployed'           => Asset::where('status', 'deployed')->count(),
+            'under_maintenance'  => Asset::where('status', 'under_maintenance')->count(),
+            'out_of_service'     => Asset::where('status', 'out_of_service')->count(),
+            'lost'               => Asset::where('status', 'lost')->count(),
+            'retired'            => Asset::where('status', 'retired')->count(),
             'due_for_inspection' => Inspection::where('status', 'scheduled')
                 ->where('inspection_date', '<=', now()->addDays(7))
                 ->count(),
-            'incidents' => IncidentReport::whereIn('status', ['open', 'investigating'])->count(),
+            'inspections'        => Inspection::count(),
         ];
 
-        // Recent activities — last 10 across all modules
-        $recentDeployments = Deployment::with('asset')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(fn ($d) => [
-                'type' => 'deployment',
-                'icon' => 'fas fa-truck',
-                'color' => 'green',
-                'title' => 'Asset Deployed',
-                'description' => ($d->asset->name ?? 'Unknown') . ' to ' . $d->destination,
-                'time' => $d->created_at,
-            ]);
+        // "Needs Attention" Operational Alerts
+        $attentionItems = [
+            'overdue_deployments' => Deployment::with(['asset', 'returnRecord'])
+                ->where('status', 'active')
+                ->whereNotNull('expected_return_date')
+                ->where('expected_return_date', '<', now()->toDateString())
+                ->get(),
 
-        $recentMaintenance = Maintenance::with('asset')
-            ->where('status', 'completed')
-            ->latest()
-            ->take(5)
-            ->get()
-            ->map(fn ($m) => [
-                'type' => 'maintenance',
-                'icon' => 'fas fa-wrench',
-                'color' => 'yellow',
-                'title' => 'Maintenance Completed',
-                'description' => $m->asset->name ?? 'Unknown',
-                'time' => $m->created_at,
-            ]);
+            'overdue_maintenance' => Maintenance::with(['asset', 'assignedUser'])
+                ->whereIn('status', ['scheduled', 'pending', 'in_progress'])
+                ->whereNotNull('scheduled_date')
+                ->where('scheduled_date', '<', now()->toDateString())
+                ->get(),
 
-        $recentActivities = $recentDeployments
-            ->concat($recentMaintenance)
-            ->sortByDesc('time')
-            ->take(5)
-            ->values();
+            'high_risk_assets'    => Asset::with(['category', 'location'])
+                ->where(function ($q) {
+                    $q->whereIn('status', ['out_of_service', 'lost'])
+                      ->orWhere('condition', 'poor');
+                })
+                ->where('status', '!=', 'retired')
+                ->take(6)
+                ->get(),
+        ];
+
+        // Real Activity Trail from Audit Logs
+        $recentAuditLogs = AuditLog::with(['user', 'auditable'])
+            ->latest('id')
+            ->take(6)
+            ->get();
 
         // Upcoming inspections
         $upcomingInspections = Inspection::with('asset')
@@ -85,7 +85,8 @@ class DashboardController extends Controller
 
         return view('admin.dashboard.index', compact(
             'stats',
-            'recentActivities',
+            'attentionItems',
+            'recentAuditLogs',
             'upcomingInspections',
             'maintenanceReminders',
             'assetsByCategory'
