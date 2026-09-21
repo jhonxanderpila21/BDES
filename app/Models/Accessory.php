@@ -10,7 +10,6 @@ class Accessory extends Model
     protected $fillable = [
         'name',
         'asset_type_id',
-        'supplier_id',
         'quantity_in_stock',
         'unit_cost',
         'status',
@@ -29,13 +28,5 @@ class Accessory extends Model
     public function assetType(): BelongsTo
     {
         return $this->belongsTo(AssetType::class, 'asset_type_id');
-    }
-
-    /**
-     * Get the supplier of this accessory
-     */
-    public function supplier(): BelongsTo
-    {
-        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 }

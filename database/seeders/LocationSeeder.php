@@ -56,6 +56,11 @@ class LocationSeeder extends Seeder
             ],
         ];
 
-        DB::table('locations')->insert($locations);
+        foreach ($locations as $location) {
+            DB::table('locations')->updateOrInsert(
+                ['name' => $location['name']],
+                $location
+            );
+        }
     }
 }

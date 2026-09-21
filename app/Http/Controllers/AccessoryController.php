@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Accessory;
 use App\Models\AssetType;
-use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class AccessoryController extends Controller
@@ -25,7 +24,6 @@ class AccessoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'asset_type_id' => 'nullable|exists:asset_types,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
             'quantity_in_stock' => 'required|integer|min:0',
             'unit_cost' => 'nullable|numeric|min:0',
             'status' => 'in:in_stock,low_stock,out_of_stock',
@@ -45,7 +43,6 @@ class AccessoryController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'asset_type_id' => 'nullable|exists:asset_types,id',
-            'supplier_id' => 'nullable|exists:suppliers,id',
             'quantity_in_stock' => 'required|integer|min:0',
             'unit_cost' => 'nullable|numeric|min:0',
             'status' => 'in:in_stock,low_stock,out_of_stock',

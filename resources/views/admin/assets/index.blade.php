@@ -19,6 +19,11 @@
 
         {{-- Contextual Action Buttons --}}
         <div class="flex flex-wrap items-center gap-2">
+            <a href="{{ route('assets.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm shadow-sm">
+                <i class="fas fa-file-csv"></i>
+                Export CSV
+            </a>
+
             @if($activeTab === 'categories')
                 <button onclick="openAddCategoryModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
                     <i class="fas fa-plus"></i>
@@ -43,55 +48,99 @@
         <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
     @endif
 
+    @if(session('info'))
+        <x-alert type="info" class="mb-6">{{ session('info') }}</x-alert>
+    @endif
+
     @if($errors->any())
         <x-alert type="danger" class="mb-6">{{ $errors->first() }}</x-alert>
     @endif
 
     {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
         {{-- Total Assets --}}
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Total Assets</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_assets'] }}</p>
+        <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-blue-300 transition-colors block">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Total Assets</p>
+                    <p class="text-xl font-bold text-gray-900 mt-0.5">{{ $metrics['total_assets'] }}</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">Val: ₱{{ number_format($metrics['total_acquisition_cost'] ?? 0, 0) }}</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+                    <i class="fas fa-boxes-stacked"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
-                <i class="fas fa-boxes-stacked"></i>
-            </div>
-        </div>
+        </a>
 
         {{-- Available Assets --}}
-        <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Available</p>
-                <p class="text-2xl font-bold text-emerald-700">{{ $metrics['available_assets'] }}</p>
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-300 transition-colors block">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">Available</p>
+                    <p class="text-xl font-bold text-emerald-700 mt-0.5">{{ $metrics['available_assets'] }}</p>
+                    <p class="text-[10px] text-emerald-600 mt-0.5">Ready for dispatch</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
+                    <i class="fas fa-circle-check"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
-                <i class="fas fa-circle-check"></i>
-            </div>
-        </div>
+        </a>
 
-        {{-- Total Categories --}}
-        <div class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Categories</p>
-                <p class="text-2xl font-bold text-indigo-700">{{ $metrics['total_categories'] }}</p>
+        {{-- Deployed Assets --}}
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'deployed']) }}" class="bg-white rounded-xl p-4 border border-blue-200 bg-blue-50/20 shadow-sm hover:border-blue-300 transition-colors block">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-blue-700">Deployed</p>
+                    <p class="text-xl font-bold text-blue-700 mt-0.5">{{ $metrics['deployed_assets'] ?? 0 }}</p>
+                    <p class="text-[10px] text-blue-600 mt-0.5">In disaster field</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm">
+                    <i class="fas fa-truck"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">
-                <i class="fas fa-folder-open"></i>
-            </div>
-        </div>
+        </a>
 
-        {{-- Total Types --}}
-        <div class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Asset Types</p>
-                <p class="text-2xl font-bold text-purple-700">{{ $metrics['total_types'] }}</p>
+        {{-- Under Maintenance --}}
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'under_maintenance']) }}" class="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-300 transition-colors block">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-700">Maintenance</p>
+                    <p class="text-xl font-bold text-amber-700 mt-0.5">{{ $metrics['under_maintenance_assets'] ?? 0 }}</p>
+                    <p class="text-[10px] text-amber-600 mt-0.5">Active servicing</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-sm">
+                    <i class="fas fa-wrench"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
-                <i class="fas fa-tags"></i>
+        </a>
+
+        {{-- Out of Service / Lost --}}
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'out_of_service']) }}" class="bg-white rounded-xl p-4 border border-rose-200 bg-rose-50/20 shadow-sm hover:border-rose-300 transition-colors block">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-rose-700">Out of Service</p>
+                    <p class="text-xl font-bold text-rose-700 mt-0.5">{{ ($metrics['out_of_service_assets'] ?? 0) + ($metrics['lost_assets'] ?? 0) }}</p>
+                    <p class="text-[10px] text-rose-600 mt-0.5">Defective / Lost</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
             </div>
-        </div>
+        </a>
+
+        {{-- Retired / Decommissioned --}}
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'retired']) }}" class="bg-white rounded-xl p-4 border border-gray-200 bg-gray-50/60 shadow-sm hover:border-gray-400 transition-colors block">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-600">Retired</p>
+                    <p class="text-xl font-bold text-gray-800 mt-0.5">{{ $metrics['retired_assets'] ?? 0 }}</p>
+                    <p class="text-[10px] text-gray-500 mt-0.5">Decommissioned</p>
+                </div>
+                <div class="w-9 h-9 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center text-sm">
+                    <i class="fas fa-box-archive"></i>
+                </div>
+            </div>
+        </a>
     </div>
 
     {{-- Main Module Tabs Navigation --}}
@@ -135,15 +184,15 @@
     {{-- ========================================================================= --}}
     @if($activeTab === 'assets')
         {{-- Filters & Search --}}
-        <form action="{{ route('assets.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
+        <form action="{{ route('assets.index') }}" method="GET" class="flex flex-col md:flex-row flex-wrap gap-3 mb-6">
             <input type="hidden" name="tab" value="assets">
 
-            <div class="flex-1">
+            <div class="flex-1 min-w-[220px]">
                 <input 
                     type="text" 
                     name="search" 
                     value="{{ request('search') }}" 
-                    placeholder="Search by asset code, name, serial number, manufacturer..."
+                    placeholder="Search code, name, serial number, brand..."
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
             </div>
@@ -157,6 +206,15 @@
                 @endforeach
             </select>
 
+            <select name="location_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">All Locations</option>
+                @foreach($locations as $loc)
+                    <option value="{{ $loc->id }}" {{ request('location_id') == $loc->id ? 'selected' : '' }}>
+                        {{ $loc->name }}
+                    </option>
+                @endforeach
+            </select>
+
             <select name="condition" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
                 @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
@@ -166,21 +224,24 @@
 
             <select name="status" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
-                @foreach([
-                    'available' => 'Available',
-                    'deployed' => 'Deployed',
-                    'under_maintenance' => 'Under Maintenance',
-                    'out_of_service' => 'Out of Service'
-                ] as $key => $label)
+                @foreach(\App\Services\AssetLifecycleService::statuses() as $key => $label)
                     <option value="{{ $key }}" {{ request('status') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
+            </select>
+
+            <select name="sort_by" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="id" {{ request('sort_by') === 'id' ? 'selected' : '' }}>Sort: Default</option>
+                <option value="code" {{ request('sort_by') === 'code' ? 'selected' : '' }}>Sort: Asset Code</option>
+                <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Name</option>
+                <option value="purchase_date" {{ request('sort_by') === 'purchase_date' ? 'selected' : '' }}>Sort: Purchase Date</option>
+                <option value="acquisition_cost" {{ request('sort_by') === 'acquisition_cost' ? 'selected' : '' }}>Sort: Acquisition Cost</option>
             </select>
 
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
                 <i class="fas fa-filter mr-1"></i> Filter
             </button>
 
-            @if(request()->hasAny(['search', 'category_id', 'type_id', 'condition', 'status']))
+            @if(request()->hasAny(['search', 'category_id', 'location_id', 'type_id', 'condition', 'status', 'sort_by']))
                 <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
                     <i class="fas fa-times mr-1"></i> Reset
                 </a>
@@ -193,40 +254,44 @@
                 <table class="w-full">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Code</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Category / Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Serial Number</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Code</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Name</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Category / Type</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Cost (PHP)</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
+                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($assets as $asset)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="font-mono text-sm font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <a href="{{ route('assets.show', $asset) }}" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors">
                                         {{ $asset->code }}
-                                    </span>
+                                    </a>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <p class="text-sm font-medium text-gray-900">{{ $asset->name }}</p>
-                                    @if($asset->manufacturer)
-                                        <p class="text-xs text-gray-500">{{ $asset->manufacturer }}</p>
+                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <a href="{{ route('assets.show', $asset) }}" class="text-sm font-bold text-gray-900 hover:text-blue-600 transition-colors block">
+                                        {{ $asset->name }}
+                                    </a>
+                                    @if($asset->manufacturer || $asset->serial_number)
+                                        <p class="text-[11px] text-gray-400">
+                                            {{ $asset->manufacturer ?? '' }} {{ $asset->serial_number ? '(' . $asset->serial_number . ')' : '' }}
+                                        </p>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                    <p class="font-medium text-gray-800">{{ $asset->category->name ?? 'Uncategorized' }}</p>
+                                <td class="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600">
+                                    <p class="font-medium text-gray-800 text-xs">{{ $asset->category->name ?? 'Uncategorized' }}</p>
                                     @if($asset->type)
-                                        <p class="text-xs text-gray-500">{{ $asset->type->name }}</p>
+                                        <p class="text-[11px] text-gray-400">{{ $asset->type->name }}</p>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-mono">
-                                    {{ $asset->serial_number ?: 'N/A' }}
+                                <td class="px-5 py-3.5 whitespace-nowrap text-xs font-bold text-gray-900">
+                                    ₱{{ number_format($asset->acquisition_cost ?? 0, 2) }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
                                     @php
                                         $conditionColor = match($asset->condition) {
                                             'excellent', 'good' => 'success',
@@ -237,41 +302,71 @@
                                     @endphp
                                     <x-badge variant="{{ $conditionColor }}" size="sm">{{ ucfirst($asset->condition) }}</x-badge>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-5 py-3.5 whitespace-nowrap">
                                     @php
                                         $statusColor = match($asset->status) {
-                                            'available' => 'success',
-                                            'deployed' => 'info',
+                                            'available'         => 'success',
+                                            'deployed'          => 'info',
                                             'under_maintenance' => 'warning',
-                                            'out_of_service' => 'danger',
-                                            default => 'secondary'
+                                            'out_of_service'    => 'danger',
+                                            'lost'              => 'danger',
+                                            'retired'           => 'secondary',
+                                            default             => 'secondary'
                                         };
                                     @endphp
-                                    <x-badge variant="{{ $statusColor }}" size="sm">{{ ucfirst(str_replace('_', ' ', $asset->status)) }}</x-badge>
+                                    <x-badge variant="{{ $statusColor }}" size="sm">
+                                        {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                                    </x-badge>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-600">
                                     {{ $asset->location->name ?? 'N/A' }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
+                                <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        {{-- 360° Dossier Direct Link --}}
+                                        <a 
+                                            href="{{ route('assets.show', $asset) }}" 
+                                            class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-800 transition-colors" 
+                                            title="View 360° Dossier"
+                                        >
+                                            <i class="fas fa-id-card"></i>
+                                        </a>
+
+                                        {{-- Quick View Modal --}}
                                         <button 
                                             onclick="openViewAssetModal({{ json_encode($asset) }}, '{{ $asset->category->name ?? 'N/A' }}', '{{ $asset->type->name ?? 'N/A' }}', '{{ $asset->location->name ?? 'N/A' }}')" 
-                                            class="p-1.5 rounded hover:bg-gray-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="View Details"
+                                            class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors" 
+                                            title="Quick View"
                                         >
                                             <i class="fas fa-eye"></i>
                                         </button>
+
+                                        {{-- Edit Modal --}}
                                         <button 
                                             onclick="openEditAssetModal({{ json_encode($asset) }})" 
-                                            class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
+                                            class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 hover:text-amber-800 transition-colors" 
                                             title="Edit Asset"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this asset? This action cannot be undone.');">
+
+                                        {{-- Decommission / Retire --}}
+                                        @if($asset->status !== 'retired')
+                                            <button 
+                                                type="button"
+                                                onclick="openRetireAssetModal({{ $asset->id }}, '{{ $asset->code }}', '{{ addslashes($asset->name) }}')"
+                                                class="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 hover:text-rose-800 transition-colors"
+                                                title="Decommission / Retire"
+                                            >
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        @endif
+
+                                        {{-- Safe Delete --}}
+                                        <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirm('Remove asset [{{ $asset->code }}]? If operational records exist, it will be safely retired instead.');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Asset">
+                                            <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -615,11 +710,17 @@
                         <option value="deployed">Deployed</option>
                         <option value="under_maintenance">Under Maintenance</option>
                         <option value="out_of_service">Out of Service</option>
+                        <option value="lost">Lost / Missing</option>
+                        <option value="retired">Retired / Decommissioned</option>
                     </select>
                 </x-form-group>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <x-form-group label="Acquisition Cost (PHP)">
+                    <input type="number" step="0.01" min="0" name="acquisition_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </x-form-group>
+
                 <x-form-group label="Purchase Date">
                     <input type="date" name="purchase_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
@@ -701,17 +802,23 @@
                         <option value="deployed">Deployed</option>
                         <option value="under_maintenance">Under Maintenance</option>
                         <option value="out_of_service">Out of Service</option>
+                        <option value="lost">Lost / Missing</option>
+                        <option value="retired">Retired / Decommissioned</option>
                     </select>
                 </x-form-group>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-form-group label="Location" required>
                     <select name="location_id" id="edit_asset_location_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                         @foreach($locations as $loc)
                             <option value="{{ $loc->id }}">{{ $loc->name }}</option>
                         @endforeach
                     </select>
+                </x-form-group>
+
+                <x-form-group label="Acquisition Cost (PHP)">
+                    <input type="number" step="0.01" min="0" name="acquisition_cost" id="edit_asset_acquisition_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
 
                 <x-form-group label="Purchase Date">
@@ -732,6 +839,24 @@
             <div class="flex gap-3 pt-4 border-t border-gray-200">
                 <x-button variant="primary" type="submit" class="flex-1">Save Changes</x-button>
                 <x-button variant="secondary" type="button" onclick="window.closeModal('edit-asset-modal')" class="flex-1">Cancel</x-button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- Retire Asset Modal --}}
+    <x-modal id="retire-asset-modal" title="Decommission / Retire Asset">
+        <form id="retire-asset-form" method="POST" class="space-y-4">
+            @csrf
+            <p class="text-xs text-gray-600">
+                Retiring <strong id="retire_asset_label" class="text-gray-900"></strong> will mark it as decommissioned from active disaster service. Its complete operational history, maintenance, and deployment records will remain immutably preserved.
+            </p>
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Reason for Decommissioning *</label>
+                <textarea name="retirement_reason" required rows="3" placeholder="Provide detailed justification (e.g. beyond economic repair, damaged in typhoon, obsolete)..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
+            </div>
+            <div class="flex gap-3 pt-3 border-t border-gray-200">
+                <x-button variant="danger" type="submit" class="flex-1">Confirm Decommissioning</x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('retire-asset-modal')" class="flex-1">Cancel</x-button>
             </div>
         </form>
     </x-modal>
@@ -1038,10 +1163,18 @@
                 document.getElementById('edit_asset_condition').value = asset.condition || 'good';
                 document.getElementById('edit_asset_status').value = asset.status || 'available';
                 document.getElementById('edit_asset_location_id').value = asset.location_id || '';
+                document.getElementById('edit_asset_acquisition_cost').value = asset.acquisition_cost || '';
                 document.getElementById('edit_asset_purchase_date').value = asset.purchase_date ? asset.purchase_date.substring(0, 10) : '';
                 document.getElementById('edit_asset_warranty_expiry').value = asset.warranty_expiry ? asset.warranty_expiry.substring(0, 10) : '';
                 document.getElementById('edit_asset_notes').value = asset.notes || '';
                 window.openModal('edit-asset-modal');
+            }
+
+            function openRetireAssetModal(id, code, name) {
+                const form = document.getElementById('retire-asset-form');
+                form.action = `/assets/${id}/retire`;
+                document.getElementById('retire_asset_label').textContent = `${name} (${code})`;
+                window.openModal('retire-asset-modal');
             }
 
             function openViewAssetModal(asset, categoryName, typeName, locationName) {
@@ -1064,6 +1197,8 @@
                 else if (asset.status === 'deployed') statusClasses = 'bg-blue-100 text-blue-800';
                 else if (asset.status === 'under_maintenance') statusClasses = 'bg-amber-100 text-amber-800';
                 else if (asset.status === 'out_of_service') statusClasses = 'bg-red-100 text-red-800';
+                else if (asset.status === 'lost') statusClasses = 'bg-purple-100 text-purple-800';
+                else if (asset.status === 'retired') statusClasses = 'bg-gray-200 text-gray-800';
 
                 statusBadge.innerHTML = `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusClasses}">${statusText}</span>`;
                 window.openModal('view-asset-modal');

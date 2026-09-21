@@ -135,7 +135,10 @@ class AssetTypeSeeder extends Seeder
         ];
 
         foreach ($types as $type) {
-            AssetType::create($type);
+            AssetType::firstOrCreate(
+                ['category_id' => $type['category_id'], 'name' => $type['name']],
+                $type
+            );
         }
     }
 }

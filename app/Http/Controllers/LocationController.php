@@ -21,6 +21,10 @@ class LocationController extends Controller
      */
     public function store(Request $request)
     {
+        if (!$request->user() || !$request->user()->isAdmin()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|unique:locations,name',
             'type' => 'nullable|string',
@@ -39,6 +43,10 @@ class LocationController extends Controller
      */
     public function update(Request $request, Location $location)
     {
+        if (!$request->user() || !$request->user()->isAdmin()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|unique:locations,name,' . $location->id,
             'type' => 'nullable|string',
@@ -55,8 +63,12 @@ class LocationController extends Controller
     /**
      * Remove the specified location from storage.
      */
-    public function destroy(Location $location)
+    public function destroy(Request $request, Location $location)
     {
+        if (!$request->user() || !$request->user()->isAdmin()) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $location->delete();
 
         return redirect()->route('locations.index')

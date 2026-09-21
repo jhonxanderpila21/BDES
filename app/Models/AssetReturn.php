@@ -13,6 +13,7 @@ class AssetReturn extends Model
         'deployment_id',
         'asset_id',
         'returned_by',
+        'received_by',
         'return_date',
         'condition',
         'damage_notes',
@@ -23,8 +24,8 @@ class AssetReturn extends Model
 
     protected $casts = [
         'return_date' => 'date',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'created_at'  => 'datetime',
+        'updated_at'  => 'datetime',
     ];
 
     /**
@@ -33,6 +34,14 @@ class AssetReturn extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class, 'asset_id');
+    }
+
+    /**
+     * Receiving officer user
+     */
+    public function receivedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'received_by');
     }
 
     /**

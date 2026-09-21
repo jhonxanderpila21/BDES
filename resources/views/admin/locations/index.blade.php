@@ -1,21 +1,21 @@
 @extends('layouts.admin')
 
-@section('title', 'Locations - BDES')
+@section('title', 'Asset Locations - BDES')
 
 @section('content')
     {{-- Page Header --}}
     <div class="flex items-center justify-between mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Locations</h1>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Asset Locations</h1>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Asset Configuration'],
-                ['label' => 'Locations']
+                ['label' => 'Administration'],
+                ['label' => 'Asset Locations']
             ]" />
         </div>
         <button onclick="openAddLocationModal()" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
             <i class="fas fa-plus"></i>
-            Add Location
+            Add Asset Location
         </button>
     </div>
 
@@ -87,7 +87,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-8">
-                                <x-empty-state icon="fas fa-map-marker-alt" title="No locations found" />
+                                <x-empty-state icon="fas fa-map-marker-alt" title="No asset locations found" />
                             </td>
                         </tr>
                     @endforelse
@@ -100,7 +100,7 @@
     </x-card>
 
     {{-- Add Location Modal --}}
-    <x-modal id="add-location-modal" title="Add Location">
+    <x-modal id="add-location-modal" title="Add Asset Location">
         <form class="space-y-4">
             <x-form-group label="Location Name" required>
                 <input type="text" placeholder="e.g., Main Storage Facility" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -124,7 +124,7 @@
             </x-form-group>
 
             <div class="flex gap-3 mt-6">
-                <x-button variant="primary" class="flex-1">Create Location</x-button>
+                <x-button variant="primary" class="flex-1">Create Asset Location</x-button>
                 <x-button variant="secondary" type="button" onclick="window.closeModal('add-location-modal')" class="flex-1">Cancel</x-button>
             </div>
         </form>
