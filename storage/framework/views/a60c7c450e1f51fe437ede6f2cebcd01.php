@@ -9,7 +9,37 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
-<body class="bg-gray-100" x-data="{ sidebarOpen: window.innerWidth >= 1024 }">
+<body 
+    class="bg-gray-100" 
+    x-data="{ 
+        sidebarOpen: window.innerWidth >= 1024,
+        sidebarWidth: parseInt(localStorage.getItem('bdes_sidebar_width')) || 256,
+        isResizing: false,
+        startResize(e) {
+            this.isResizing = true;
+            const startX = e.clientX;
+            const startWidth = this.sidebarWidth;
+            const doResize = (moveEvent) => {
+                if (!this.isResizing) return;
+                const newWidth = Math.min(Math.max(startWidth + (moveEvent.clientX - startX), 200), 420);
+                this.sidebarWidth = newWidth;
+                localStorage.setItem('bdes_sidebar_width', newWidth);
+            };
+            const stopResize = () => {
+                this.isResizing = false;
+                window.removeEventListener('mousemove', doResize);
+                window.removeEventListener('mouseup', stopResize);
+            };
+            window.addEventListener('mousemove', doResize);
+            window.addEventListener('mouseup', stopResize);
+        },
+        resetSidebarWidth() {
+            this.sidebarWidth = 256;
+            localStorage.setItem('bdes_sidebar_width', 256);
+        }
+    }"
+    :class="{'cursor-col-resize select-none': isResizing}"
+>
     <div class="flex h-screen overflow-hidden">
         
         <?php echo $__env->make('admin.partials.sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>

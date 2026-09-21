@@ -57,8 +57,8 @@
                             <p class="text-xs text-gray-500 mt-2">5 hours ago</p>
                         </div>
                         <div class="p-4 hover:bg-gray-50 cursor-pointer">
-                            <p class="text-sm font-medium text-gray-900">Incident Report Filed</p>
-                            <p class="text-xs text-gray-600 mt-1">New incident report requires review</p>
+                            <p class="text-sm font-medium text-gray-900">Asset Inspection Due</p>
+                            <p class="text-xs text-gray-600 mt-1">Scheduled physical inspection requires review</p>
                             <p class="text-xs text-gray-500 mt-2">1 day ago</p>
                         </div>
                     </div>
@@ -80,7 +80,7 @@
                     </div>
                     <div class="hidden sm:block text-left">
                         <p class="text-sm font-medium text-gray-900"><?php echo e(Auth::user()->name ?? 'User'); ?></p>
-                        <p class="text-xs text-gray-600"><?php echo e(ucfirst(Auth::user()->role ?? 'Administrator')); ?></p>
+                        <p class="text-xs text-gray-600"><?php echo e(ucwords(str_replace('_', ' ', Auth::user()->role ?? 'User'))); ?></p>
                     </div>
                     <i class="fas fa-chevron-down text-xs text-gray-600 hidden sm:block"></i>
                 </button>
