@@ -49,31 +49,16 @@
                 <span>Dashboard</span>
             </a>
 
-            {{-- 2. Asset Management Dropdown --}}
-            <div x-data="{ open: {{ $isAssetMgmtActive ? 'true' : 'false' }} }" class="pt-1">
-                <button
-                    type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $isAssetMgmtActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}"
-                >
+            {{-- 2. Asset Management --}}
+            <div class="pt-1">
+                <div class="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider select-none text-left {{ $isAssetMgmtActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500' }}">
                     <div class="flex items-center gap-2.5">
                         <i class="fas fa-boxes-stacked w-4 text-center {{ $isAssetMgmtActive ? 'text-blue-600' : 'text-gray-400' }}"></i>
                         <span>Asset Management</span>
                     </div>
-                    <i class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}"></i>
-                </button>
+                </div>
 
-                <div
-                    x-show="open"
-                    x-cloak
-                    x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0 -translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-1"
-                    class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1"
-                >
+                <div class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1">
                     {{-- Asset Registry --}}
                     <a
                         href="{{ route('assets.index') }}"
@@ -112,31 +97,16 @@
                 </div>
             </div>
 
-            {{-- 3. Asset Operations Dropdown --}}
-            <div x-data="{ open: {{ $isOperationsActive ? 'true' : 'false' }} }" class="pt-1">
-                <button
-                    type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $isOperationsActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}"
-                >
+            {{-- 3. Asset Operations --}}
+            <div class="pt-1">
+                <div class="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider select-none text-left {{ $isOperationsActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500' }}">
                     <div class="flex items-center gap-2.5">
                         <i class="fas fa-truck-fast w-4 text-center {{ $isOperationsActive ? 'text-blue-600' : 'text-gray-400' }}"></i>
                         <span>Asset Operations</span>
                     </div>
-                    <i class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}"></i>
-                </button>
+                </div>
 
-                <div
-                    x-show="open"
-                    x-cloak
-                    x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0 -translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-1"
-                    class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1"
-                >
+                <div class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1">
                     {{-- Deployments & Returns --}}
                     <a
                         href="{{ route('deployment.index') }}"
@@ -146,22 +116,13 @@
                         <span>Deployments & Returns</span>
                     </a>
 
-                    {{-- Maintenance & Work Orders --}}
+                    {{-- Maintenance --}}
                     <a
                         href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium hover:bg-gray-50 {{ ($isActive('maintenance.*') && request('tab') !== 'inspections') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600' }}"
+                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium hover:bg-gray-50 {{ ($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600' }}"
                     >
-                        <i class="fas fa-screwdriver-wrench w-4 text-center {{ ($isActive('maintenance.*') && request('tab') !== 'inspections') ? 'text-blue-600' : 'text-gray-400' }}"></i>
-                        <span>Maintenance & Work Orders</span>
-                    </a>
-
-                    {{-- Asset Inspection (Unified Schedules & Inspection Logs) --}}
-                    <a
-                        href="{{ route('maintenance.index', ['tab' => 'inspections']) }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium hover:bg-gray-50 {{ ($isActive('inspection.*') || $isActive('maintenance-schedules.*') || ($isActive('maintenance.*') && request('tab') === 'inspections')) ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600' }}"
-                    >
-                        <i class="fas fa-clipboard-check w-4 text-center {{ ($isActive('inspection.*') || $isActive('maintenance-schedules.*') || ($isActive('maintenance.*') && request('tab') === 'inspections')) ? 'text-blue-600' : 'text-gray-400' }}"></i>
-                        <span>Asset Inspection</span>
+                        <i class="fas fa-screwdriver-wrench w-4 text-center {{ ($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) ? 'text-blue-600' : 'text-gray-400' }}"></i>
+                        <span>Maintenance</span>
                     </a>
 
                     {{-- Reported Assets --}}
@@ -184,32 +145,17 @@
                 <span>Asset Locations</span>
             </a>
 
-            {{-- 5. Asset Financials Dropdown (Admin Only) --}}
+            {{-- 5. Asset Financials (Admin Only) --}}
             @if($isAdmin)
-                <div x-data="{ open: {{ $isFinancialsActive ? 'true' : 'false' }} }" class="pt-1">
-                    <button
-                        type="button"
-                        @click="open = !open"
-                        class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $isFinancialsActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}"
-                    >
+                <div class="pt-1">
+                    <div class="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider select-none text-left {{ $isFinancialsActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500' }}">
                         <div class="flex items-center gap-2.5">
                             <i class="fas fa-coins w-4 text-center {{ $isFinancialsActive ? 'text-blue-600' : 'text-gray-400' }}"></i>
                             <span>Asset Financials</span>
                         </div>
-                        <i class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}"></i>
-                    </button>
+                    </div>
 
-                    <div
-                        x-show="open"
-                        x-cloak
-                        x-transition:enter="transition ease-out duration-150"
-                        x-transition:enter-start="opacity-0 -translate-y-1"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-100"
-                        x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 -translate-y-1"
-                        class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1"
-                    >
+                    <div class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1">
                         {{-- Valuation & Budgeting --}}
                         <a
                             href="{{ route('asset-accessories.index', ['tab' => 'accessories']) }}"
@@ -240,31 +186,16 @@
                 </div>
             @endif
 
-            {{-- 6. Tracking & Reporting Dropdown --}}
-            <div x-data="{ open: {{ $isTrackingActive ? 'true' : 'false' }} }" class="pt-1">
-                <button
-                    type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $isTrackingActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}"
-                >
+            {{-- 6. Tracking & Reporting --}}
+            <div class="pt-1">
+                <div class="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider select-none text-left {{ $isTrackingActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500' }}">
                     <div class="flex items-center gap-2.5">
                         <i class="fas fa-chart-pie w-4 text-center {{ $isTrackingActive ? 'text-blue-600' : 'text-gray-400' }}"></i>
                         <span>Tracking & Reporting</span>
                     </div>
-                    <i class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}"></i>
-                </button>
+                </div>
 
-                <div
-                    x-show="open"
-                    x-cloak
-                    x-transition:enter="transition ease-out duration-150"
-                    x-transition:enter-start="opacity-0 -translate-y-1"
-                    x-transition:enter-end="opacity-100 translate-y-0"
-                    x-transition:leave="transition ease-in duration-100"
-                    x-transition:leave-start="opacity-100 translate-y-0"
-                    x-transition:leave-end="opacity-0 -translate-y-1"
-                    class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1"
-                >
+                <div class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1">
                     {{-- Asset History / Audit Trail (All Roles) --}}
                     <a
                         href="{{ route('asset-history.index') }}"
@@ -289,30 +220,15 @@
 
             {{-- 7. Administration (Admin Only) OR Account Settings (Non-Admin) --}}
             @if($isAdmin)
-                <div x-data="{ open: {{ $isAdminActive ? 'true' : 'false' }} }" class="pt-1">
-                    <button
-                        type="button"
-                        @click="open = !open"
-                        class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $isAdminActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50' }}"
-                    >
+                <div class="pt-1">
+                    <div class="w-full flex items-center px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider select-none text-left {{ $isAdminActive ? 'text-blue-700 bg-blue-50/70' : 'text-gray-500' }}">
                         <div class="flex items-center gap-2.5">
                             <i class="fas fa-sliders w-4 text-center {{ $isAdminActive ? 'text-blue-600' : 'text-gray-400' }}"></i>
                             <span>Administration</span>
                         </div>
-                        <i class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200" :class="{'rotate-180': open}"></i>
-                    </button>
+                    </div>
 
-                    <div
-                        x-show="open"
-                        x-cloak
-                        x-transition:enter="transition ease-out duration-150"
-                        x-transition:enter-start="opacity-0 -translate-y-1"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-100"
-                        x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 -translate-y-1"
-                        class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1"
-                    >
+                    <div class="pl-3 pr-1 space-y-1 border-l-2 border-gray-100 ml-3.5 my-1">
                         {{-- User Management --}}
                         <a
                             href="{{ route('users.index') }}"

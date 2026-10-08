@@ -6,8 +6,7 @@
     {{-- Page Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <i class="fas fa-paperclip text-blue-600"></i>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
                 Attachments and Accessories
             </h1>
             <x-breadcrumb :items="[
@@ -132,21 +131,21 @@
                 >
             </div>
 
-            <select name="type" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="type" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Types</option>
                 @foreach(['Hose', 'Bracket', 'Cable', 'Mount', 'Hardware', 'Adapter'] as $t)
                     <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
                 @endforeach
             </select>
 
-            <select name="condition" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="condition" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
                 @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <select name="asset_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="asset_id" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Linked Assets</option>
                 @foreach($assets as $asset)
                     <option value="{{ $asset->id }}" {{ request('asset_id') == $asset->id ? 'selected' : '' }}>
@@ -284,14 +283,14 @@
                 >
             </div>
 
-            <select name="asset_type" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="asset_type" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Asset Types</option>
                 @foreach($accessoryAssetTypes as $t)
                     <option value="{{ $t }}" {{ request('asset_type') === $t ? 'selected' : '' }}>{{ $t }}</option>
                 @endforeach
             </select>
 
-            <select name="status" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="status" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
                 @foreach($accessoryStatuses as $s)
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
@@ -356,14 +355,6 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
-                                        {{-- Adjust Quantity --}}
-                                        <button 
-                                            onclick="openAdjustModal({{ $acc->id }}, '{{ addslashes($acc->accessory_name) }}', {{ $acc->quantity }})"
-                                            class="p-1.5 rounded hover:bg-gray-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="Restock / Consume Quantity"
-                                        >
-                                            <i class="fas fa-boxes-packing"></i>
-                                        </button>
                                         {{-- Edit --}}
                                         <button 
                                             onclick="openEditAccessoryModal({{ json_encode($acc) }})"

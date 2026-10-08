@@ -19,10 +19,7 @@
 
         {{-- Contextual Action Buttons --}}
         <div class="flex flex-wrap items-center gap-2">
-            <a href="{{ route('assets.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm shadow-sm">
-                <i class="fas fa-file-csv"></i>
-                Export CSV
-            </a>
+
 
             @if($activeTab === 'categories')
                 <button onclick="openAddCategoryModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
@@ -57,7 +54,7 @@
     @endif
 
     {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
         {{-- Total Assets --}}
         <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-blue-300 transition-colors block">
             <div class="flex items-center justify-between">
@@ -127,20 +124,6 @@
                 </div>
             </div>
         </a>
-
-        {{-- Retired / Decommissioned --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'retired']) }}" class="bg-white rounded-xl p-4 border border-gray-200 bg-gray-50/60 shadow-sm hover:border-gray-400 transition-colors block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-600">Retired</p>
-                    <p class="text-xl font-bold text-gray-800 mt-0.5">{{ $metrics['retired_assets'] ?? 0 }}</p>
-                    <p class="text-[10px] text-gray-500 mt-0.5">Decommissioned</p>
-                </div>
-                <div class="w-9 h-9 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center text-sm">
-                    <i class="fas fa-box-archive"></i>
-                </div>
-            </div>
-        </a>
     </div>
 
     {{-- Main Module Tabs Navigation --}}
@@ -197,7 +180,7 @@
                 >
             </div>
 
-            <select name="category_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="category_id" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -206,7 +189,7 @@
                 @endforeach
             </select>
 
-            <select name="location_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="location_id" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Locations</option>
                 @foreach($locations as $loc)
                     <option value="{{ $loc->id }}" {{ request('location_id') == $loc->id ? 'selected' : '' }}>
@@ -215,21 +198,21 @@
                 @endforeach
             </select>
 
-            <select name="condition" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="condition" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
                 @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <select name="status" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="status" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
                 @foreach(\App\Services\AssetLifecycleService::statuses() as $key => $label)
                     <option value="{{ $key }}" {{ request('status') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <select name="sort_by" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="sort_by" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="id" {{ request('sort_by') === 'id' ? 'selected' : '' }}>Sort: Default</option>
                 <option value="code" {{ request('sort_by') === 'code' ? 'selected' : '' }}>Sort: Asset Code</option>
                 <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Name</option>
@@ -241,11 +224,6 @@
                 <i class="fas fa-filter mr-1"></i> Filter
             </button>
 
-            @if(request()->hasAny(['search', 'category_id', 'location_id', 'type_id', 'condition', 'status', 'sort_by']))
-                <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
-                    <i class="fas fa-times mr-1"></i> Reset
-                </a>
-            @endif
         </form>
 
         {{-- Assets Table --}}
@@ -323,15 +301,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        {{-- 360° Dossier Direct Link --}}
-                                        <a 
-                                            href="{{ route('assets.show', $asset) }}" 
-                                            class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="View 360° Dossier"
-                                        >
-                                            <i class="fas fa-id-card"></i>
-                                        </a>
-
                                         {{-- Quick View Modal --}}
                                         <button 
                                             onclick="openViewAssetModal({{ json_encode($asset) }}, '{{ $asset->category->name ?? 'N/A' }}', '{{ $asset->type->name ?? 'N/A' }}', '{{ $asset->location->name ?? 'N/A' }}')" 
@@ -349,18 +318,6 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-
-                                        {{-- Decommission / Retire --}}
-                                        @if($asset->status !== 'retired')
-                                            <button 
-                                                type="button"
-                                                onclick="openRetireAssetModal({{ $asset->id }}, '{{ $asset->code }}', '{{ addslashes($asset->name) }}')"
-                                                class="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 hover:text-rose-800 transition-colors"
-                                                title="Decommission / Retire"
-                                            >
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        @endif
 
                                         {{-- Safe Delete --}}
                                         <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirm('Remove asset [{{ $asset->code }}]? If operational records exist, it will be safely retired instead.');">
@@ -407,7 +364,7 @@
                 >
             </div>
 
-            <select name="status" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="status" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -417,11 +374,6 @@
                 <i class="fas fa-filter mr-1"></i> Filter
             </button>
 
-            @if(request()->hasAny(['search', 'status']))
-                <a href="{{ route('assets.index', ['tab' => 'categories']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
-                    <i class="fas fa-times mr-1"></i> Reset
-                </a>
-            @endif
         </form>
 
         {{-- Categories Table --}}
@@ -509,7 +461,7 @@
                 >
             </div>
 
-            <select name="category_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="category_id" onchange="this.form.submit()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -522,11 +474,6 @@
                 <i class="fas fa-filter mr-1"></i> Filter
             </button>
 
-            @if(request()->hasAny(['search', 'category_id']))
-                <a href="{{ route('assets.index', ['tab' => 'types']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
-                    <i class="fas fa-times mr-1"></i> Reset
-                </a>
-            @endif
         </form>
 
         {{-- Asset Types Table --}}

@@ -42,15 +42,7 @@ class DeploymentSeeder extends Seeder
                 'purpose' => 'Communications for night patrol.',
                 'status' => 'active',
             ],
-            [
-                'asset_id' => 15, // Trauma Bag 2
-                'destination' => 'Zone 3 & 4',
-                'assigned_team' => 'Tanod Night Watch',
-                'deployment_date' => now()->subHours(8),
-                'expected_return_date' => now()->addHours(4),
-                'purpose' => 'Medical kit for night patrol vehicle.',
-                'status' => 'active',
-            ],
+
             [
                 'asset_id' => 3, // Honda 5kVA Generator
                 'destination' => 'Purok C Evacuation Center',

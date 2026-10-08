@@ -45,7 +45,7 @@
     @endif
 
     {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
         {{-- Total Schedules --}}
         <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
@@ -67,18 +67,6 @@
             </div>
             <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-lg">
                 <i class="fas fa-triangle-exclamation"></i>
-            </div>
-        </div>
-
-        {{-- Active Maintenance --}}
-        <div class="bg-white rounded-xl p-4 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-0.5">Active Orders</p>
-                <p class="text-xl font-bold text-indigo-700">{{ $metrics['active_maintenance'] }}</p>
-                <p class="text-[10px] text-indigo-600">In-progress repairs</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
-                <i class="fas fa-wrench"></i>
             </div>
         </div>
 
@@ -178,7 +166,6 @@
             {{-- Asset Type Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('asset_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-filter"></i>
                     <span>{{ request('asset_type') ?: 'Asset Type' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -193,7 +180,6 @@
             {{-- Interval Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('interval_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-clock"></i>
                     <span>{{ request('interval_type') ?: 'Interval' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -208,7 +194,6 @@
             {{-- Status Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-circle-info"></i>
                     <span>{{ request('status') ?: 'Status' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -343,7 +328,6 @@
             {{-- Type Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-filter"></i>
                     <span>{{ request('type') ? ucfirst(request('type')) : 'Maintenance Type' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -358,7 +342,6 @@
             {{-- Status Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-circle-info"></i>
                     <span>{{ request('status') ? ucfirst(str_replace('_', ' ', request('status'))) : 'Status' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -453,16 +436,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        @if(in_array($item->status, ['in_progress', 'scheduled', 'pending']))
-                                            <button 
-                                                type="button"
-                                                onclick="openCompleteWorkOrderModal({{ $item->id }}, '{{ $item->work_order_number ?? ('WO-' . $item->id) }}', '{{ $item->cost ?? 0 }}')"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm" 
-                                                title="Mark as Completed"
-                                            >
-                                                <i class="fas fa-check"></i> Complete
-                                            </button>
-                                        @endif
                                         <button 
                                             type="button" 
                                             onclick='openEditMaintenanceModal(@json($item))'
@@ -515,7 +488,6 @@
             {{-- Result Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('result') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-filter"></i>
                     <span>{{ request('result') ? ucfirst(str_replace('_', ' ', request('result'))) : 'Result' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -530,7 +502,6 @@
             {{-- Status Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-circle-info"></i>
                     <span>{{ request('status') ? ucfirst(request('status')) : 'Status' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>

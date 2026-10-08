@@ -38,12 +38,7 @@ class AssetFinancialsSeeder extends Seeder
                 'salvage_value'     => 5000.00,
                 'salvage_notes'     => 'Estimated generator frame and parts recovery scrap appraisal value.',
             ],
-            'FAK-001' => [
-                'acquisition_cost'  => 8500.00,
-                'useful_life_years' => 3,
-                'salvage_value'     => 850.00,
-                'salvage_notes'     => 'Statutory residual value for durable non-perishable trauma bag outer shell.',
-            ],
+
             'AED-001' => [
                 'acquisition_cost'  => 95000.00,
                 'useful_life_years' => 5,
@@ -98,12 +93,7 @@ class AssetFinancialsSeeder extends Seeder
                 'salvage_value'     => 48000.00,
                 'salvage_notes'     => 'Municipal vehicle residual scrap metal, engine, and drive-train appraisal.',
             ],
-            'FAK-002' => [
-                'acquisition_cost'  => 8500.00,
-                'useful_life_years' => 3,
-                'salvage_value'     => 850.00,
-                'salvage_notes'     => 'Statutory residual value for trauma kit container and durable medical hardware.',
-            ],
+
         ];
 
         foreach ($financialProfiles as $code => $financials) {

@@ -70,20 +70,7 @@ class AssetSeeder extends Seeder
                 'status' => 'under_maintenance',
                 'notes' => 'Currently undergoing oil change',
             ],
-            [
-                'code' => 'FAK-001',
-                'name' => 'Trauma Bag 1',
-                'category_id' => 2,
-                'type_id' => 3,
-                'serial_number' => 'FAK-TRM-001',
-                'manufacturer' => 'MediCorp',
-                'purchase_date' => '2023-11-05',
-                'warranty_expiry' => null,
-                'location_id' => 3,
-                'condition' => 'excellent',
-                'status' => 'available',
-                'notes' => 'Fully stocked trauma kit',
-            ],
+
             [
                 'code' => 'AED-001',
                 'name' => 'Zoll AED Plus',
@@ -210,20 +197,7 @@ class AssetSeeder extends Seeder
                 'status' => 'deployed',
                 'notes' => 'Plate No. ABC-1234',
             ],
-            [
-                'code' => 'FAK-002',
-                'name' => 'Trauma Bag 2',
-                'category_id' => 2,
-                'type_id' => 3,
-                'serial_number' => 'FAK-TRM-002',
-                'manufacturer' => 'MediCorp',
-                'purchase_date' => '2023-11-05',
-                'warranty_expiry' => null,
-                'location_id' => 1,
-                'condition' => 'good',
-                'status' => 'deployed',
-                'notes' => 'In patrol vehicle',
-            ],
+
         ];
 
         foreach ($assets as $asset) {

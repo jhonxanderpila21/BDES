@@ -38,8 +38,7 @@
         {{-- Asset Type Filter --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('asset_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                <i class="fas fa-filter"></i>
-                {{ request('asset_type') ?: 'Asset Type' }}
+                <span>{{ request('asset_type') ?: 'Asset Type' }}</span>
                 <i class="fas fa-chevron-down text-xs"></i>
             </button>
             <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
@@ -53,8 +52,7 @@
         {{-- Unit Filter --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('unit') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                <i class="fas fa-ruler"></i>
-                {{ request('unit') ?: 'Unit' }}
+                <span>{{ request('unit') ?: 'Unit' }}</span>
                 <i class="fas fa-chevron-down text-xs"></i>
             </button>
             <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
@@ -68,8 +66,7 @@
         {{-- Status Filter --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                <i class="fas fa-circle-info"></i>
-                {{ request('status') ?: 'Status' }}
+                <span>{{ request('status') ?: 'Status' }}</span>
                 <i class="fas fa-chevron-down text-xs"></i>
             </button>
             <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
@@ -90,7 +87,6 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Type</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Unit</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
@@ -98,17 +94,6 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assetNeeds as $need)
-                        @php
-                            $pct = $need->maximum_capacity > 0
-                                ? round(($need->current_level / $need->maximum_capacity) * 100)
-                                : 0;
-                            $barColor = match(true) {
-                                $pct >= 60 => 'bg-green-500',
-                                $pct >= 30 => 'bg-yellow-500',
-                                $pct > 0   => 'bg-red-500',
-                                default    => 'bg-gray-300',
-                            };
-                        @endphp
                         <tr class="hover:bg-gray-50 transition-colors">
                             {{-- Asset --}}
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -121,18 +106,6 @@
                             </td>
                             {{-- Requirement --}}
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $need->requirement }}</td>
-                            {{-- Level with progress bar --}}
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-24 bg-gray-200 rounded-full h-2">
-                                        <div class="{{ $barColor }} h-2 rounded-full transition-all duration-300" style="width: {{ $pct }}%"></div>
-                                    </div>
-                                    <span class="text-sm text-gray-600">
-                                        {{ rtrim(rtrim(number_format($need->current_level, 2), '0'), '.') }}
-                                        / {{ rtrim(rtrim(number_format($need->maximum_capacity, 2), '0'), '.') }}
-                                    </span>
-                                </div>
-                            </td>
                             {{-- Unit --}}
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $need->unit }}</td>
                             {{-- Status Badge --}}
@@ -148,11 +121,6 @@
                             {{-- Actions --}}
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <div class="flex items-center gap-2">
-                                    {{-- Replenish --}}
-                                    <button onclick="openReplenishModal({{ $need->id }}, '{{ addslashes($need->requirement) }}', {{ $need->current_level }}, {{ $need->maximum_capacity }}, '{{ $need->unit }}')"
-                                            class="p-2 rounded hover:bg-gray-100 transition-colors text-green-600" title="Replenish">
-                                        <i class="fas fa-fill-drip"></i>
-                                    </button>
                                     {{-- Edit --}}
                                     <button onclick="openEditModal({{ json_encode($need) }})"
                                             class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit">
@@ -171,7 +139,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-8">
+                            <td colspan="6" class="px-6 py-8">
                                 <x-empty-state icon="fas fa-box-open" title="No asset needs found" />
                             </td>
                         </tr>

@@ -28,13 +28,12 @@
     @endif
 
     {{-- Dashboard Summary Cards --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         @php
             $statusIcons = [
                 'Pending'    => 'fas fa-clock',
                 'For Review' => 'fas fa-search',
                 'Ongoing'    => 'fas fa-spinner',
-                'Escalated'  => 'fas fa-exclamation-triangle',
                 'Done'       => 'fas fa-check-circle',
                 'Closed'     => 'fas fa-archive',
             ];
@@ -42,12 +41,14 @@
                 'Pending'    => 'border-yellow-400 bg-yellow-50 text-yellow-700',
                 'For Review' => 'border-sky-400 bg-sky-50 text-sky-700',
                 'Ongoing'    => 'border-blue-400 bg-blue-50 text-blue-700',
-                'Escalated'  => 'border-red-400 bg-red-50 text-red-700',
                 'Done'       => 'border-green-400 bg-green-50 text-green-700',
                 'Closed'     => 'border-gray-400 bg-gray-50 text-gray-600',
             ];
         @endphp
         @foreach($statusCounts as $status => $count)
+            @if($status === 'Escalated')
+                @continue
+            @endif
             <div class="rounded-lg border-l-4 p-4 {{ $statusColors[$status] ?? 'border-gray-300 bg-gray-50' }}">
                 <div class="flex items-center gap-2 mb-1">
                     <i class="{{ $statusIcons[$status] ?? 'fas fa-info-circle' }} text-sm"></i>
