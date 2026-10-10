@@ -18,7 +18,7 @@
                 </div>
                 <div class="hidden sm:block">
                     <h2 class="text-lg font-bold text-gray-900">BDES</h2>
-                    <p class="text-xs text-gray-600">Disaster Assets</p>
+                    <p class="text-xs text-gray-600">Barangay Disaster Equipment System</p>
                 </div>
             </div>
         </div>
