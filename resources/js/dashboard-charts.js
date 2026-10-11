@@ -105,37 +105,7 @@ function renderAssetsByCategory() {
 			cutout: '66%',
 			plugins: {
 				legend: {
-					position: 'right',
-					labels: {
-						boxWidth: 12,
-						boxHeight: 12,
-						usePointStyle: true,
-						pointStyle: 'circle',
-						padding: 12,
-						font: {
-							size: 11,
-							weight: '500',
-						},
-						generateLabels: (chart) => {
-							const data = chart.data;
-							if (data.labels.length && data.datasets.length) {
-								const dataset = data.datasets[0];
-								return data.labels.map((label, i) => {
-									const value = dataset.data[i] || 0;
-									const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
-									return {
-										text: `${label}: ${value} (${percentage}%)`,
-										fillStyle: dataset.backgroundColor[i],
-										strokeStyle: dataset.borderColor,
-										lineWidth: dataset.borderWidth,
-										hidden: chart.getDatasetMeta(0).data[i]?.hidden || false,
-										index: i,
-									};
-								});
-							}
-							return [];
-						},
-					},
+					display: false,
 				},
 				tooltip: {
 					callbacks: {
