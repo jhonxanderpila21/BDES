@@ -33,7 +33,9 @@
                 $isFinancialsActive = (request()->routeIs('asset-accessories.index') && request('tab') === 'accessories')
                     || $isActive('financials.*');
 
-                $isTrackingActive = $isActive('asset-history.*') || $isActive('reports.*');
+                $isTrackingActive = $isActive('asset-history.*') 
+                    || $isActive('locations.*') 
+                    || $isActive('reports.*');
 
                 $isAdminActive = $isActive('users.*') 
                     || $isActive('roles.*') 
@@ -175,16 +177,7 @@
                 </div>
             </div>
 
-            {{-- 4. Asset Locations (Separated in all roles) --}}
-            <a
-                href="{{ route('locations.index') }}"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium hover:bg-gray-50 {{ $isActive('locations.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700' }}"
-            >
-                <i class="fas fa-location-dot w-5 text-center {{ $isActive('locations.*') ? 'text-blue-600' : 'text-gray-500' }}"></i>
-                <span>Asset Locations</span>
-            </a>
-
-            {{-- 5. Asset Financials Dropdown (Admin Only) --}}
+            {{-- 4. Asset Financials Dropdown (Admin Only) --}}
             @if($isAdmin)
                 <div x-data="{ open: {{ $isFinancialsActive ? 'true' : 'false' }} }" class="pt-1">
                     <button
@@ -240,7 +233,7 @@
                 </div>
             @endif
 
-            {{-- 6. Tracking & Reporting Dropdown --}}
+            {{-- 5. Tracking & Reporting Dropdown --}}
             <div x-data="{ open: {{ $isTrackingActive ? 'true' : 'false' }} }" class="pt-1">
                 <button
                     type="button"
@@ -274,6 +267,15 @@
                         <span>Asset History & Audit</span>
                     </a>
 
+                    {{-- Asset Locations (All Roles) --}}
+                    <a
+                        href="{{ route('locations.index') }}"
+                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium hover:bg-gray-50 {{ $isActive('locations.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600' }}"
+                    >
+                        <i class="fas fa-location-dot w-4 text-center {{ $isActive('locations.*') ? 'text-blue-600' : 'text-gray-400' }}"></i>
+                        <span>Asset Locations</span>
+                    </a>
+
                     {{-- Reports Center (Admin Only) --}}
                     @if($isAdmin)
                         <a
@@ -287,7 +289,7 @@
                 </div>
             </div>
 
-            {{-- 7. Administration (Admin Only) OR Account Settings (Non-Admin) --}}
+            {{-- 6. Administration (Admin Only) OR Account Settings (Non-Admin) --}}
             @if($isAdmin)
                 <div x-data="{ open: {{ $isAdminActive ? 'true' : 'false' }} }" class="pt-1">
                     <button

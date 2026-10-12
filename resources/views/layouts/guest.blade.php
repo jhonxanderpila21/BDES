@@ -7,6 +7,8 @@
 
         <title>{{ config('app.name', 'BDES') }}</title>
 
+        <link rel="icon" type="image/png" href="{{ asset('images/bdes-logo.png') }}">
+
         <!-- Fonts & Icons -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -26,10 +28,8 @@
             <div class="relative z-10 w-full max-w-md">
                 {{-- BDES Brand Header --}}
                 <div class="text-center mb-8">
-                    <a href="{{ url('/') }}" class="inline-flex items-center gap-3 group">
-                        <div class="w-12 h-12 bg-blue-600 text-white rounded-xl shadow-md shadow-blue-500/25 flex items-center justify-center text-xl transition-transform group-hover:scale-105">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
+                    <a href="{{ url('/') }}" class="inline-flex items-center gap-3.5 group">
+                        <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-14 h-14 object-contain rounded-full shadow-sm transition-transform group-hover:scale-105">
                         <div class="text-left">
                             <h1 class="text-2xl font-bold tracking-tight text-gray-900 leading-tight">BDES</h1>
                             <p class="text-xs font-medium text-gray-500">Disaster Asset Management</p>

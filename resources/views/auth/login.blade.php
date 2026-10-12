@@ -36,16 +36,9 @@
 
         <!-- Password -->
         <div>
-            <div class="flex items-center justify-between mb-1.5">
-                <label for="password" class="block text-sm font-medium text-gray-700">
-                    Password
-                </label>
-                @if (Route::has('password.request'))
-                    <a class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors" href="{{ route('password.request') }}">
-                        Forgot password?
-                    </a>
-                @endif
-            </div>
+            <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">
+                Password
+            </label>
             <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                     <i class="fas fa-lock text-sm"></i>
@@ -63,17 +56,25 @@
             <x-input-error :messages="$errors->get('password')" class="mt-1.5 text-xs text-red-600" />
         </div>
 
-        <!-- Remember Me -->
-        <div class="flex items-center pt-1">
-            <input
-                id="remember_me"
-                type="checkbox"
-                name="remember"
-                class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-            />
-            <label for="remember_me" class="ml-2.5 block text-sm text-gray-600 cursor-pointer select-none">
-                Remember me
+        <!-- Remember Me & Forgot Password -->
+        <div class="flex items-center justify-between pt-1">
+            <label for="remember_me" class="inline-flex items-center cursor-pointer select-none">
+                <input
+                    id="remember_me"
+                    type="checkbox"
+                    name="remember"
+                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                />
+                <span class="ml-2.5 text-sm text-gray-600">
+                    Remember me
+                </span>
             </label>
+
+            @if (Route::has('password.request'))
+                <a class="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors" href="{{ route('password.request') }}">
+                    Forgot password?
+                </a>
+            @endif
         </div>
 
         <!-- Submit Button -->
