@@ -45,7 +45,6 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Type</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Unit</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
@@ -58,10 +57,6 @@
                                 <p class="text-sm font-medium text-gray-900">{{ $requirement->assetType->name ?? 'Unknown Asset Type' }}</p>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $requirement->requirement_type }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ rtrim(rtrim(number_format($requirement->current_level, 2), '0'), '.') }}
-                                / {{ rtrim(rtrim(number_format($requirement->maximum_capacity, 2), '0'), '.') }}
-                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $requirement->unit }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($requirement->isLowStock())
@@ -72,22 +67,6 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 <div class="flex items-center gap-2">
-                                    <form action="{{ route('operational-requirements.refill', $requirement) }}" method="POST" class="inline-flex items-center gap-1"
-                                          onsubmit="return setAmount(this, 'Amount to refill (in {{ $requirement->unit }}):');">
-                                        @csrf
-                                        <input type="hidden" name="amount" value="">
-                                        <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-green-600" title="Refill">
-                                            <i class="fas fa-fill-drip"></i>
-                                        </button>
-                                    </form>
-                                    <form action="{{ route('operational-requirements.consume', $requirement) }}" method="POST" class="inline-flex items-center gap-1"
-                                          onsubmit="return setAmount(this, 'Amount to consume (in {{ $requirement->unit }}):');">
-                                        @csrf
-                                        <input type="hidden" name="amount" value="">
-                                        <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-orange-600" title="Consume">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                    </form>
                                     <button onclick="editRequirement({{ $requirement->id }})" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -103,7 +82,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8">
+                            <td colspan="5" class="px-6 py-8">
                                 <x-empty-state icon="fas fa-list-check" title="No requirements found" />
                             </td>
                         </tr>

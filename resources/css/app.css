@@ -3,3 +3,96 @@
 @tailwind utilities;
 
 [x-cloak] { display: none !important; }
+
+/* ==========================================================================
+   BDES Official System Color Palette
+   Reference Table:
+     ■ Navy Blue    #003366  (Sidebar, header)
+     ■ Royal Blue   #2563EB  (Buttons, links)
+     ■ Green        #2E7D32  (Available, completed)
+     ■ Amber        #F59E0B  (Reminders, pending)
+     ■ Red          #DC2626  (Damaged, overdue)
+     ■ Light Blue   #60A5FA  (Information)
+     ■ Charcoal     #1F2937  (Main text)
+     ■ Slate Gray   #6B7280  (Secondary text)
+     ■ Light Gray   #E5E7EB  (Borders, dividers)
+     ■ Soft White   #FAFAF9  (Page background)
+     ■ White        #FFFFFF  (Cards, content areas)
+   ========================================================================== */
+
+:root {
+    --bdes-navy: #003366;
+    --bdes-royal-blue: #2563EB;
+    --bdes-green: #2E7D32;
+    --bdes-amber: #F59E0B;
+    --bdes-red: #DC2626;
+    --bdes-light-blue: #60A5FA;
+    --bdes-charcoal: #1F2937;
+    --bdes-slate-gray: #6B7280;
+    --bdes-light-gray: #E5E7EB;
+    --bdes-soft-white: #FAFAF9;
+    --bdes-white: #FFFFFF;
+}
+
+/* System-Wide Base Styling */
+body {
+    background-color: var(--bdes-soft-white) !important;
+    color: var(--bdes-charcoal);
+}
+
+/* Page titles & Headings */
+h1, .page-title {
+    color: var(--bdes-navy);
+}
+
+/* Secondary Headings & Text */
+.text-secondary {
+    color: var(--bdes-slate-gray);
+}
+
+/* Primary buttons and links */
+.btn-primary,
+button.bg-blue-600,
+a.bg-blue-600 {
+    background-color: var(--bdes-royal-blue) !important;
+}
+
+.btn-primary:hover,
+button.bg-blue-600:hover,
+a.bg-blue-600:hover {
+    background-color: #1d4ed8 !important;
+}
+
+/* Card & Content Area Borders / Dividers */
+.border-gray-200 {
+    border-color: var(--bdes-light-gray) !important;
+}
+
+.divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+    border-color: var(--bdes-light-gray) !important;
+}
+
+/* Status colors */
+.status-available {
+    background-color: rgba(46, 125, 50, 0.1);
+    color: var(--bdes-green);
+    border-color: rgba(46, 125, 50, 0.3);
+}
+
+.status-pending {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: var(--bdes-amber);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.status-damaged {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: var(--bdes-red);
+    border-color: rgba(220, 38, 38, 0.3);
+}
+
+.status-info {
+    background-color: rgba(96, 165, 250, 0.1);
+    color: var(--bdes-royal-blue);
+    border-color: rgba(96, 165, 250, 0.3);
+}

@@ -6,19 +6,19 @@
 
 @php
 $typeClass = match($type) {
-    'success' => 'bg-green-50 text-green-800 border-green-200',
-    'error' => 'bg-red-50 text-red-800 border-red-200',
-    'warning' => 'bg-yellow-50 text-yellow-800 border-yellow-200',
-    'info' => 'bg-blue-50 text-blue-800 border-blue-200',
-    default => 'bg-blue-50 text-blue-800 border-blue-200'
+    'success' => 'bg-green-50 text-[#2E7D32] border-[#2E7D32]/30',
+    'error' => 'bg-red-50 text-[#DC2626] border-[#DC2626]/30',
+    'warning' => 'bg-amber-50 text-[#B45309] border-[#F59E0B]/30',
+    'info' => 'bg-blue-50 text-blue-900 border-[#60A5FA]',
+    default => 'bg-blue-50 text-blue-900 border-[#60A5FA]'
 };
 
 $iconClass = match($type) {
-    'success' => 'fas fa-check-circle text-green-600',
-    'error' => 'fas fa-exclamation-circle text-red-600',
-    'warning' => 'fas fa-exclamation-triangle text-yellow-600',
-    'info' => 'fas fa-info-circle text-blue-600',
-    default => 'fas fa-info-circle text-blue-600'
+    'success' => 'fas fa-check-circle text-[#2E7D32]',
+    'error' => 'fas fa-exclamation-circle text-[#DC2626]',
+    'warning' => 'fas fa-exclamation-triangle text-[#F59E0B]',
+    'info' => 'fas fa-info-circle text-[#2563EB]',
+    default => 'fas fa-info-circle text-[#2563EB]'
 };
 @endphp
 

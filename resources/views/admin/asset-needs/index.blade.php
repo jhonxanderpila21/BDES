@@ -148,11 +148,6 @@
                             {{-- Actions --}}
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <div class="flex items-center gap-2">
-                                    {{-- Replenish --}}
-                                    <button onclick="openReplenishModal({{ $need->id }}, '{{ addslashes($need->requirement) }}', {{ $need->current_level }}, {{ $need->maximum_capacity }}, '{{ $need->unit }}')"
-                                            class="p-2 rounded hover:bg-gray-100 transition-colors text-green-600" title="Replenish">
-                                        <i class="fas fa-fill-drip"></i>
-                                    </button>
                                     {{-- Edit --}}
                                     <button onclick="openEditModal({{ json_encode($need) }})"
                                             class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit">

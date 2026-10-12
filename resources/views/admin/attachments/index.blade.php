@@ -356,14 +356,6 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
-                                        {{-- Adjust Quantity --}}
-                                        <button 
-                                            onclick="openAdjustModal({{ $acc->id }}, '{{ addslashes($acc->accessory_name) }}', {{ $acc->quantity }})"
-                                            class="p-1.5 rounded hover:bg-gray-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="Restock / Consume Quantity"
-                                        >
-                                            <i class="fas fa-boxes-packing"></i>
-                                        </button>
                                         {{-- Edit --}}
                                         <button 
                                             onclick="openEditAccessoryModal({{ json_encode($acc) }})"

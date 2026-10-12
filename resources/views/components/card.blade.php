@@ -2,6 +2,6 @@
     'class' => ''
 ])
 
-<div class="bg-white rounded-lg shadow-sm border border-gray-200 {{ $class }}">
+<div class="bg-white rounded-xl shadow-sm border border-[#E5E7EB] {{ $class }}">
     {{ $slot }}
 </div>

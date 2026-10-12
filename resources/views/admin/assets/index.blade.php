@@ -19,10 +19,6 @@
 
         {{-- Contextual Action Buttons --}}
         <div class="flex flex-wrap items-center gap-2">
-            <a href="{{ route('assets.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm shadow-sm">
-                <i class="fas fa-file-csv"></i>
-                Export CSV
-            </a>
 
             @if($activeTab === 'categories')
                 <button onclick="openAddCategoryModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
@@ -57,7 +53,7 @@
     @endif
 
     {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
         {{-- Total Assets --}}
         <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-blue-300 transition-colors block">
             <div class="flex items-center justify-between">
@@ -124,20 +120,6 @@
                 </div>
                 <div class="w-9 h-9 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm">
                     <i class="fas fa-triangle-exclamation"></i>
-                </div>
-            </div>
-        </a>
-
-        {{-- Retired / Decommissioned --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'retired']) }}" class="bg-white rounded-xl p-4 border border-gray-200 bg-gray-50/60 shadow-sm hover:border-gray-400 transition-colors block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-600">Retired</p>
-                    <p class="text-xl font-bold text-gray-800 mt-0.5">{{ $metrics['retired_assets'] ?? 0 }}</p>
-                    <p class="text-[10px] text-gray-500 mt-0.5">Decommissioned</p>
-                </div>
-                <div class="w-9 h-9 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center text-sm">
-                    <i class="fas fa-box-archive"></i>
                 </div>
             </div>
         </a>
@@ -323,15 +305,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        {{-- 360° Dossier Direct Link --}}
-                                        <a 
-                                            href="{{ route('assets.show', $asset) }}" 
-                                            class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="View 360° Dossier"
-                                        >
-                                            <i class="fas fa-id-card"></i>
-                                        </a>
-
                                         {{-- Quick View Modal --}}
                                         <button 
                                             onclick="openViewAssetModal({{ json_encode($asset) }}, '{{ $asset->category->name ?? 'N/A' }}', '{{ $asset->type->name ?? 'N/A' }}', '{{ $asset->location->name ?? 'N/A' }}')" 
@@ -349,18 +322,6 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-
-                                        {{-- Decommission / Retire --}}
-                                        @if($asset->status !== 'retired')
-                                            <button 
-                                                type="button"
-                                                onclick="openRetireAssetModal({{ $asset->id }}, '{{ $asset->code }}', '{{ addslashes($asset->name) }}')"
-                                                class="p-1.5 rounded-lg hover:bg-rose-50 text-rose-600 hover:text-rose-800 transition-colors"
-                                                title="Decommission / Retire"
-                                            >
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                        @endif
 
                                         {{-- Safe Delete --}}
                                         <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirm('Remove asset [{{ $asset->code }}]? If operational records exist, it will be safely retired instead.');">

@@ -10,7 +10,7 @@
 </head>
 {{-- Sidebar starts collapsed below the `lg` breakpoint so the mobile overlay is not painted on load. --}}
 <body 
-    class="bg-gray-100" 
+    class="bg-[#FAFAF9] text-[#1F2937] antialiased" 
     x-data="{ 
         sidebarOpen: window.innerWidth >= 1024,
         sidebarWidth: parseInt(localStorage.getItem('bdes_sidebar_width')) || 256,

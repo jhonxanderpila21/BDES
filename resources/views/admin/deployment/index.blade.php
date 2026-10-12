@@ -232,30 +232,6 @@
                             {{-- Action Buttons --}}
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-2">
-                                    {{-- Primary Action: Return Asset (if not returned yet) --}}
-                                    @if($deployment->status !== 'returned')
-                                        <button 
-                                            type="button"
-                                            onclick='openRecordReturnModal(@json($deployment))' 
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm"
-                                            title="Record Return"
-                                        >
-                                            <i class="fas fa-undo-alt"></i>
-                                            Return
-                                        </button>
-                                    @else
-                                        @if($deployment->returnRecord)
-                                            <button 
-                                                type="button"
-                                                onclick='openViewReturnModal(@json($deployment->returnRecord), @json($deployment->asset->name ?? "Asset"), @json($deployment->asset->code ?? ""))' 
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-colors"
-                                                title="View Return Inspection Details"
-                                            >
-                                                <i class="fas fa-eye"></i>
-                                                Inspection
-                                            </button>
-                                        @endif
-                                    @endif
 
                                     {{-- Edit Deployment --}}
                                     <button 
