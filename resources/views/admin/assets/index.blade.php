@@ -179,7 +179,7 @@
                 >
             </div>
 
-            <select name="category_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="category_id" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -188,7 +188,7 @@
                 @endforeach
             </select>
 
-            <select name="location_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="location_id" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Locations</option>
                 @foreach($locations as $loc)
                     <option value="{{ $loc->id }}" {{ request('location_id') == $loc->id ? 'selected' : '' }}>
@@ -197,21 +197,21 @@
                 @endforeach
             </select>
 
-            <select name="condition" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
                 @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <select name="status" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="status" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
                 @foreach(\App\Services\AssetLifecycleService::statuses() as $key => $label)
                     <option value="{{ $key }}" {{ request('status') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <select name="sort_by" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="sort_by" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="id" {{ request('sort_by') === 'id' ? 'selected' : '' }}>Sort: Default</option>
                 <option value="code" {{ request('sort_by') === 'code' ? 'selected' : '' }}>Sort: Asset Code</option>
                 <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Name</option>
@@ -220,12 +220,12 @@
             </select>
 
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                <i class="fas fa-filter mr-1"></i> Filter
+                Filter
             </button>
 
             @if(request()->hasAny(['search', 'category_id', 'location_id', 'type_id', 'condition', 'status', 'sort_by']))
                 <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
-                    <i class="fas fa-times mr-1"></i> Reset
+                    Reset
                 </a>
             @endif
         </form>
@@ -368,19 +368,19 @@
                 >
             </div>
 
-            <select name="status" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="status" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
 
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                <i class="fas fa-filter mr-1"></i> Filter
+                Filter
             </button>
 
             @if(request()->hasAny(['search', 'status']))
                 <a href="{{ route('assets.index', ['tab' => 'categories']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
-                    <i class="fas fa-times mr-1"></i> Reset
+                    Reset
                 </a>
             @endif
         </form>
@@ -470,7 +470,7 @@
                 >
             </div>
 
-            <select name="category_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+            <select name="category_id" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Categories</option>
                 @foreach($categories as $category)
                     <option value="{{ $category->id }}" {{ request('category_id') == $category->id ? 'selected' : '' }}>
@@ -480,12 +480,12 @@
             </select>
 
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                <i class="fas fa-filter mr-1"></i> Filter
+                Filter
             </button>
 
             @if(request()->hasAny(['search', 'category_id']))
                 <a href="{{ route('assets.index', ['tab' => 'types']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
-                    <i class="fas fa-times mr-1"></i> Reset
+                    Reset
                 </a>
             @endif
         </form>

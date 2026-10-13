@@ -96,3 +96,22 @@ a.bg-blue-600:hover {
     color: var(--bdes-royal-blue);
     border-color: rgba(96, 165, 250, 0.3);
 }
+
+/* ==========================================================================
+   Dropdown Selects: Prevent Chevron Overlapping Text System-Wide
+   ========================================================================== */
+select,
+select.px-1,
+select.px-2,
+select.px-3,
+select.px-4,
+select.px-5,
+select.p-1,
+select.p-2,
+select.p-3,
+select.p-4 {
+    padding-right: 2.5rem !important;
+    background-position: right 0.75rem center !important;
+    background-size: 1.15em 1.15em !important;
+    background-repeat: no-repeat !important;
+}

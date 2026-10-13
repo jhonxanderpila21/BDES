@@ -178,7 +178,6 @@
             {{-- Asset Type Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('asset_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-filter"></i>
                     <span>{{ request('asset_type') ?: 'Asset Type' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -193,7 +192,6 @@
             {{-- Interval Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('interval_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-clock"></i>
                     <span>{{ request('interval_type') ?: 'Interval' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -208,7 +206,6 @@
             {{-- Status Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-circle-info"></i>
                     <span>{{ request('status') ?: 'Status' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -285,14 +282,6 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <button 
                                             type="button"
-                                            onclick='openCompleteScheduleModal({{ $schedule->id }}, @json($schedule->maintenance_task))'
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm"
-                                            title="Mark as Completed"
-                                        >
-                                            <i class="fas fa-check-circle"></i> Complete
-                                        </button>
-                                        <button 
-                                            type="button"
                                             onclick='openEditScheduleModal(@json($schedule))'
                                             class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
                                             title="Edit Schedule"
@@ -343,7 +332,6 @@
             {{-- Type Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-filter"></i>
                     <span>{{ request('type') ? ucfirst(request('type')) : 'Maintenance Type' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -358,7 +346,6 @@
             {{-- Status Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-circle-info"></i>
                     <span>{{ request('status') ? ucfirst(str_replace('_', ' ', request('status'))) : 'Status' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -453,16 +440,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        @if(in_array($item->status, ['in_progress', 'scheduled', 'pending']))
-                                            <button 
-                                                type="button"
-                                                onclick="openCompleteWorkOrderModal({{ $item->id }}, '{{ $item->work_order_number ?? ('WO-' . $item->id) }}', '{{ $item->cost ?? 0 }}')"
-                                                class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-sm" 
-                                                title="Mark as Completed"
-                                            >
-                                                <i class="fas fa-check"></i> Complete
-                                            </button>
-                                        @endif
                                         <button 
                                             type="button" 
                                             onclick='openEditMaintenanceModal(@json($item))'
@@ -515,7 +492,6 @@
             {{-- Result Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('result') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-filter"></i>
                     <span>{{ request('result') ? ucfirst(str_replace('_', ' ', request('result'))) : 'Result' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>
@@ -530,7 +506,6 @@
             {{-- Status Filter --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <i class="fas fa-circle-info"></i>
                     <span>{{ request('status') ? ucfirst(request('status')) : 'Status' }}</span>
                     <i class="fas fa-chevron-down text-xs"></i>
                 </button>

@@ -89,7 +89,6 @@
         {{-- Status Filter Dropdown --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                <i class="fas fa-filter"></i>
                 <span>{{ request('status') ? ucfirst(str_replace('_', ' ', request('status'))) : 'All Statuses' }}</span>
                 <i class="fas fa-chevron-down text-xs ml-1"></i>
             </button>

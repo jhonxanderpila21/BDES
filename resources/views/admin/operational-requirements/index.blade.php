@@ -32,7 +32,6 @@
         </div>
         <a href="{{ route('operational-requirements.index', ['low' => request('low') ? null : 1]) }}"
            class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('low') ? 'bg-red-50 border-red-300 text-red-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-            <i class="fas fa-triangle-exclamation"></i>
             Low Stock Only
         </a>
     </div>

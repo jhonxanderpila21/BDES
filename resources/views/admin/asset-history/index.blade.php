@@ -101,7 +101,7 @@
         <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white" title="To Date">
 
         <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
-            <i class="fas fa-filter mr-1"></i> Filter
+            Filter
         </button>
 
         @if(request()->hasAny(['search', 'event', 'user_id', 'date_from', 'date_to']))
@@ -122,7 +122,6 @@
                         <th class="px-5 py-3">Action Event</th>
                         <th class="px-5 py-3">Target Entity</th>
                         <th class="px-5 py-3">Description</th>
-                        <th class="px-5 py-3 text-right">Details</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -162,43 +161,10 @@
                             <td class="px-5 py-3.5 text-xs text-gray-800 max-w-md">
                                 {{ $log->description }}
                             </td>
-                            <td class="px-5 py-3.5 text-right whitespace-nowrap text-xs">
-                                @if($log->old_values || $log->new_values)
-                                    <details class="inline-block text-left">
-                                        <summary class="cursor-pointer px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded text-xs">
-                                            Diff
-                                        </summary>
-                                        <div class="fixed inset-0 z-50 overflow-y-auto bg-black/40 flex items-center justify-center p-4">
-                                            <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3">
-                                                <div class="flex items-center justify-between border-b pb-2">
-                                                    <h4 class="font-bold text-sm text-gray-900">Audit Record #{{ $log->id }} State Diff</h4>
-                                                </div>
-                                                <div class="text-xs font-mono space-y-2 max-h-80 overflow-y-auto bg-gray-50 p-3 rounded-lg">
-                                                    @if($log->old_values)
-                                                        <div><span class="text-rose-600 font-bold uppercase block text-[10px]">Previous Values:</span>
-                                                            <pre class="bg-white p-2 rounded border border-gray-200 mt-1 text-[11px] whitespace-pre-wrap">{{ json_encode($log->old_values, JSON_PRETTY_PRINT) }}</pre>
-                                                        </div>
-                                                    @endif
-                                                    @if($log->new_values)
-                                                        <div><span class="text-emerald-600 font-bold uppercase block text-[10px]">New Values:</span>
-                                                            <pre class="bg-white p-2 rounded border border-gray-200 mt-1 text-[11px] whitespace-pre-wrap">{{ json_encode($log->new_values, JSON_PRETTY_PRINT) }}</pre>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                                <div class="text-right pt-2 border-t">
-                                                    <button type="button" onclick="this.closest('details').removeAttribute('open')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded text-xs">Close</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </details>
-                                @else
-                                    <span class="text-gray-400 text-xs">N/A</span>
-                                @endif
-                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="py-12 text-center text-gray-500">
+                            <td colspan="5" class="py-12 text-center text-gray-500">
                                 <i class="fas fa-fingerprint text-4xl text-gray-300 mb-2 block"></i>
                                 No audit events matching the selected filters.
                             </td>

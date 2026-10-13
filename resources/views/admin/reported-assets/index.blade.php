@@ -72,7 +72,6 @@
         {{-- Category Filter --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('asset_category') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                <i class="fas fa-filter"></i>
                 {{ request('asset_category') ?: 'Category' }}
                 <i class="fas fa-chevron-down text-xs"></i>
             </button>
@@ -87,7 +86,6 @@
         {{-- Type Filter --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('reported_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                <i class="fas fa-tag"></i>
                 {{ request('reported_type') ?: 'Type' }}
                 <i class="fas fa-chevron-down text-xs"></i>
             </button>
@@ -102,7 +100,6 @@
         {{-- Status Filter --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('status') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                <i class="fas fa-circle-info"></i>
                 {{ request('status') ?: 'Status' }}
                 <i class="fas fa-chevron-down text-xs"></i>
             </button>

@@ -184,19 +184,10 @@
                     {{-- Maintenance & Work Orders --}}
                     <a
                         href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('maintenance.*') && request('tab') !== 'inspections') }}"
+                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"
                     >
-                        <i class="fas fa-screwdriver-wrench w-4 text-center {{ $iconClass($isActive('maintenance.*') && request('tab') !== 'inspections') }}"></i>
+                        <i class="fas fa-screwdriver-wrench w-4 text-center {{ $iconClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"></i>
                         <span>Maintenance & Work Orders</span>
-                    </a>
-
-                    {{-- Asset Inspection (Unified Schedules & Inspection Logs) --}}
-                    <a
-                        href="{{ route('maintenance.index', ['tab' => 'inspections']) }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('inspection.*') || $isActive('maintenance-schedules.*') || ($isActive('maintenance.*') && request('tab') === 'inspections')) }}"
-                    >
-                        <i class="fas fa-clipboard-check w-4 text-center {{ $iconClass($isActive('inspection.*') || $isActive('maintenance-schedules.*') || ($isActive('maintenance.*') && request('tab') === 'inspections')) }}"></i>
-                        <span>Asset Inspection</span>
                     </a>
 
                     {{-- Reported Assets --}}
