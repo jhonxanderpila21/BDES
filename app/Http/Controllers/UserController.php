@@ -47,6 +47,18 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['username'])) {
+            $input['username'] = strtolower(trim(strip_tags($input['username'])));
+        }
+        if (isset($input['email'])) {
+            $input['email'] = strtolower(trim($input['email']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:users'],
@@ -70,6 +82,18 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['username'])) {
+            $input['username'] = strtolower(trim(strip_tags($input['username'])));
+        }
+        if (isset($input['email'])) {
+            $input['email'] = strtolower(trim($input['email']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'username' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('users')->ignore($user->id)],

@@ -68,15 +68,29 @@ class MaintenanceScheduleController extends Controller
      */
     public function complete(Request $request, MaintenanceSchedule $maintenanceSchedule)
     {
+        $input = $request->all();
+        if (isset($input['technician'])) {
+            $input['technician'] = strip_tags(trim($input['technician']));
+        }
+        if (empty($input['technician'])) {
+            $input['technician'] = auth()->user()?->name;
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'completion_date' => 'required|date|before_or_equal:today',
             'technician' => 'nullable|string|max:255',
             'notes' => 'nullable|string',
+        ], [
+            'completion_date.before_or_equal' => 'The completion date cannot be set in the future.',
         ]);
 
         $maintenanceSchedule->markAsCompleted(
             Carbon::parse($validated['completion_date']),
-            $validated['technician'] ?? null,
+            $validated['technician'] ?? auth()->user()?->name,
             $validated['notes'] ?? null
         );
 

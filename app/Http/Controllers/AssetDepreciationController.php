@@ -66,9 +66,16 @@ class AssetDepreciationController extends Controller
      */
     public function update(Request $request, Asset $asset)
     {
+        if ($request->has('salvage_value') && is_string($request->salvage_value)) {
+            $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
+            $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
+        }
+
         $validated = $request->validate([
             'useful_life_years' => 'required|integer|min:1|max:50',
             'salvage_value'     => 'nullable|numeric|min:0|lte:' . ($asset->acquisition_cost ?? 999999999),
+        ], [
+            'salvage_value.lte' => 'The salvage value cannot exceed the original acquisition cost.',
         ]);
 
         $asset->update($validated);

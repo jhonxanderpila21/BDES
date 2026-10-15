@@ -140,6 +140,28 @@ class AssetController extends Controller
     {
         Gate::authorize('create', Asset::class);
 
+        // Normalize inputs to get expected values
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['serial_number'])) {
+            $input['serial_number'] = strtoupper(trim(strip_tags($input['serial_number'])));
+        }
+        if (isset($input['manufacturer'])) {
+            $input['manufacturer'] = strip_tags(trim($input['manufacturer']));
+        }
+        if (isset($input['acquisition_cost']) && is_string($input['acquisition_cost'])) {
+            $input['acquisition_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['acquisition_cost']));
+            if ($input['acquisition_cost'] === '') {
+                $input['acquisition_cost'] = null;
+            }
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name'             => ['required', 'string', 'max:255'],
             'category_id'      => ['required', 'exists:asset_categories,id'],
@@ -229,15 +251,40 @@ class AssetController extends Controller
     {
         Gate::authorize('update', $asset);
 
+        // Normalize inputs to get expected values
+        $input = $request->all();
+        if (isset($input['code'])) {
+            $input['code'] = strtoupper(trim(strip_tags($input['code'])));
+        }
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['serial_number'])) {
+            $input['serial_number'] = strtoupper(trim(strip_tags($input['serial_number'])));
+        }
+        if (isset($input['manufacturer'])) {
+            $input['manufacturer'] = strip_tags(trim($input['manufacturer']));
+        }
+        if (isset($input['acquisition_cost']) && is_string($input['acquisition_cost'])) {
+            $input['acquisition_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['acquisition_cost']));
+            if ($input['acquisition_cost'] === '') {
+                $input['acquisition_cost'] = null;
+            }
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'code'             => 'required|unique:assets,code,' . $asset->id,
+            'code'             => 'required|string|max:50|unique:assets,code,' . $asset->id,
             'name'             => 'required|string|max:255',
             'category_id'      => 'required|exists:asset_categories,id',
             'type_id'          => 'nullable|exists:asset_types,id',
             'serial_number'    => 'nullable|string|max:255',
             'manufacturer'     => 'nullable|string|max:255',
             'purchase_date'    => 'nullable|date',
-            'acquisition_cost' => 'nullable|numeric',
+            'acquisition_cost' => 'nullable|numeric|min:0|max:9999999999.99',
             'warranty_expiry'  => 'nullable|date',
             'location_id'      => 'required|exists:locations,id',
             'condition'        => 'required|in:excellent,good,fair,poor',

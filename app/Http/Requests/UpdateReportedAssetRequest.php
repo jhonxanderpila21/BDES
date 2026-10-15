@@ -16,6 +16,15 @@ class UpdateReportedAssetRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'location'    => strip_tags(trim($this->location ?? '')),
+            'description' => strip_tags(trim($this->description ?? '')),
+            'action'      => strip_tags(trim($this->action ?? '')),
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */

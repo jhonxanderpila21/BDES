@@ -25,11 +25,23 @@ class LocationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['type'])) {
+            $input['type'] = strip_tags(trim($input['type']));
+        }
+        if (isset($input['address'])) {
+            $input['address'] = strip_tags(trim($input['address']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'name' => 'required|string|unique:locations,name',
-            'type' => 'nullable|string',
-            'address' => 'nullable|string',
-            'storage_capacity' => 'nullable|integer',
+            'name'             => 'required|string|max:255|unique:locations,name',
+            'type'             => 'nullable|string|max:100',
+            'address'          => 'nullable|string|max:255',
+            'storage_capacity' => 'nullable|integer|min:0',
         ]);
 
         Location::create($validated);
@@ -47,11 +59,23 @@ class LocationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['type'])) {
+            $input['type'] = strip_tags(trim($input['type']));
+        }
+        if (isset($input['address'])) {
+            $input['address'] = strip_tags(trim($input['address']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'name' => 'required|string|unique:locations,name,' . $location->id,
-            'type' => 'nullable|string',
-            'address' => 'nullable|string',
-            'storage_capacity' => 'nullable|integer',
+            'name'             => 'required|string|max:255|unique:locations,name,' . $location->id,
+            'type'             => 'nullable|string|max:100',
+            'address'          => 'nullable|string|max:255',
+            'storage_capacity' => 'nullable|integer|min:0',
         ]);
 
         $location->update($validated);

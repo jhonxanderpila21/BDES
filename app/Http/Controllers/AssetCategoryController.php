@@ -20,6 +20,19 @@ class AssetCategoryController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['description'])) {
+            $input['description'] = strip_tags(trim($input['description']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name'        => 'required|string|max:255|unique:asset_categories,name',
             'description' => 'nullable|string',
@@ -37,6 +50,19 @@ class AssetCategoryController extends Controller
      */
     public function update(Request $request, AssetCategory $assetCategory)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['description'])) {
+            $input['description'] = strip_tags(trim($input['description']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name'        => 'required|string|max:255|unique:asset_categories,name,' . $assetCategory->id,
             'description' => 'nullable|string',
@@ -52,8 +78,12 @@ class AssetCategoryController extends Controller
     /**
      * Remove the specified asset category from storage.
      */
-    public function destroy(AssetCategory $assetCategory)
+    public function destroy(Request $request, AssetCategory $assetCategory)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $assetCategory->delete();
 
         return redirect()->route('assets.index', ['tab' => 'categories'])

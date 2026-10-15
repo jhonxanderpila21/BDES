@@ -153,6 +153,31 @@ class MaintenanceController extends Controller
     {
         Gate::authorize('create', Maintenance::class);
 
+        // Normalize text and cost inputs
+        $input = $request->all();
+        if (isset($input['cost']) && is_string($input['cost'])) {
+            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            if ($input['cost'] === '') {
+                $input['cost'] = null;
+            }
+        }
+        if (isset($input['technician'])) {
+            $input['technician'] = strip_tags(trim($input['technician']));
+        }
+        if (empty($input['technician'])) {
+            $input['technician'] = auth()->user()?->name;
+        }
+        if (isset($input['parts_used'])) {
+            $input['parts_used'] = strip_tags(trim($input['parts_used']));
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        if (empty($input['assigned_to'])) {
+            $input['assigned_to'] = auth()->id();
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'asset_id'           => 'required|exists:assets,id',
             'type'               => 'required|in:routine,preventive,repair,inspection,overhaul,emergency',
@@ -206,6 +231,25 @@ class MaintenanceController extends Controller
     public function update(Request $request, Maintenance $maintenance)
     {
         Gate::authorize('update', $maintenance);
+
+        // Normalize text and cost inputs
+        $input = $request->all();
+        if (isset($input['cost']) && is_string($input['cost'])) {
+            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            if ($input['cost'] === '') {
+                $input['cost'] = null;
+            }
+        }
+        if (isset($input['technician'])) {
+            $input['technician'] = strip_tags(trim($input['technician']));
+        }
+        if (isset($input['parts_used'])) {
+            $input['parts_used'] = strip_tags(trim($input['parts_used']));
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        $request->merge($input);
 
         $validated = $request->validate([
             'asset_id'           => 'required|exists:assets,id',
@@ -271,6 +315,21 @@ class MaintenanceController extends Controller
     public function complete(Request $request, Maintenance $maintenance)
     {
         Gate::authorize('complete', $maintenance);
+
+        $input = $request->all();
+        if (isset($input['cost']) && is_string($input['cost'])) {
+            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            if ($input['cost'] === '') {
+                $input['cost'] = null;
+            }
+        }
+        if (isset($input['parts_used'])) {
+            $input['parts_used'] = strip_tags(trim($input['parts_used']));
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        $request->merge($input);
 
         $validated = $request->validate([
             'cost'       => 'nullable|numeric|min:0',

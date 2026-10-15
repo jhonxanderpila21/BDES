@@ -40,7 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:administrator,barangay_captain'])->group(function () {
         Route::resource('users', UserController::class);
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
-        Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password')->middleware('throttle:10,1');
         Route::get('/roles', function () {
             return view('admin.roles.index');
         })->name('roles.index');
@@ -52,7 +52,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('locations', LocationController::class);
 
     // Asset Management
-    Route::get('/assets/export', [AssetController::class, 'export'])->name('assets.export');
+    Route::get('/assets/export', [AssetController::class, 'export'])->name('assets.export')->middleware('throttle:60,1');
     Route::get('/assets/search', [AssetController::class, 'search'])->name('assets.search');
     Route::post('/assets/{asset}/retire', [AssetController::class, 'retire'])->name('assets.retire');
     Route::post('/assets/{asset}/documents', [AssetDocumentController::class, 'store'])->name('assets.documents.store');
@@ -93,21 +93,21 @@ Route::middleware(['auth'])->group(function () {
 
     // Asset Financials & Valuation (Admin Only)
     Route::middleware(['role:administrator,barangay_captain'])->group(function () {
-        Route::get('/financials/depreciation/export', [AssetDepreciationController::class, 'export'])->name('financials.depreciation.export');
+        Route::get('/financials/depreciation/export', [AssetDepreciationController::class, 'export'])->name('financials.depreciation.export')->middleware('throttle:60,1');
         Route::post('/financials/depreciation/{asset}', [AssetDepreciationController::class, 'update'])->name('financials.depreciation.update');
         Route::get('/financials/depreciation', [AssetDepreciationController::class, 'index'])->name('financials.depreciation');
 
-        Route::get('/financials/salvage/export', [AssetSalvageController::class, 'export'])->name('financials.salvage.export');
+        Route::get('/financials/salvage/export', [AssetSalvageController::class, 'export'])->name('financials.salvage.export')->middleware('throttle:60,1');
         Route::post('/financials/salvage/{asset}', [AssetSalvageController::class, 'update'])->name('financials.salvage.update');
         Route::get('/financials/salvage', [AssetSalvageController::class, 'index'])->name('financials.salvage');
 
         // Reports Center (Admin Only)
-        Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export');
+        Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export')->middleware('throttle:60,1');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
     });
 
     // Asset History & Audit Trail (Accessible to Members & Admins)
-    Route::get('/asset-history/export', [AssetHistoryController::class, 'export'])->name('asset-history.export');
+    Route::get('/asset-history/export', [AssetHistoryController::class, 'export'])->name('asset-history.export')->middleware('throttle:60,1');
     Route::get('/asset-history', [AssetHistoryController::class, 'index'])->name('asset-history.index');
 
     // Profile (from Breeze)

@@ -14,6 +14,19 @@ class StoreAssetAccessoryRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $unitCost = $this->unit_cost;
+        if (is_string($unitCost)) {
+            $unitCost = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $unitCost));
+        }
+
+        $this->merge([
+            'accessory_name' => strip_tags(trim($this->accessory_name ?? '')),
+            'unit_cost'      => $unitCost,
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */

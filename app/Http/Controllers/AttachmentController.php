@@ -111,6 +111,19 @@ class AttachmentController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['type'])) {
+            $input['type'] = strip_tags(trim($input['type']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'type'          => 'nullable|string|max:255',
@@ -143,6 +156,19 @@ class AttachmentController extends Controller
      */
     public function update(Request $request, Attachment $attachment)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['type'])) {
+            $input['type'] = strip_tags(trim($input['type']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'type'          => 'nullable|string|max:255',
@@ -168,8 +194,12 @@ class AttachmentController extends Controller
     /**
      * Remove the specified attachment from storage.
      */
-    public function destroy(Attachment $attachment)
+    public function destroy(Request $request, Attachment $attachment)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $attachment->delete();
 
         return redirect()->route('attachments.index', ['tab' => 'attachments'])

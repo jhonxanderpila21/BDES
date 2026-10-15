@@ -276,6 +276,8 @@
                     <input
                         type="number"
                         step="0.01"
+                        min="0"
+                        inputmode="decimal"
                         name="salvage_value"
                         x-model="selectedAsset.salvage_value"
                         placeholder="Leave blank to use default 10% residual"

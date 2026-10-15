@@ -24,6 +24,10 @@ class AssetAccessoryController extends Controller
      */
     public function store(StoreAssetAccessoryRequest $request)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validated();
         
         $asset = Asset::with('type')->findOrFail($validated['asset_id']);
@@ -40,6 +44,10 @@ class AssetAccessoryController extends Controller
      */
     public function update(UpdateAssetAccessoryRequest $request, AssetAccessory $assetAccessory)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validated();
 
         $asset = Asset::with('type')->findOrFail($validated['asset_id']);
@@ -54,8 +62,12 @@ class AssetAccessoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(AssetAccessory $assetAccessory)
+    public function destroy(Request $request, AssetAccessory $assetAccessory)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $assetAccessory->delete();
 
         return redirect()->route('asset-accessories.index')
@@ -67,6 +79,10 @@ class AssetAccessoryController extends Controller
      */
     public function adjustQuantity(Request $request, AssetAccessory $assetAccessory)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'action' => 'required|in:add,subtract',
             'amount' => 'required|integer|min:1',

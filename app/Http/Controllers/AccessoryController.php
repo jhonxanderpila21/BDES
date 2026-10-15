@@ -21,12 +21,28 @@ class AccessoryController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['unit_cost']) && is_string($input['unit_cost'])) {
+            $input['unit_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['unit_cost']));
+            if ($input['unit_cost'] === '') {
+                $input['unit_cost'] = null;
+            }
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'name' => 'required|string',
-            'asset_type_id' => 'nullable|exists:asset_types,id',
+            'name'              => 'required|string|max:255',
+            'asset_type_id'     => 'nullable|exists:asset_types,id',
             'quantity_in_stock' => 'required|integer|min:0',
-            'unit_cost' => 'nullable|numeric|min:0',
-            'status' => 'in:in_stock,low_stock,out_of_stock',
+            'unit_cost'         => 'nullable|numeric|min:0',
+            'status'            => 'in:in_stock,low_stock,out_of_stock',
         ]);
 
         Accessory::create($validated);
@@ -40,12 +56,28 @@ class AccessoryController extends Controller
      */
     public function update(Request $request, Accessory $accessory)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['unit_cost']) && is_string($input['unit_cost'])) {
+            $input['unit_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['unit_cost']));
+            if ($input['unit_cost'] === '') {
+                $input['unit_cost'] = null;
+            }
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'name' => 'required|string',
-            'asset_type_id' => 'nullable|exists:asset_types,id',
+            'name'              => 'required|string|max:255',
+            'asset_type_id'     => 'nullable|exists:asset_types,id',
             'quantity_in_stock' => 'required|integer|min:0',
-            'unit_cost' => 'nullable|numeric|min:0',
-            'status' => 'in:in_stock,low_stock,out_of_stock',
+            'unit_cost'         => 'nullable|numeric|min:0',
+            'status'            => 'in:in_stock,low_stock,out_of_stock',
         ]);
 
         $accessory->update($validated);
@@ -57,8 +89,12 @@ class AccessoryController extends Controller
     /**
      * Remove the specified accessory from storage.
      */
-    public function destroy(Accessory $accessory)
+    public function destroy(Request $request, Accessory $accessory)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $accessory->delete();
 
         return redirect()->route('accessories.index')

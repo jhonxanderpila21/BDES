@@ -306,11 +306,11 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Deployment Date" required>
-                    <input type="date" name="deployment_date" value="{{ date('Y-m-d') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <input type="date" name="deployment_date" id="create_deployment_date" value="{{ date('Y-m-d') }}" onchange="document.getElementById('create_expected_return_date').min = this.value" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </x-form-group>
 
                 <x-form-group label="Expected Return Date">
-                    <input type="date" name="expected_return_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <input type="date" name="expected_return_date" id="create_expected_return_date" min="{{ date('Y-m-d') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </x-form-group>
             </div>
 
@@ -519,7 +519,17 @@
                 document.getElementById('return_asset_name').textContent = deployment.asset ? deployment.asset.name : 'Unknown Asset';
                 document.getElementById('return_deployment_dest').textContent = deployment.destination || 'Field';
                 document.getElementById('return_deployment_team').textContent = 'Deployed to: ' + (deployment.assigned_team || 'Unassigned');
-                document.getElementById('return_returned_by').value = deployment.assigned_team || '';
+                document.getElementById('return_returned_by').value = deployment.assigned_team || deployment.responsible_person || '';
+
+                let depDate = deployment.deployment_date || '';
+                if (depDate.includes('T')) depDate = depDate.split('T')[0];
+                if (depDate) {
+                    const retDateField = document.getElementById('return_date');
+                    retDateField.min = depDate;
+                    if (retDateField.value < depDate) {
+                        retDateField.value = depDate;
+                    }
+                }
 
                 window.openModal('record-return-modal');
             }

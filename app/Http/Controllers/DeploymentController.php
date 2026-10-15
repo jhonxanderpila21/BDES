@@ -82,6 +82,22 @@ class DeploymentController extends Controller
     {
         Gate::authorize('create', Deployment::class);
 
+        // Normalize text inputs
+        $input = $request->all();
+        if (isset($input['destination'])) {
+            $input['destination'] = strip_tags(trim($input['destination']));
+        }
+        if (isset($input['assigned_team'])) {
+            $input['assigned_team'] = strip_tags(trim($input['assigned_team']));
+        }
+        if (isset($input['responsible_person'])) {
+            $input['responsible_person'] = strip_tags(trim($input['responsible_person']));
+        }
+        if (isset($input['purpose'])) {
+            $input['purpose'] = strip_tags(trim($input['purpose']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'asset_id'             => [
                 'required',
@@ -97,6 +113,7 @@ class DeploymentController extends Controller
             'purpose'              => ['nullable', 'string'],
         ], [
             'asset_id.exists' => 'The selected asset is either not found or already deployed/unavailable.',
+            'expected_return_date.after_or_equal' => 'The expected return date must be on or after the deployment date.',
         ]);
 
         $validated['status'] = 'active';
@@ -104,7 +121,7 @@ class DeploymentController extends Controller
             $validated['approved_by'] = auth()->id();
         }
         if (empty($validated['responsible_person'])) {
-            $validated['responsible_person'] = $validated['assigned_team'] ?? 'Field Response Team';
+            $validated['responsible_person'] = !empty($validated['assigned_team']) ? $validated['assigned_team'] : (auth()->user()?->name ?? 'Field Response Team');
         }
 
         DB::transaction(function () use ($validated) {
@@ -147,8 +164,26 @@ class DeploymentController extends Controller
     {
         Gate::authorize('return', $deployment);
 
+        // Normalize text inputs
+        $input = $request->all();
+        if (isset($input['returned_by'])) {
+            $input['returned_by'] = strip_tags(trim($input['returned_by']));
+        }
+        if (isset($input['damage_notes'])) {
+            $input['damage_notes'] = strip_tags(trim($input['damage_notes']));
+        }
+        if (isset($input['missing_accessories'])) {
+            $input['missing_accessories'] = strip_tags(trim($input['missing_accessories']));
+        }
+        if (isset($input['actual_location'])) {
+            $input['actual_location'] = strip_tags(trim($input['actual_location']));
+        }
+        $request->merge($input);
+
+        $depDate = $deployment->deployment_date ? \Carbon\Carbon::parse($deployment->deployment_date)->toDateString() : null;
+
         $validated = $request->validate([
-            'return_date'         => ['required', 'date'],
+            'return_date'         => array_merge(['required', 'date'], $depDate ? ['after_or_equal:' . $depDate] : []),
             'returned_by'         => ['nullable', 'string', 'max:255'],
             'received_by'         => ['nullable', 'exists:users,id'],
             'condition'           => ['required', 'in:excellent,good,fair,poor'],
@@ -156,10 +191,15 @@ class DeploymentController extends Controller
             'missing_accessories' => ['nullable', 'string'],
             'actual_location'     => ['nullable', 'string', 'max:255'],
             'status'              => ['required', 'in:received,damage_noted,incomplete_accessories'],
+        ], [
+            'return_date.after_or_equal' => "The return date cannot precede the deployment date ({$depDate}).",
         ]);
 
         if (empty($validated['received_by'])) {
             $validated['received_by'] = auth()->id();
+        }
+        if (empty($validated['returned_by'])) {
+            $validated['returned_by'] = $deployment->responsible_person ?? ($deployment->assigned_team ?? auth()->user()?->name);
         }
 
         DB::transaction(function () use ($validated, $deployment) {

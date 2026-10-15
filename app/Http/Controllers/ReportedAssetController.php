@@ -118,6 +118,10 @@ class ReportedAssetController extends Controller
      */
     public function destroy(ReportedAsset $reportedAsset)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can delete reported asset records.');
+        }
+
         $reportedAsset->delete();
 
         return redirect()->route('reported-assets.index')
@@ -129,6 +133,10 @@ class ReportedAssetController extends Controller
      */
     public function changeStatus(Request $request, ReportedAsset $reportedAsset)
     {
+        if (auth()->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action. Status changes require operational permissions.');
+        }
+
         $validated = $request->validate([
             'new_status' => ['required', 'string'],
             'notes'      => ['nullable', 'string'],

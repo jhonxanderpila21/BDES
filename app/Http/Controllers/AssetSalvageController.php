@@ -72,9 +72,19 @@ class AssetSalvageController extends Controller
      */
     public function update(Request $request, Asset $asset)
     {
+        if ($request->has('salvage_value') && is_string($request->salvage_value)) {
+            $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
+            $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
+        }
+        if ($request->has('salvage_notes')) {
+            $request->merge(['salvage_notes' => strip_tags(trim($request->salvage_notes))]);
+        }
+
         $validated = $request->validate([
             'salvage_value' => 'nullable|numeric|min:0|lte:' . ($asset->acquisition_cost ?? 999999999),
             'salvage_notes' => 'nullable|string|max:1000',
+        ], [
+            'salvage_value.lte' => 'The salvage value cannot exceed the original acquisition cost.',
         ]);
 
         $asset->update([

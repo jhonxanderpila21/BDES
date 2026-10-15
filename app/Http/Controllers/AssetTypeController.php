@@ -20,6 +20,14 @@ class AssetTypeController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($request->has('name')) {
+            $request->merge(['name' => strip_tags(trim($request->name))]);
+        }
+
         $validated = $request->validate([
             'category_id'                       => 'nullable|exists:asset_categories,id',
             'name'                              => 'required|string|max:255',
@@ -53,6 +61,14 @@ class AssetTypeController extends Controller
      */
     public function update(Request $request, AssetType $assetType)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($request->has('name')) {
+            $request->merge(['name' => strip_tags(trim($request->name))]);
+        }
+
         $validated = $request->validate([
             'category_id'                       => 'nullable|exists:asset_categories,id',
             'name'                              => 'required|string|max:255',
@@ -83,8 +99,12 @@ class AssetTypeController extends Controller
     /**
      * Remove the specified asset type from storage.
      */
-    public function destroy(AssetType $assetType)
+    public function destroy(Request $request, AssetType $assetType)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $assetType->delete();
 
         return redirect()->route('assets.index', ['tab' => 'types'])

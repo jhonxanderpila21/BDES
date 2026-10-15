@@ -642,7 +642,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Serial Number">
-                    <input type="text" name="serial_number" placeholder="e.g., SN-98234-X" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="text" name="serial_number" placeholder="e.g., SN-98234-X" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase" oninput="this.value = this.value.toUpperCase()">
                 </x-form-group>
 
                 <x-form-group label="Assigned Location" required>
@@ -679,7 +679,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <x-form-group label="Acquisition Cost (PHP)">
-                    <input type="number" step="0.01" min="0" name="acquisition_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" step="0.01" min="0" inputmode="decimal" name="acquisition_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
 
                 <x-form-group label="Purchase Date">
@@ -710,7 +710,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Asset Code" required>
-                    <input type="text" name="code" id="edit_asset_code" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                    <input type="text" name="code" id="edit_asset_code" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase" oninput="this.value = this.value.toUpperCase()">
                 </x-form-group>
 
                 <x-form-group label="Asset Name" required>
@@ -739,7 +739,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Serial Number">
-                    <input type="text" name="serial_number" id="edit_asset_serial_number" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono">
+                    <input type="text" name="serial_number" id="edit_asset_serial_number" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase" oninput="this.value = this.value.toUpperCase()">
                 </x-form-group>
 
                 <x-form-group label="Manufacturer">
@@ -779,7 +779,7 @@
                 </x-form-group>
 
                 <x-form-group label="Acquisition Cost (PHP)">
-                    <input type="number" step="0.01" min="0" name="acquisition_cost" id="edit_asset_acquisition_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" step="0.01" min="0" inputmode="decimal" name="acquisition_cost" id="edit_asset_acquisition_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
 
                 <x-form-group label="Purchase Date">

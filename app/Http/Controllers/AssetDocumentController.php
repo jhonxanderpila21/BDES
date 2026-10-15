@@ -19,16 +19,33 @@ class AssetDocumentController extends Controller
     {
         Gate::authorize('uploadDocument', $asset);
 
+        // Input sanitization
+        if ($request->has('title')) {
+            $request->merge(['title' => strip_tags(trim($request->title))]);
+        }
+        if ($request->has('notes')) {
+            $request->merge(['notes' => strip_tags(trim($request->notes))]);
+        }
+
         $validated = $request->validate([
             'title'         => 'required|string|max:255',
             'document_type' => 'required|string|in:manual,warranty,registration,certificate,invoice,deed_of_donation,other',
-            'document_file' => 'required|file|max:20480', // 20MB max
+            'document_file' => [
+                'required',
+                'file',
+                'max:10240', // 10MB max limit
+                'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,txt',
+            ],
             'expiry_date'   => 'nullable|date',
             'notes'         => 'nullable|string|max:1000',
         ]);
 
         $file = $request->file('document_file');
-        $fileName = $file->getClientOriginalName();
+        $originalBase = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        $safeBase = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $originalBase);
+        $fileName = \Illuminate\Support\Str::limit($safeBase, 80, '') . '.' . strtolower($extension);
+
         $filePath = $file->store('asset-documents/' . $asset->id, 'public');
 
         $document = AssetDocument::create([
@@ -55,11 +72,15 @@ class AssetDocumentController extends Controller
      */
     public function download(AssetDocument $document)
     {
+        Gate::authorize('view', $document->asset);
+
         if (!Storage::disk('public')->exists($document->file_path)) {
             abort(404, 'File not found on storage disk.');
         }
 
-        return Storage::disk('public')->download($document->file_path, $document->file_name);
+        $safeDownloadName = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($document->file_name));
+
+        return Storage::disk('public')->download($document->file_path, $safeDownloadName);
     }
 
     /**

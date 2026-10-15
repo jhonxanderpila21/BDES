@@ -70,6 +70,10 @@ class AssetNeedController extends Controller
      */
     public function store(StoreAssetNeedRequest $request)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validated();
 
         // Auto-sync asset_type from the linked asset's type name
@@ -87,6 +91,10 @@ class AssetNeedController extends Controller
      */
     public function update(UpdateAssetNeedRequest $request, AssetNeed $assetNeed)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validated();
 
         // Auto-sync asset_type from the linked asset's type name
@@ -102,8 +110,12 @@ class AssetNeedController extends Controller
     /**
      * Remove the specified asset need.
      */
-    public function destroy(AssetNeed $assetNeed)
+    public function destroy(Request $request, AssetNeed $assetNeed)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $assetNeed->delete();
 
         return redirect()->route('asset-needs.index')
@@ -115,11 +127,19 @@ class AssetNeedController extends Controller
      */
     public function replenish(Request $request, AssetNeed $assetNeed)
     {
+        if ($request->user() && $request->user()->hasRole('viewer')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($request->has('amount') && is_string($request->amount)) {
+            $request->merge(['amount' => trim(str_replace([',', ' '], '', $request->amount))]);
+        }
+
         $validated = $request->validate([
             'amount' => 'required|numeric|min:0.01',
         ]);
 
-        $assetNeed->replenish($validated['amount']);
+        $assetNeed->replenish((float) $validated['amount']);
 
         return redirect()->route('asset-needs.index')
             ->with('success', "Replenished {$assetNeed->requirement} for {$assetNeed->asset_type}.");
