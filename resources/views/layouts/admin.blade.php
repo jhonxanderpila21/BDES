@@ -72,6 +72,22 @@
                         </div>
                     @endif
 
+                    @if(session('error'))
+                        <div class="mb-6">
+                            <x-alert type="error">
+                                {{ session('error') }}
+                            </x-alert>
+                        </div>
+                    @endif
+
+                    @if(session('warning'))
+                        <div class="mb-6">
+                            <x-alert type="warning">
+                                {{ session('warning') }}
+                            </x-alert>
+                        </div>
+                    @endif
+
                     @if(session('status'))
                         <div class="mb-6">
                             <x-alert type="info">

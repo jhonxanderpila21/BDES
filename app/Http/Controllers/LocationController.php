@@ -10,9 +10,24 @@ class LocationController extends Controller
     /**
      * Display a listing of locations.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $locations = Location::withCount('assets')->paginate(10);
+        $query = Location::withCount('assets');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('address', 'like', "%{$search}%")
+                  ->orWhere('type', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $locations = $query->orderBy('name')->paginate(10)->withQueryString();
         return view('admin.locations.index', ['locations' => $locations]);
     }
 

@@ -23,13 +23,20 @@
     <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
             <form action="{{ route('locations.index') }}" method="GET">
-                <x-search-bar name="search" value="{{ request('search') }}" placeholder="Search locations..." />
+                @if(request('type'))<input type="hidden" name="type" value="{{ request('type') }}">@endif
+                <x-search-bar name="search" value="{{ request('search') }}" placeholder="Search locations by name, type, address..." />
             </form>
         </div>
-        <x-filter-dropdown 
-            label="Filter by Type"
-            :options="['storage' => 'Storage', 'office' => 'Office', 'depot' => 'Depot', 'field' => 'Field Station']"
-        />
+        <form action="{{ route('locations.index') }}" method="GET">
+            @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
+            <select name="type" onchange="this.form.submit()" class="flex items-center gap-2 pl-4 pr-10 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <option value="">All Types</option>
+                <option value="storage" {{ request('type') === 'storage' ? 'selected' : '' }}>Storage</option>
+                <option value="office" {{ request('type') === 'office' ? 'selected' : '' }}>Office</option>
+                <option value="depot" {{ request('type') === 'depot' ? 'selected' : '' }}>Depot</option>
+                <option value="field" {{ request('type') === 'field' ? 'selected' : '' }}>Field Station</option>
+            </select>
+        </form>
     </div>
 
     {{-- Locations Table --}}
@@ -70,18 +77,22 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                <div class="flex items-center gap-2">
-                                    <button onclick="editLocation({{ $location->id }})" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form action="{{ route('locations.destroy', $location) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this location?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600">
-                                            <i class="fas fa-trash"></i>
+                                @if(auth()->user()->isAdmin())
+                                    <div class="flex items-center gap-2">
+                                        <button onclick="editLocation({{ $location->id }}, @js($location->name), @js($location->type), @js($location->address), {{ $location->storage_capacity ?? 'null' }})" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit Location">
+                                            <i class="fas fa-edit"></i>
                                         </button>
-                                    </form>
-                                </div>
+                                        <form action="{{ route('locations.destroy', $location) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete location [{{ $location->name }}]?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600" title="Delete Location">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <span class="text-xs text-gray-400 italic">Read-only</span>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -99,45 +110,88 @@
         </div>
     </x-card>
 
-    {{-- Add Location Modal --}}
-    <x-modal id="add-location-modal" title="Add Asset Location">
-        <form class="space-y-4">
-            <x-form-group label="Location Name" required>
-                <input type="text" placeholder="e.g., Main Storage Facility" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+    @if(auth()->user()->isAdmin())
+        {{-- Add Location Modal --}}
+        <x-modal id="add-location-modal" title="Add Asset Location">
+            <form class="space-y-4" action="{{ route('locations.store') }}" method="POST">
+                @csrf
+                <x-form-group label="Location Name" required>
+                    <input type="text" name="name" value="{{ old('name') }}" placeholder="e.g., Main Storage Facility" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
 
-            <x-form-group label="Location Type" required>
-                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>Storage</option>
-                    <option>Office</option>
-                    <option>Depot</option>
-                    <option>Field Station</option>
-                </select>
-            </x-form-group>
+                <x-form-group label="Location Type" required>
+                    <select name="type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                        <option value="storage">Storage</option>
+                        <option value="office">Office</option>
+                        <option value="depot">Depot</option>
+                        <option value="field">Field Station</option>
+                    </select>
+                </x-form-group>
 
-            <x-form-group label="Address" required>
-                <input type="text" placeholder="Street address and location" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+                <x-form-group label="Address">
+                    <input type="text" name="address" value="{{ old('address') }}" placeholder="Street address and location" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
 
-            <x-form-group label="Storage Capacity" required>
-                <input type="number" placeholder="Maximum number of items" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+                <x-form-group label="Storage Capacity">
+                    <input type="number" min="0" name="storage_capacity" value="{{ old('storage_capacity') }}" placeholder="Maximum number of items" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
 
-            <div class="flex gap-3 mt-6">
-                <x-button variant="primary" class="flex-1">Create Asset Location</x-button>
-                <x-button variant="secondary" type="button" onclick="window.closeModal('add-location-modal')" class="flex-1">Cancel</x-button>
-            </div>
-        </form>
-    </x-modal>
+                <div class="flex gap-3 mt-6">
+                    <x-button variant="primary" type="submit" class="flex-1">Create Asset Location</x-button>
+                    <x-button variant="secondary" type="button" onclick="window.closeModal('add-location-modal')" class="flex-1">Cancel</x-button>
+                </div>
+            </form>
+        </x-modal>
+
+        {{-- Edit Location Modal --}}
+        <x-modal id="edit-location-modal" title="Edit Asset Location">
+            <form class="space-y-4" id="edit-location-form" method="POST">
+                @csrf
+                @method('PUT')
+                <x-form-group label="Location Name" required>
+                    <input type="text" name="name" id="edit_location_name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+
+                <x-form-group label="Location Type" required>
+                    <select name="type" id="edit_location_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                        <option value="storage">Storage</option>
+                        <option value="office">Office</option>
+                        <option value="depot">Depot</option>
+                        <option value="field">Field Station</option>
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Address">
+                    <input type="text" name="address" id="edit_location_address" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+
+                <x-form-group label="Storage Capacity">
+                    <input type="number" min="0" name="storage_capacity" id="edit_location_capacity" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+
+                <div class="flex gap-3 mt-6">
+                    <x-button variant="primary" type="submit" class="flex-1">Save Changes</x-button>
+                    <x-button variant="secondary" type="button" onclick="window.closeModal('edit-location-modal')" class="flex-1">Cancel</x-button>
+                </div>
+            </form>
+        </x-modal>
+    @endif
 
     @push('scripts')
         <script>
             function openAddLocationModal() {
                 window.openModal('add-location-modal');
             }
-            function editLocation(name) { alert(`Edit: ${name}`); }
-            function deleteLocation(name) { if(confirm(`Delete ${name}?`)) alert(`Deleted`); }
-            function handlePageChange(page) { alert(`Page: ${page}`); }
+            function editLocation(id, name, type, address, capacity) {
+                const form = document.getElementById('edit-location-form');
+                if (!form) return;
+                form.action = '/locations/' + id;
+                document.getElementById('edit_location_name').value = name;
+                document.getElementById('edit_location_type').value = type;
+                document.getElementById('edit_location_address').value = address || '';
+                document.getElementById('edit_location_capacity').value = capacity !== null ? capacity : '';
+                window.openModal('edit-location-modal');
+            }
         </script>
     @endpush
 @endsection

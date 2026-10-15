@@ -29,10 +29,6 @@
         </button>
     </div>
 
-    @if(session('error'))
-        <x-alert type="error" class="mb-6">{{ session('error') }}</x-alert>
-    @endif
-
     {{-- Filters --}}
     <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
@@ -158,27 +154,24 @@
     </x-card>
 
     {{-- Add User Modal --}}
-    <x-modal id="add-user-modal" title="Add New User">
+    <x-modal id="add-user-modal" title="Add New User" :show="$errors->any() && old('_form') === 'add_user'">
         <form class="space-y-4" action="{{ route('users.store') }}" method="POST">
             @csrf
+            <input type="hidden" name="_form" value="add_user">
 
-            <x-form-group label="Position" required>
-                <input type="text" name="position" placeholder="e.g., Barangay Staff" value="{{ old('position') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <x-form-group label="Full Name" required>
+                <input type="text" name="name" placeholder="e.g., Juan Dela Cruz" value="{{ old('name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </x-form-group>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="First Name" required>
-                    <input type="text" name="first_name" placeholder="First Name" value="{{ old('first_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <x-form-group label="Username" required>
+                    <input type="text" name="username" placeholder="e.g., jdelacruz" value="{{ old('username') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </x-form-group>
 
-                <x-form-group label="Last Name" required>
-                    <input type="text" name="last_name" placeholder="Last Name" value="{{ old('last_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <x-form-group label="Email Address" required>
+                    <input type="email" name="email" placeholder="e.g., jdelacruz@bdes.gov.ph" value="{{ old('email') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </x-form-group>
             </div>
-
-            <x-form-group label="Middle Name">
-                <input type="text" name="middle_name" placeholder="Middle Name (optional)" value="{{ old('middle_name') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
 
             <x-form-group label="Role" required>
                 <select name="role" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -189,9 +182,15 @@
                 </select>
             </x-form-group>
 
-            <x-form-group label="Contact Number" required>
-                <input type="text" name="contact_number" placeholder="e.g., 09123456789" value="{{ old('contact_number') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Password" required>
+                    <input type="password" name="password" placeholder="•••••••• (min 8 chars)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <x-form-group label="Confirm Password" required>
+                    <input type="password" name="password_confirmation" placeholder="••••••••" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+            </div>
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">Create User</x-button>
@@ -201,38 +200,43 @@
     </x-modal>
 
     {{-- Edit User Modal --}}
-    <x-modal id="edit-user-modal" title="Edit User">
+    <x-modal id="edit-user-modal" title="Edit User" :show="$errors->any() && old('_form') === 'edit_user'">
         <form class="space-y-4" id="edit-user-form" method="POST">
             @csrf
             @method('PUT')
+            <input type="hidden" name="_form" value="edit_user">
 
             <x-form-group label="Full Name" required>
-                <input type="text" name="name" id="edit-user-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <input type="text" name="name" id="edit-user-name" value="{{ old('_form') === 'edit_user' ? old('name') : '' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </x-form-group>
 
-            <x-form-group label="Username" required>
-                <input type="text" name="username" id="edit-user-username" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Username" required>
+                    <input type="text" name="username" id="edit-user-username" value="{{ old('_form') === 'edit_user' ? old('username') : '' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
 
-            <x-form-group label="Email Address" required>
-                <input type="email" name="email" id="edit-user-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+                <x-form-group label="Email Address" required>
+                    <input type="email" name="email" id="edit-user-email" value="{{ old('_form') === 'edit_user' ? old('email') : '' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+            </div>
 
             <x-form-group label="Role" required>
-                <select name="role" id="edit-user-role" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <select name="role" id="edit-user-role" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     @foreach($roleLabels as $value => $label)
                         <option value="{{ $value }}">{{ $label }}</option>
                     @endforeach
                 </select>
             </x-form-group>
 
-            <x-form-group label="New Password (leave blank to keep current)">
-                <input type="password" name="password" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="New Password (leave blank to keep current)">
+                    <input type="password" name="password" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
 
-            <x-form-group label="Confirm New Password">
-                <input type="password" name="password_confirmation" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+                <x-form-group label="Confirm New Password">
+                    <input type="password" name="password_confirmation" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+            </div>
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">Save Changes</x-button>
@@ -255,10 +259,6 @@
                 document.getElementById('edit-user-email').value = email;
                 document.getElementById('edit-user-role').value = role;
                 window.openModal('edit-user-modal');
-            }
-
-            function handlePageChange(page) {
-                alert(`Go to page ${page}`);
             }
         </script>
     @endpush

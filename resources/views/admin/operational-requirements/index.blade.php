@@ -66,7 +66,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 <div class="flex items-center gap-2">
-                                    <button onclick="editRequirement({{ $requirement->id }})" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600">
+                                    <button onclick='editRequirement(@json($requirement))' class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit Requirement">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <form action="{{ route('operational-requirements.destroy', $requirement) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this requirement?');">
@@ -139,20 +139,68 @@
         </form>
     </x-modal>
 
+    {{-- Edit Requirement Modal --}}
+    <x-modal id="edit-requirement-modal" title="Edit Operational Requirement">
+        <form class="space-y-4" id="edit-requirement-form" method="POST">
+            @csrf
+            @method('PUT')
+
+            <x-form-group label="Asset Type" required>
+                <select name="asset_type_id" id="edit_asset_type_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
+                    <option value="">Select Asset Type</option>
+                    @foreach($assetTypes as $assetType)
+                        <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
+                    @endforeach
+                </select>
+            </x-form-group>
+
+            <x-form-group label="Requirement Type" required>
+                <input type="text" name="requirement_type" id="edit_requirement_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </x-form-group>
+
+            <x-form-group label="Unit" required>
+                <input type="text" name="unit" id="edit_unit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </x-form-group>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <x-form-group label="Current Level" required>
+                    <input type="number" step="0.01" min="0" id="edit_current_level" name="current_level" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+                <x-form-group label="Maximum Capacity" required>
+                    <input type="number" step="0.01" min="0.01" id="edit_max_capacity" name="maximum_capacity" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+                <x-form-group label="Minimum Level" required>
+                    <input type="number" step="0.01" min="0" id="edit_min_level" name="minimum_level" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+            </div>
+
+            <x-form-group label="Notes">
+                <textarea name="description" id="edit_description" placeholder="Optional notes..." rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"></textarea>
+            </x-form-group>
+
+            <div class="flex gap-3 mt-6">
+                <x-button variant="primary" type="submit" class="flex-1">Save Changes</x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('edit-requirement-modal')" class="flex-1">Cancel</x-button>
+            </div>
+        </form>
+    </x-modal>
+
     @push('scripts')
         <script>
             function openAddRequirementModal() {
                 window.openModal('add-requirement-modal');
             }
-            function editRequirement(id) { alert(`Edit: ${id}`); }
-            function handlePageChange(page) { alert(`Page: ${page}`); }
-            function setAmount(form, message) {
-                const amount = prompt(message);
-                if (amount === null || amount.trim() === '' || isNaN(amount) || Number(amount) <= 0) {
-                    return false;
-                }
-                form.querySelector('input[name="amount"]').value = amount;
-                return true;
+            function editRequirement(req) {
+                const form = document.getElementById('edit-requirement-form');
+                form.action = '/operational-requirements/' + req.id;
+                document.getElementById('edit_asset_type_id').value = req.asset_type_id;
+                document.getElementById('edit_requirement_type').value = req.requirement_type;
+                document.getElementById('edit_unit').value = req.unit;
+                document.getElementById('edit_current_level').value = req.current_level;
+                document.getElementById('edit_max_capacity').value = req.maximum_capacity;
+                document.getElementById('edit_min_level').value = req.minimum_level;
+                document.getElementById('edit_description').value = req.description || '';
+                window.openModal('edit-requirement-modal');
             }
         </script>
     @endpush

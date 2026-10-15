@@ -84,8 +84,76 @@
             </select>
         </x-form-group>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <x-form-group label="Manufacturer / Brand">
+                <input
+                    type="text"
+                    name="manufacturer"
+                    value="{{ old('manufacturer') }}"
+                    placeholder="e.g., Yamaha, Honda"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+            </x-form-group>
+
+            <x-form-group label="Asset Type">
+                <select
+                    name="type_id"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+                    <option value="">-- Optional Asset Type --</option>
+                    @foreach($types ?? [] as $tp)
+                        <option value="{{ $tp->id }}" {{ old('type_id') == $tp->id ? 'selected' : '' }}>
+                            {{ $tp->name }} ({{ $tp->category->name ?? 'General' }})
+                        </option>
+                    @endforeach
+                </select>
+            </x-form-group>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <x-form-group label="Acquisition Cost (PHP)">
+                <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    inputmode="decimal"
+                    name="acquisition_cost"
+                    value="{{ old('acquisition_cost') }}"
+                    placeholder="0.00"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+            </x-form-group>
+
+            <x-form-group label="Purchase Date">
+                <input
+                    type="date"
+                    name="purchase_date"
+                    value="{{ old('purchase_date') }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+            </x-form-group>
+
+            <x-form-group label="Warranty Expiry">
+                <input
+                    type="date"
+                    name="warranty_expiry"
+                    value="{{ old('warranty_expiry') }}"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                >
+            </x-form-group>
+        </div>
+
+        <x-form-group label="Notes / Description">
+            <textarea
+                name="notes"
+                rows="2"
+                placeholder="Optional notes or specifications..."
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            >{{ old('notes') }}</textarea>
+        </x-form-group>
+
         <div class="flex gap-3 mt-6">
-            <x-button variant="primary" class="flex-1">Create Asset</x-button>
+            <x-button variant="primary" type="submit" class="flex-1">Create Asset</x-button>
             <x-button variant="secondary" type="button" onclick="window.closeModal('add-asset-modal')" class="flex-1">Cancel</x-button>
         </div>
     </form>

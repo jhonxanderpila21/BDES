@@ -65,7 +65,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 <div class="flex items-center gap-2">
-                                    <button onclick="editReturn({{ $return->id }})" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600">
+                                    <button onclick="window.openModal('return-modal')" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit Return">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     <form action="{{ route('returns.destroy', $return) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this return record?');">
@@ -146,9 +146,6 @@
             function openReturnModal() {
                 window.openModal('return-modal');
             }
-            function viewReturn(asset) { alert(`View: ${asset}`); }
-            function editReturn(asset) { alert(`Edit: ${asset}`); }
-            function handlePageChange(page) { alert(`Page: ${page}`); }
         </script>
     @endpush
 @endsection

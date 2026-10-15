@@ -50,7 +50,7 @@
                     required
                     autocomplete="current-password"
                     placeholder="••••••••"
-                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    class="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
             </div>
             <x-input-error :messages="$errors->get('password')" class="mt-1.5 text-xs text-red-600" />

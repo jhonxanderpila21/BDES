@@ -300,9 +300,15 @@
                 <input type="text" name="destination" required placeholder="e.g. Purok A Evacuation Center, Zone 3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </x-form-group>
 
-            <x-form-group label="Assigned Team / Responder">
-                <input type="text" name="assigned_team" placeholder="e.g. Alpha Rescue Team, Tanod Night Watch" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Assigned Team / Responder">
+                    <input type="text" name="assigned_team" placeholder="e.g. Alpha Rescue Team, Tanod Night Watch" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+
+                <x-form-group label="Responsible Custodian / Person">
+                    <input type="text" name="responsible_person" placeholder="e.g. Officer Juan Dela Cruz" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Deployment Date" required>
@@ -468,9 +474,15 @@
                 <input type="text" name="destination" id="edit_destination" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
             </x-form-group>
 
-            <x-form-group label="Assigned Team">
-                <input type="text" name="assigned_team" id="edit_assigned_team" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Assigned Team">
+                    <input type="text" name="assigned_team" id="edit_assigned_team" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
+
+                <x-form-group label="Responsible Custodian / Person">
+                    <input type="text" name="responsible_person" id="edit_responsible_person" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Deployment Date" required>
@@ -563,6 +575,7 @@
 
                 document.getElementById('edit_destination').value = deployment.destination || '';
                 document.getElementById('edit_assigned_team').value = deployment.assigned_team || '';
+                document.getElementById('edit_responsible_person').value = deployment.responsible_person || '';
 
                 let depDate = deployment.deployment_date || '';
                 if (depDate.includes('T')) depDate = depDate.split('T')[0];

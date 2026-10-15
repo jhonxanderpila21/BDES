@@ -1,30 +1,116 @@
 @extends('layouts.admin')
 
-@section('title', 'Roles - BDES')
+@section('title', 'Roles & Permissions - BDES')
 
 @section('content')
     {{-- Page Header --}}
     <div class="flex items-center justify-between mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Role Management</h1>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Role & Access Control</h1>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'User Management'],
-                ['label' => 'Roles']
+                ['label' => 'Administration'],
+                ['label' => 'Roles & Permissions']
             ]" />
         </div>
-        <button onclick="openAddRoleModal()" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-            <i class="fas fa-plus"></i>
-            Add Role
-        </button>
+        <a href="{{ route('users.index') }}" class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+            <i class="fas fa-users-cog"></i>
+            Manage User Accounts
+        </a>
     </div>
 
-    {{-- Filters --}}
-    <div class="flex flex-col sm:flex-row gap-4 mb-6">
-        <div class="flex-1">
-            <x-search-bar placeholder="Search roles..." />
+    {{-- Information Alert --}}
+    <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
+        <i class="fas fa-shield-alt text-blue-600 text-lg mt-0.5"></i>
+        <div class="text-xs text-blue-900 leading-relaxed">
+            <strong class="font-semibold text-blue-950">BDES Role-Based Access Control (RBAC):</strong>
+            The system employs 5 statutory disaster management roles strictly governed by Laravel Policies, Form Requests, and Middleware. Role definitions and permission boundaries prevent privilege escalation and enforce operational separation of duties.
         </div>
     </div>
+
+    @php
+        $rolesData = [
+            [
+                'key'         => 'administrator',
+                'name'        => 'Administrator',
+                'badge'       => 'danger',
+                'description' => 'Full administrative control, user account provisioning, system settings, and executive audit.',
+                'scope'       => 'All Modules',
+                'permissions' => [
+                    'User Account Management (Create, Edit, Disable, Reset Password)',
+                    'Asset Registry & Equipment Dossiers (Full CRUD)',
+                    'Asset Decommissioning & Retirement Authorization',
+                    'Field Deployments & Return Inspections',
+                    'Equipment Maintenance, Schedules & Inspections',
+                    'Asset Accessories, Needs & Consumables Tracking',
+                    'COA Depreciation Tracking & Salvage Value Records',
+                    'Reports Center & Audit Trail Oversight',
+                    'Asset Location Management',
+                ],
+            ],
+            [
+                'key'         => 'barangay_captain',
+                'name'        => 'Hon. Barangay Captain',
+                'badge'       => 'primary',
+                'description' => 'Executive governance, disaster preparedness oversight, and statutory equipment decommissioning authorization.',
+                'scope'       => 'Executive & Oversight',
+                'permissions' => [
+                    'Executive Disaster Readiness Dashboard',
+                    'Asset Registry & 360° Dossiers Inspection',
+                    'Asset Decommissioning / Retirement Authorization',
+                    'Depreciation & Salvage Value Audit',
+                    'Official Disaster Asset Reports Generation & Export',
+                    'Asset History & Audit Trail Oversight',
+                    'Asset Locations Inquiry',
+                ],
+            ],
+            [
+                'key'         => 'inventory_officer',
+                'name'        => 'Inventory Officer',
+                'badge'       => 'warning',
+                'description' => 'Field equipment operations, asset registry, deployments, return check-ins, accessories, and consumables replenishment.',
+                'scope'       => 'Inventory & Field Operations',
+                'permissions' => [
+                    'Asset Registry (Create, Edit, Philippine Standard Auto-Computation)',
+                    'Field Deployments & Operations Tracking',
+                    'Return Records & Return Inspection Processing',
+                    'Accessories & Attachment Stock Management',
+                    'Operational Requirements & Consumables Refilling',
+                    'Reported Incident Assets (Filing & Updating)',
+                    'Asset History & Audit Trail Review',
+                    'Asset Locations Inquiry',
+                ],
+            ],
+            [
+                'key'         => 'maintenance_officer',
+                'name'        => 'Maintenance Officer',
+                'badge'       => 'success',
+                'description' => 'Equipment servicing, repair work orders, preventive maintenance schedules, and physical quality inspections.',
+                'scope'       => 'Equipment Upkeep & Service',
+                'permissions' => [
+                    'Maintenance Hub & Work Orders (Create, Update, Sign-off)',
+                    'Preventive Maintenance Scheduling (Interval Tracking)',
+                    'Physical Asset Inspections & Diagnostic Reports',
+                    'Asset Registry & Technical Dossiers Inspection',
+                    'Asset History Review',
+                    'Asset Locations Inquiry',
+                ],
+            ],
+            [
+                'key'         => 'viewer',
+                'name'        => 'Viewer / Staff',
+                'badge'       => 'secondary',
+                'description' => 'Read-only inquiry access to asset registries, location mappings, and incident monitoring logs.',
+                'scope'       => 'Read-Only Catalog',
+                'permissions' => [
+                    'Read-only Asset Catalog & Specifications Inquiry',
+                    'Asset Locations Inquiry',
+                    'Incident Monitoring View',
+                    'Personal Profile Settings',
+                ],
+            ],
+        ];
+    @endphp
 
     {{-- Roles Table --}}
     <x-card>
@@ -33,121 +119,103 @@
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Role Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Functional Scope</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Description</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Permissions</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Users</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Users</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Enforcement</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                    @php
-                        $roles = [
-                            ['name' => 'Administrator', 'description' => 'Full system access', 'permissions' => 15, 'users' => 2, 'status' => 'Active'],
-                            ['name' => 'Manager', 'description' => 'Can manage assets and operations', 'permissions' => 12, 'users' => 5, 'status' => 'Active'],
-                            ['name' => 'User', 'description' => 'Standard user access', 'permissions' => 8, 'users' => 12, 'status' => 'Active'],
-                            ['name' => 'Viewer', 'description' => 'Read-only access', 'permissions' => 3, 'users' => 4, 'status' => 'Active'],
-                        ];
-                    @endphp
-                    @forelse($roles as $role)
+                    @foreach($rolesData as $role)
+                        @php
+                            $userCount = \App\Models\User::where('role', $role['key'])->count();
+                        @endphp
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm font-medium text-gray-900">{{ $role['name'] }}</p>
-                            </td>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ $role['description'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <x-badge variant="info" size="sm">{{ $role['permissions'] }} permissions</x-badge>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $role['users'] }} users</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <x-badge variant="success" size="sm">{{ $role['status'] }}</x-badge>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                <div class="flex items-center gap-2">
-                                    <button onclick="viewRole('{{ $role['name'] }}')" class="p-2 rounded hover:bg-gray-100 transition-colors text-blue-600 hover:text-blue-800" title="View">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button onclick="editRole('{{ $role['name'] }}')" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600 hover:text-yellow-800" title="Edit">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button onclick="deleteRole('{{ $role['name'] }}')" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600 hover:text-red-800" title="Delete">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-2.5 h-2.5 rounded-full {{ $role['badge'] === 'danger' ? 'bg-red-500' : ($role['badge'] === 'primary' ? 'bg-blue-600' : ($role['badge'] === 'warning' ? 'bg-amber-500' : ($role['badge'] === 'success' ? 'bg-emerald-500' : 'bg-gray-400'))) }}"></div>
+                                    <p class="text-sm font-bold text-gray-900">{{ $role['name'] }}</p>
                                 </div>
                             </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="px-6 py-8">
-                                <x-empty-state 
-                                    icon="fas fa-lock"
-                                    title="No roles found"
-                                    message="Start by adding your first role"
-                                />
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <x-badge variant="{{ $role['badge'] }}" size="sm">{{ $role['scope'] }}</x-badge>
+                            </td>
+                            <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">{{ $role['description'] }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                                    <i class="fas fa-users text-gray-500 text-[10px]"></i>
+                                    {{ $userCount }} {{ Str::plural('account', $userCount) }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-medium">
+                                    <i class="fas fa-check-circle text-emerald-500"></i> Active Policy
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <button
+                                    type="button"
+                                    onclick="viewRoleDetails(@js($role['name']), @js($role['scope']), @js($role['description']), @js($role['permissions']), {{ $userCount }})"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors text-xs font-semibold"
+                                >
+                                    <i class="fas fa-list-check text-blue-600"></i>
+                                    <span>Permissions</span>
+                                </button>
                             </td>
                         </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
-
-        {{-- Pagination --}}
-        <x-pagination current="1" total="4" perPage="10" onPageChange="handlePageChange" />
     </x-card>
 
-    {{-- Add/Edit Role Modal --}}
-    <x-modal id="add-role-modal" title="Add New Role">
-        <form class="space-y-4">
-            <x-form-group label="Role Name" required>
-                <input type="text" placeholder="Supervisor" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
-
-            <x-form-group label="Description" required>
-                <textarea placeholder="Brief description of the role" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
-            </x-form-group>
-
-            <x-form-group label="Permissions" required>
-                <div class="space-y-3 border border-gray-300 rounded-lg p-4">
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded">
-                        <span class="text-sm text-gray-700">View Assets</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded">
-                        <span class="text-sm text-gray-700">Create Assets</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded">
-                        <span class="text-sm text-gray-700">Edit Assets</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded">
-                        <span class="text-sm text-gray-700">Delete Assets</span>
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <input type="checkbox" class="w-4 h-4 text-blue-600 rounded">
-                        <span class="text-sm text-gray-700">Deploy Assets</span>
-                    </label>
+    {{-- View Role Permissions Modal --}}
+    <x-modal id="view-role-modal" title="Role Permissions & Authority Matrix">
+        <div class="space-y-4">
+            <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                <div class="flex items-center justify-between mb-1">
+                    <h3 id="role_modal_title" class="text-base font-bold text-gray-900">Role Title</h3>
+                    <span id="role_modal_scope" class="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Scope</span>
                 </div>
-            </x-form-group>
-
-            <div class="flex gap-3 mt-6">
-                <x-button variant="primary" class="flex-1">Create Role</x-button>
-                <x-button variant="secondary" type="button" onclick="window.closeModal('add-role-modal')" class="flex-1">Cancel</x-button>
+                <p id="role_modal_desc" class="text-xs text-gray-600 mt-1"></p>
+                <div class="mt-2 text-xs text-gray-500">
+                    Active assigned accounts: <strong id="role_modal_users" class="text-gray-800">0</strong>
+                </div>
             </div>
-        </form>
+
+            <div>
+                <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Granted Authorities & Capabilities:</h4>
+                <ul id="role_modal_perms" class="space-y-2 text-xs text-gray-700"></ul>
+            </div>
+
+            <div class="pt-4 border-t border-gray-200">
+                <x-button variant="secondary" type="button" onclick="window.closeModal('view-role-modal')" class="w-full">
+                    Close Details
+                </x-button>
+            </div>
+        </div>
     </x-modal>
 
     @push('scripts')
         <script>
-            function openAddRoleModal() {
-                window.openModal('add-role-modal');
-            }
+            function viewRoleDetails(name, scope, desc, perms, userCount) {
+                document.getElementById('role_modal_title').textContent = name;
+                document.getElementById('role_modal_scope').textContent = scope;
+                document.getElementById('role_modal_desc').textContent = desc;
+                document.getElementById('role_modal_users').textContent = userCount + ' user account' + (userCount === 1 ? '' : 's');
 
-            function viewRole(name) { alert(`View role: ${name}`); }
-            function editRole(name) { alert(`Edit role: ${name}`); }
-            function deleteRole(name) { if(confirm(`Delete ${name}?`)) alert(`Role ${name} deleted`); }
-            function handlePageChange(page) { alert(`Go to page ${page}`); }
+                const listEl = document.getElementById('role_modal_perms');
+                listEl.innerHTML = '';
+                perms.forEach(perm => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-start gap-2 p-2 rounded-lg bg-gray-50 border border-gray-100';
+                    li.innerHTML = `<i class="fas fa-check text-emerald-600 mt-0.5 text-xs flex-shrink-0"></i> <span>${perm}</span>`;
+                    listEl.appendChild(li);
+                });
+
+                window.openModal('view-role-modal');
+            }
         </script>
     @endpush
 @endsection

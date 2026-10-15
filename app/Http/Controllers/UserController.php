@@ -47,9 +47,32 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $input = $request->all();
+
+        // Support first_name / last_name fallback if name is not explicitly passed
+        if (empty($input['name']) && (!empty($input['first_name']) || !empty($input['last_name']))) {
+            $nameParts = array_filter([
+                $input['first_name'] ?? null,
+                $input['middle_name'] ?? null,
+                $input['last_name'] ?? null,
+            ]);
+            $input['name'] = implode(' ', $nameParts);
+        }
+
         if (isset($input['name'])) {
             $input['name'] = strip_tags(trim($input['name']));
         }
+
+        // Auto-generate username from email or name if missing
+        if (empty($input['username'])) {
+            if (!empty($input['email'])) {
+                $base = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', explode('@', $input['email'])[0]));
+                $input['username'] = $base ?: 'user_' . Str::random(5);
+            } elseif (!empty($input['name'])) {
+                $base = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '', $input['name'])));
+                $input['username'] = $base ?: 'user_' . Str::random(5);
+            }
+        }
+
         if (isset($input['username'])) {
             $input['username'] = strtolower(trim(strip_tags($input['username'])));
         }
