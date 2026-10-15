@@ -15,8 +15,9 @@ class InspectionController extends Controller
 
     protected function authorizeInspector(Request $request): void
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
-            abort(403, 'Unauthorized. Inspection recording requires operational permissions.');
+        $user = $request->user();
+        if ($user && $user->hasRole('viewer', 'inventory_officer')) {
+            abort(403, 'Unauthorized. Physical inspection and equipment servicing requires Maintenance Officer or Administrator permissions.');
         }
     }
 
@@ -33,6 +34,9 @@ class InspectionController extends Controller
         }
         if (isset($input['findings'])) {
             $input['findings'] = strip_tags(trim($input['findings']));
+        }
+        if (empty($input['status'])) {
+            $input['status'] = 'completed';
         }
         $request->merge($input);
 

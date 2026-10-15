@@ -72,6 +72,11 @@ class AssetSalvageController extends Controller
      */
     public function update(Request $request, Asset $asset)
     {
+        // Enforce Philippine Government Standard: Items < ₱50,000 cannot have a salvage value
+        if (!$asset->is_capitalized_ppe) {
+            return redirect()->back()->with('error', "Under Philippine Government Accounting Standards (COA Circular No. 2022-004), items with acquisition cost below ₱50,000.00 are classified as Semi-Expendable Property and cannot have a salvage value record.");
+        }
+
         if ($request->has('salvage_value') && is_string($request->salvage_value)) {
             $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
             $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
@@ -117,6 +122,7 @@ class AssetSalvageController extends Controller
                 'Asset Code',
                 'Asset Name',
                 'Category',
+                'COA Classification',
                 'Acquisition Cost (PHP)',
                 'Calculated Salvage Value (PHP)',
                 'Salvage Determination Method',
@@ -126,14 +132,19 @@ class AssetSalvageController extends Controller
             ]);
 
             foreach ($assets as $asset) {
-                $method = ($asset->salvage_value !== null && $asset->salvage_value > 0)
-                    ? 'Custom Fixed Valuation'
-                    : 'COA Standard 10% Residual';
+                if (!$asset->is_capitalized_ppe) {
+                    $method = 'COA Semi-Expendable (₱0.00 Non-Salvageable)';
+                } else {
+                    $method = ($asset->salvage_value !== null && $asset->salvage_value > 0)
+                        ? 'Custom Appraised Valuation'
+                        : 'COA Standard 10% Residual';
+                }
 
                 fputcsv($handle, [
                     $asset->code,
                     $asset->name,
                     $asset->category?->name ?? 'Uncategorized',
+                    $asset->coa_classification,
                     number_format($asset->acquisition_cost, 2, '.', ''),
                     number_format($asset->calculated_salvage_value, 2, '.', ''),
                     $method,

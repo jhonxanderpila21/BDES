@@ -1,6 +1,10 @@
 <!-- Sidebar Navigation -->
 @php
-    $isAdmin = auth()->check() && auth()->user()->isAdmin();
+    $currentUser = auth()->user();
+    $isAdmin = $currentUser && $currentUser->isAdmin();
+    $isInventory = $currentUser && ($currentUser->hasRole('inventory_officer', 'bdrrmc_officer') || $currentUser->isAdmin());
+    $isMaintenance = $currentUser && ($currentUser->hasRole('maintenance_officer') || $currentUser->isAdmin());
+    $isViewer = $currentUser && $currentUser->hasRole('viewer');
 
     $isActive = function (string $routePattern) {
         return request()->routeIs($routePattern);
@@ -118,32 +122,34 @@
                         <span>Asset Registry</span>
                     </a>
 
-                    {{-- Attachments & Accessories --}}
-                    <a
-                        href="{{ route('attachments.index') }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('attachments.*') || $isActive('asset-accessories.*') || $isActive('accessories.*')) }}"
-                    >
-                        <i class="fas fa-paperclip w-4 text-center {{ $iconClass($isActive('attachments.*') || $isActive('asset-accessories.*') || $isActive('accessories.*')) }}"></i>
-                        <span>Attachments & Accessories</span>
-                    </a>
+                    @if($isAdmin || $isInventory || $isViewer)
+                        {{-- Attachments & Accessories --}}
+                        <a
+                            href="{{ route('attachments.index') }}"
+                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('attachments.*') || $isActive('asset-accessories.*') || $isActive('accessories.*')) }}"
+                        >
+                            <i class="fas fa-paperclip w-4 text-center {{ $iconClass($isActive('attachments.*') || $isActive('asset-accessories.*') || $isActive('accessories.*')) }}"></i>
+                            <span>Attachments & Accessories</span>
+                        </a>
 
-                    {{-- Operational Requirements --}}
-                    <a
-                        href="{{ route('operational-requirements.index') }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('operational-requirements.*')) }}"
-                    >
-                        <i class="fas fa-list-check w-4 text-center {{ $iconClass($isActive('operational-requirements.*')) }}"></i>
-                        <span>Operational Requirements</span>
-                    </a>
+                        {{-- Operational Requirements --}}
+                        <a
+                            href="{{ route('operational-requirements.index') }}"
+                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('operational-requirements.*')) }}"
+                        >
+                            <i class="fas fa-list-check w-4 text-center {{ $iconClass($isActive('operational-requirements.*')) }}"></i>
+                            <span>Operational Requirements</span>
+                        </a>
 
-                    {{-- Asset Needs & Supplies --}}
-                    <a
-                        href="{{ route('asset-needs.index') }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('asset-needs.*')) }}"
-                    >
-                        <i class="fas fa-gas-pump w-4 text-center {{ $iconClass($isActive('asset-needs.*')) }}"></i>
-                        <span>Asset Needs & Supplies</span>
-                    </a>
+                        {{-- Asset Needs & Supplies --}}
+                        <a
+                            href="{{ route('asset-needs.index') }}"
+                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('asset-needs.*')) }}"
+                        >
+                            <i class="fas fa-gas-pump w-4 text-center {{ $iconClass($isActive('asset-needs.*')) }}"></i>
+                            <span>Asset Needs & Supplies</span>
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -172,23 +178,27 @@
                     x-transition:leave-end="opacity-0 -translate-y-1"
                     class="pl-3 pr-1 space-y-1 border-l-2 {{ $treeBorderClass }} ml-3.5 my-1"
                 >
-                    {{-- Deployments & Returns --}}
-                    <a
-                        href="{{ route('deployment.index') }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('deployment.*') || $isActive('returns.*')) }}"
-                    >
-                        <i class="fas fa-truck-ramp-box w-4 text-center {{ $iconClass($isActive('deployment.*') || $isActive('returns.*')) }}"></i>
-                        <span>Deployments & Returns</span>
-                    </a>
+                    @if($isAdmin || $isInventory || $isViewer)
+                        {{-- Deployments & Returns (Equipment Officer workflow) --}}
+                        <a
+                            href="{{ route('deployment.index') }}"
+                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('deployment.*') || $isActive('returns.*')) }}"
+                        >
+                            <i class="fas fa-truck-ramp-box w-4 text-center {{ $iconClass($isActive('deployment.*') || $isActive('returns.*')) }}"></i>
+                            <span>Deployments & Returns</span>
+                        </a>
+                    @endif
 
-                    {{-- Maintenance & Work Orders --}}
-                    <a
-                        href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
-                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"
-                    >
-                        <i class="fas fa-screwdriver-wrench w-4 text-center {{ $iconClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"></i>
-                        <span>Maintenance & Work Orders</span>
-                    </a>
+                    @if($isAdmin || $isMaintenance || $isViewer)
+                        {{-- Maintenance & Work Orders (Maintenance Officer workflow) --}}
+                        <a
+                            href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
+                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"
+                        >
+                            <i class="fas fa-screwdriver-wrench w-4 text-center {{ $iconClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"></i>
+                            <span>Maintenance & Work Orders</span>
+                        </a>
+                    @endif
 
                     {{-- Reported Assets --}}
                     <a

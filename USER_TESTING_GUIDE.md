@@ -7,16 +7,15 @@
 
 **BDES (Barangay Disaster Assets Management & Monitoring System)** is a specialized, production-ready enterprise asset management and emergency logistics platform designed for local government units (LGUs).
 
-The system enforces **Role-Based Access Control (RBAC)** across 6 distinct user tiers:
+The system enforces **Role-Based Access Control (RBAC)** across 5 distinct user roles:
 
-| Role Name | Database Role Identifier | Access Tier | Primary Responsibility |
+| Role Name | Database Identifier | Access Tier | Primary Operational Responsibility |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `administrator` | Full Admin | System configuration, user management, financial valuations, audit inspection, master reporting |
-| **Barangay Captain** | `barangay_captain` | Executive Admin | Executive oversight, asset retirement approvals, high-level reporting, executive dashboard |
-| **BDRRMC Officer Member** | `bdrrmc_officer` | Operational Editor | Field deployments, return inspections, preventive maintenance, incident monitoring, asset dossiers |
-| **Inventory & Logistics Officer** | `inventory_officer` | Operational Editor | Asset acquisition, stock counts, accessory tracking, consumables/operational requirements |
-| **Maintenance Specialist** | `maintenance_officer` | Operational Editor | Work order execution, equipment servicing, preventive schedule completion, inspection ratings |
-| **Barangay Staff Member** | `viewer` | Read-Only / Reporter | Asset registry lookup, defect report creation, personal profile management |
+| **System Administrator** | `administrator` | Full Superadmin | System configuration, user management, financial valuations, audit logs, master reporting |
+| **Hon. Barangay Captain** | `barangay_captain` | Executive Admin | Executive oversight, asset retirement approvals, high-level reporting, executive dashboard |
+| **BDRRMC Inventory Officer** | `inventory_officer` | Operational Equipment Officer | All equipment works **aside from maintenance**: acquisitions, asset registry, accessories, operational requirements/supplies, field deployments & returns, incident reporting |
+| **Maintenance Officer** | `maintenance_officer` | Operational Upkeep Officer | All equipment servicing & maintenance works: work orders, preventive maintenance schedules, physical inspections, condition rating |
+| **Barangay Staff / Viewer** | `viewer` | Read-Only / Reporter | Asset registry lookup, defect report creation, personal profile management |
 
 ---
 
@@ -34,9 +33,9 @@ All accounts are pre-seeded in the database via `database/seeders/UserSeeder.php
 +------------------------------------+--------------------------+-----------------------+
 | System Administrator               | admin@bdes.gov           | administrator         |
 | Hon. Barangay Captain              | captain@bdes.gov         | barangay_captain      |
-| BDRRMC Officer Member              | member@bdes.gov          | bdrrmc_officer        |
-| Inventory & Logistics Officer      | inventory@bdes.gov       | inventory_officer     |
-| Maintenance Specialist             | maintenance@bdes.gov     | maintenance_officer   |
+| BDRRMC Inventory Officer           | inventory@bdes.gov       | inventory_officer     |
+| BDRRMC Operational Officer         | member@bdes.gov          | inventory_officer     |
+| Maintenance Specialist Officer     | maintenance@bdes.gov     | maintenance_officer   |
 | Barangay Staff Member              | staff@bdes.gov           | viewer                |
 +------------------------------------+--------------------------+-----------------------+
 ```
@@ -46,8 +45,8 @@ All accounts are pre-seeded in the database via `database/seeders/UserSeeder.php
 To start the local environment with a clean, fully-seeded database:
 
 ```bash
-# 1. Run migrations and database seeders
-php artisan migrate:fresh --seed
+# 1. Run database migrations and seed default accounts
+php artisan migrate --seed
 
 # 2. Build frontend assets (Vite)
 npm run build
@@ -73,18 +72,16 @@ The system will be accessible in your web browser at: **`http://127.0.0.1:8000`*
    - Refresh the page and confirm the custom sidebar width is preserved in `localStorage`.
 4. Verify the Admin sidebar displays:
    - **Dashboard**
-   - **Asset Management** (Asset Registry, Asset Accessories, Operational Requirements, Borrowed / Return)
-   - **Asset Locations** (Dedicated standalone navigation)
-   - **Operations** (Maintenance & Inspection Hub, Monitoring / Reported Assets)
-   - **Tracking** (Asset History & Audit Trail)
-   - **Financials & Valuation** (Depreciation Tracking, Salvage Value Records)
-   - **Reports Center**
-   - **Administration** (User Management, Roles & Permissions)
+   - **Asset Management** (Asset Registry, Attachments & Accessories, Operational Requirements, Asset Needs & Supplies)
+   - **Asset Operations** (Deployments & Returns, Maintenance & Work Orders, Reported Assets)
+   - **Asset Financials** (Valuation & Budgeting, Depreciation Tracking, Salvage Value Records)
+   - **Tracking & Reporting** (Asset History & Audit, Asset Locations, Reports Center)
+   - **Administration** (User Management, Roles & Permissions, Account Settings)
 
 ### 3.2. User Management & Security Controls
 1. Click **Administration -> User Management** (`/users`).
-2. Click **Add New User**:
-   - Enter Name: `Officer Juan Dela Cruz`, Username: `jdelacruz`, Email: `jdelacruz@bdes.gov`, Role: `bdrrmc_officer`, Password: `password`, Confirm: `password`.
+2. Click **Add User**:
+   - Enter Name: `Officer Juan Dela Cruz`, Username: `jdelacruz`, Email: `jdelacruz@bdes.gov`, Role: `Inventory Officer`, Password: `password`, Confirm: `password`.
    - Submit and verify the success notification.
 3. Test **Account Disable/Enable**:
    - Locate any non-admin user and click **Disable Account**.
@@ -94,30 +91,31 @@ The system will be accessible in your web browser at: **`http://127.0.0.1:8000`*
    - Click **Reset Password** on any user row.
    - Confirm the dialog and observe the 12-character secure temporary password generated.
 
-### 3.3. Financials & Depreciation Tracking
-1. Navigate to **Financials & Valuation -> Depreciation Tracking** (`/financials/depreciation`).
-2. Review the live calculations:
-   - Total Acquisition Cost
-   - Accumulated Depreciation (Straight-Line method based on purchase date and useful life)
-   - Current Book Value
-   - Annual Depreciation Expense
-3. Click **Edit Parameters** on an asset:
+### 3.3. Financials & Philippine Standard Depreciation Tracking
+1. Navigate to **Asset Financials -> Depreciation Tracking** (`/financials/depreciation`).
+2. Notice the **Philippine Government Accounting Standard Notice**:
+   > Items with acquisition costs ≥ ₱50,000.00 are recognized as Capitalized PPE (COA Circular No. 2022-004) with Straight-Line Amortization and a 10% standard residual value (COA Circular No. 2003-007). Items below ₱50,000.00 are Semi-Expendable Property and statutorily non-depreciable.
+3. Observe the table entries:
+   - Capitalized assets display the green `PPE` badge with active straight-line annual/monthly depreciation.
+   - Items under ₱50,000 display the amber `Semi-Expendable` badge, `₱0.00` depreciation, and `Carried at Cost`.
+4. Click **Edit Parameters** on a Capitalized PPE asset:
    - Update useful life to `7` years.
-   - Enter Salvage Value: `5000`.
-   - Click Save and observe real-time recalculation of book value.
-4. Click **Export CSV** and verify the downloaded file `bdes_depreciation_schedule_*.csv`.
+   - Enter Custom Salvage Value: `15000`.
+   - Save and verify instant recalculation.
+5. Notice that for Semi-Expendable assets, the action is locked with `Non-Depreciable`.
+6. Click **Export CSV** and verify the downloaded file `bdes_depreciation_schedule_*.csv` includes the `COA Classification` column.
 
 ### 3.4. Salvage Value Records
-1. Navigate to **Financials & Valuation -> Salvage Value Records** (`/financials/salvage`).
-2. Verify the 10% statutory default salvage value applied to assets without manual appraisal.
-3. Click **Update Salvage** on an asset:
+1. Navigate to **Asset Financials -> Salvage Value Records** (`/financials/salvage`).
+2. Verify the 10% statutory default salvage value applied to capitalized assets.
+3. Click **Update Record** on a capitalized asset:
    - Set custom salvage value: `12500.00`.
-   - Add notes: `Appraised after 3 years field duty.`
-   - Save and verify status badge switches from `10% Default` to `Custom Appraised`.
-4. Click **Export CSV** and verify downloaded file.
+   - Add notes: `Appraised salvage value for rescue equipment motor.`
+   - Save and verify status badge switches from `COA 10% Standard` to `Custom Appraised`.
+4. Click **Export CSV** and verify downloaded file includes `COA Classification`.
 
 ### 3.5. Reports Center
-1. Navigate to **Reports Center** (`/reports`).
+1. Navigate to **Tracking & Reporting -> Reports Center** (`/reports`).
 2. Select report type: **Comprehensive Master Asset Inventory**.
 3. Apply filters: Status = `Available`.
 4. Click **Generate Report Preview** to inspect table data.
@@ -132,231 +130,200 @@ The system will be accessible in your web browser at: **`http://127.0.0.1:8000`*
 ### 4.1. Executive Oversight
 1. Log in and inspect the Executive Dashboard.
 2. Note the visual clarity and high-level summaries for disaster preparedness readiness.
-3. Verify access to **Financials & Valuation** and **Reports Center** (Captains have full executive auditing access).
+3. Verify access to **Asset Financials** and **Reports Center** (Captains have full executive auditing access).
 
 ### 4.2. Asset Retirement / Decommissioning Authorization
 1. Navigate to **Asset Management -> Asset Registry** (`/assets`).
-2. Click on an asset to view its 360-degree dossier (e.g., an Out-of-Service chainsaw or generator).
+2. Click on an asset to view its 360-degree dossier.
 3. Observe the **Retire / Decommission Asset** button (only Captain and Administrator have this authority).
 4. Click **Retire Asset**:
-   - Provide retirement justification: `Damaged beyond economic repair during Typhoon Openg.`
+   - Provide retirement justification: `Damaged beyond economic repair during typhoon response.`
    - Confirm decommissioning.
 5. Verify the asset status updates to `retired` and an audit trail log is permanently recorded with the Captain's identity.
 
 ---
 
-## 5. Step-by-Step Testing Guide: Role 3 — BDRRMC Officer Member
-
-**Login:** `member@bdes.gov` | **Password:** `password`
-
-### 5.1. Member Navigation & Clean Interface
-1. Log in and inspect the Member sidebar:
-   - Notice that restricted Admin modules (**Administration**, **User Management**, **Depreciation Tracking**, **Salvage Value Records**, **Reports Center**) are **completely removed**.
-   - Notice the direct link to **Account Settings** in place of Administration.
-   - Notice **Asset Locations** is cleanly separated.
-
-### 5.2. Field Asset Deployment (Borrowing)
-1. Navigate to **Asset Management -> Borrowed / Return** (`/deployment`).
-2. Click **Deploy Asset**:
-   - Select an available asset (e.g., `Heavy Chainsaw`).
-   - Destination: `Purok 4 Riverside Evacuation Center`.
-   - Assigned Team: `Rapid Rescue Unit Alpha`.
-   - Responsible Custodian: `Officer Dela Cruz`.
-   - Deployment Date: Today's date.
-   - Expected Return Date: Tomorrow's date.
-   - Mission Purpose: `Emergency clearing operations along floodway.`
-3. Submit the form.
-4. Verify:
-   - Deployment status shows `active` in the listing.
-   - The asset's status automatically transitions from `available` to `deployed`.
-   - Audit trail records the deployment.
-
-### 5.3. Return Processing & Check-In Inspection
-1. From `/deployment`, locate the active deployment created above.
-2. Click **Process Return**:
-   - Return Date: Today's date.
-   - Condition on Return: Select `Good`.
-   - Received By: Automatically pre-filled with logged-in user.
-   - Actual Location: `Purok Central Storage`.
-   - Status: `received`.
-3. Submit the return.
-4. Verify:
-   - Deployment status updates to `returned`.
-   - Asset status automatically returns to `available`.
-   - Return log is saved.
-
-### 5.4. Asset Document Dossier
-1. Navigate to **Asset Registry -> View Asset Dossier** for any asset.
-2. Scroll to the **Documents & Manuals** tab.
-3. Click **Upload Document**:
-   - Title: `Chainsaw Safety & Operating Manual`.
-   - Type: `manual`.
-   - File: Attach a PDF or PNG file (up to 10MB).
-   - Notes: `Official operation guide from manufacturer.`
-4. Submit and verify document is listed.
-5. Click **Download** to verify secure retrieval.
-
-### 5.5. Security Enforcement (HTTP 403 Forbidden Verification)
-1. While logged in as `member@bdes.gov`, attempt to access restricted URLs directly in browser address bar:
-   - `http://127.0.0.1:8000/users` -> **HTTP 403 Forbidden** (BDES Branded Forbidden page).
-   - `http://127.0.0.1:8000/financials/depreciation` -> **HTTP 403 Forbidden**.
-   - `http://127.0.0.1:8000/financials/salvage` -> **HTTP 403 Forbidden**.
-   - `http://127.0.0.1:8000/reports` -> **HTTP 403 Forbidden**.
-2. Confirm the user cannot bypass permissions via direct URL traversal.
-
----
-
-## 6. Step-by-Step Testing Guide: Role 4 — Inventory & Logistics Officer
+## 5. Step-by-Step Testing Guide: Role 3 — BDRRMC Inventory Officer
 
 **Login:** `inventory@bdes.gov` | **Password:** `password`
 
-### 6.1. Registering New Equipment
+*(Handles all equipment-related workflows aside from maintenance)*
+
+### 5.1. Equipment Acquisition & Philippine Standard Auto-Computation
 1. Navigate to **Asset Management -> Asset Registry** (`/assets`).
-2. Click **Add New Asset**:
-   - Asset Name: `Honda 3-Inch Trash Pump`.
-   - Category: `Flood Response Equipment`.
-   - Type: `Water Pump`.
-   - Serial Number: `SN-HPUMP-9921`.
-   - Manufacturer: `Honda Power`.
-   - Location: `Purok Central Storage`.
-   - Condition: `excellent`.
-   - Status: `available`.
-   - Acquisition Cost: `₱ 45,000.00` (test typing commas and currency signs — normalized automatically).
-3. Submit and verify asset code is auto-generated (e.g., `AST-XXXXXXXX`).
+2. Click **Add Asset**:
+   - **Test Case 1 (Semi-Expendable Property < ₱50k)**:
+     - Name: `Handheld Megaphone Siren Set`.
+     - Category: `Rescue Hand Tools & Supplies`.
+     - Location: `Purok Central Storage`.
+     - Condition: `good`.
+     - Status: `available`.
+     - Acquisition Cost: `₱ 18,500.00`.
+     - Submit and verify:
+       - Asset is created with auto-generated code `AST-XXXXXXXX`.
+       - Salvage value is automatically set to `₱0.00`.
+       - Notes record: `Semi-Expendable Property (< ₱50,000.00 statutory threshold under COA Circular No. 2022-004 / GAM for LGUs). Non-depreciable.`
+   - **Test Case 2 (Capitalized PPE ≥ ₱50k)**:
+     - Name: `Flood Rescue Evacuation Boat`.
+     - Category: `Transportation & Emergency Vehicles`.
+     - Location: `Purok Central Storage`.
+     - Condition: `excellent`.
+     - Status: `available`.
+     - Acquisition Cost: `₱ 150,000.00`.
+     - Leave salvage value and useful life empty.
+     - Submit and verify:
+       - System automatically assigns standard useful life (**7 years** for Transportation).
+       - System automatically computes **10% salvage value** (`₱ 15,000.00`).
+       - Straight-line depreciation begins automatically amortizing.
 
-### 6.2. Accessories & Components
-1. Navigate to **Asset Management -> Asset Accessories** (`/attachments?tab=accessories`).
-2. Locate or add an accessory (e.g., `Suction Hose 20ft`).
-3. Click **Adjust Stock**:
-   - Action: `Add Stock` -> Amount: `5`.
-   - Submit and verify quantity increases.
-   - Action: `Consume/Reduce` -> Amount: `2`.
-   - Submit and verify quantity decreases.
-   - Test over-reduction: Try to subtract `999` and verify error prevents negative stock.
+### 5.2. Field Asset Deployment & Return Processing
+1. Navigate to **Asset Operations -> Deployments & Returns** (`/deployment`).
+2. Click **Deploy Asset**:
+   - Select an available asset (e.g., `Flood Rescue Evacuation Boat`).
+   - Destination: `Purok 4 Riverside Evacuation Center`.
+   - Assigned Team: `Rapid Water Rescue Unit Alpha`.
+   - Responsible Custodian: `Officer Juan Dela Cruz`.
+   - Deployment Date: Today's date.
+   - Expected Return Date: Tomorrow's date.
+   - Mission Purpose: `Emergency evacuation drill along riverbank.`
+3. Submit and verify asset status automatically transitions to `deployed`.
+4. Locate the active deployment and click **Process Return**:
+   - Condition on Return: `Good`.
+   - Actual Location: `Purok Central Storage`.
+   - Submit return and verify asset status automatically returns to `available`.
 
-### 6.3. Consumables & Operational Requirements
-1. Navigate to **Asset Management -> Operational Requirements** (`/operational-requirements`).
-2. Inspect requirements for fuel, two-stroke oil, generator oil, etc.
-3. Test **Refill**:
-   - Click **Refill** on Diesel Fuel -> Add `20` Liters.
-   - Verify current level increases up to maximum capacity.
-4. Test **Consume**:
-   - Click **Consume** -> Deduct `5` Liters.
-   - Verify level updates. If level drops below minimum threshold, verify `Low Stock` badge triggers.
+### 5.3. Managing Accessories, Consumables & Operational Requirements
+1. Navigate to **Asset Management -> Attachments & Accessories** (`/attachments`).
+   - Adjust accessory stock quantities up/down.
+2. Navigate to **Asset Management -> Operational Requirements** (`/operational-requirements`).
+   - Refill fuel/oil levels and verify capacity limits are enforced.
+
+### 5.4. Security Boundary Verification (No Maintenance Authority)
+1. While logged in as `inventory@bdes.gov`, observe that **Maintenance & Work Orders** is hidden from your primary operational workflows.
+2. Attempt to create a maintenance work order via POST:
+   - The backend `MaintenancePolicy` rejects the request with **HTTP 403 Forbidden**.
+3. Attempt to record an inspection:
+   - `InspectionController` rejects the request with **HTTP 403 Forbidden**.
+4. Attempt to access `/users`, `/financials/depreciation`, `/reports`:
+   - All return **HTTP 403 Forbidden**.
 
 ---
 
-## 7. Step-by-Step Testing Guide: Role 5 — Maintenance Specialist
+## 6. Step-by-Step Testing Guide: Role 4 — Maintenance Officer
 
 **Login:** `maintenance@bdes.gov` | **Password:** `password`
 
-### 7.1. Preventive Maintenance Schedules
-1. Navigate to **Operations -> Maintenance & Inspection Hub** (`/maintenance?tab=schedules`).
-2. Review due and upcoming maintenance tasks.
-3. Locate a schedule marked `Due` or `Scheduled`.
-4. Click **Complete Task**:
-   - Completion Date: Today's date.
-   - Technician: Auto-populated or enter `Technician Santos`.
-   - Notes: `Replaced spark plug, cleaned fuel filter, verified throttle response.`
-5. Submit and verify schedule next due date rolls forward according to interval (e.g. 30 days).
+*(Responsible for equipment upkeep, repairs, preventive maintenance schedules, and physical inspections)*
 
-### 7.2. Creating & Completing Work Orders
-1. Click the **Work Orders & Logs** tab (`/maintenance?tab=logs`).
-2. Click **Create Work Order**:
-   - Asset: Select an asset.
+### 6.1. Maintenance Hub & Work Orders
+1. Log in and notice the tailored sidebar:
+   - **Asset Registry** is accessible for viewing equipment specs and condition.
+   - **Maintenance & Work Orders** is prominently featured.
+   - Deployments & Returns, Accessories, and Consumables are omitted to keep your workflow focused on equipment servicing.
+2. Navigate to **Asset Operations -> Maintenance & Work Orders** (`/maintenance?tab=logs`).
+3. Click **Create Work Order**:
+   - Asset: Select an asset needing repair.
    - Type: `repair`.
    - Priority: `high`.
    - Status: `in_progress`.
    - Scheduled Date: Today.
-   - Notes: `Carburetor overhaul required.`
-3. Submit and verify asset status automatically reflects `under_maintenance`.
-4. Click **Mark Completed**:
-   - Cost: `₱ 1,850.00` (auto-cleaned to `1850.00`).
-   - Parts Used: `Carburetor rebuild kit, gasket, spark plug`.
+   - Notes: `Replaced spark plug, cleaned fuel carburetor.`
+4. Submit and verify asset status automatically switches to `under_maintenance`.
+5. Click **Mark Completed**:
+   - Cost: `₱ 2,400.00`.
+   - Parts Used: `Carburetor rebuild kit, spark plug`.
    - Notes: `Repairs successfully completed and engine load-tested.`
-5. Submit and verify asset automatically returns to `available` status.
+6. Submit and verify asset automatically returns to `available` status.
 
-### 7.3. Physical Equipment Inspections
+### 6.2. Preventive Maintenance Schedules
+1. Click the **Preventive Schedules** tab (`/maintenance?tab=schedules`).
+2. Review due and upcoming maintenance tasks.
+3. Click **Complete Task** on any scheduled maintenance:
+   - Completion Date: Today's date.
+   - Technician: `Technician Santos`.
+   - Notes: `Completed 30-day preventive servicing and oil change.`
+4. Submit and verify schedule next due date rolls forward according to interval (e.g., 30 days).
+
+### 6.3. Physical Equipment Inspections
 1. Click the **Inspections** tab (`/maintenance?tab=inspections`).
 2. Click **Record Inspection**:
    - Asset: Select equipment.
    - Inspection Date: Today.
    - Rating/Result: `passed`.
-   - Inspector: Defaults to authenticated user.
-   - Next Due Date: 30 days from today.
-   - Findings: `All structural elements intact. Emergency cutoff operational.`
-3. Submit and verify record is stored in audit dossier.
+   - Next Due Date: 60 days from today.
+   - Findings: `Emergency cutoff switch operational. Structural welds solid.`
+3. Submit and verify inspection is logged in the permanent audit trail.
+
+### 6.4. Security Boundary Verification (No Equipment Registration Authority)
+1. While logged in as `maintenance@bdes.gov`, attempt to register a new asset (`POST /assets`):
+   - The backend `AssetPolicy` rejects the request with **HTTP 403 Forbidden**.
+2. Attempt to create a deployment (`POST /deployment`):
+   - The backend `DeploymentPolicy` rejects the request with **HTTP 403 Forbidden**.
+3. Attempt to access Admin routes (`/users`, `/financials/*`, `/reports`):
+   - Returns **HTTP 403 Forbidden**.
 
 ---
 
-## 8. Step-by-Step Testing Guide: Role 6 — Barangay Staff Member
+## 7. Step-by-Step Testing Guide: Role 5 — Barangay Staff / Viewer
 
 **Login:** `staff@bdes.gov` | **Password:** `password`
 
-### 8.1. Read-Only Exploration & Defect Reporting
+### 7.1. Read-Only Exploration & Defect Reporting
 1. Log in as `staff@bdes.gov`.
 2. Navigate to **Asset Registry** (`/assets`).
 3. Notice that edit, delete, and add buttons are hidden or disabled.
 4. Search for an asset by code or keyword.
 
-### 8.2. Submitting an Asset Deficiency / Incident Report
-1. Navigate to **Operations -> Monitoring / Reported Assets** (`/reported-assets`).
+### 7.2. Submitting an Asset Deficiency / Incident Report
+1. Navigate to **Asset Operations -> Reported Assets** (`/reported-assets`).
 2. Click **Submit Asset Report**:
    - Asset Name: `Water Rescue Life Vest Set B`.
    - Category: `Water Rescue`.
-   - Location: `Purok Riverside Storage`.
+   - Location: `Purok Central Storage`.
    - Report Type: `damaged`.
-   - Description: `Two buckles cracked on life vest #4 during yesterday drill.`
+   - Description: `Buckle cracked during community drill.`
 3. Submit the report.
 4. Verify:
    - Report is listed with status `pending`.
-   - Reported By is automatically assigned to the staff member's user account.
+   - Reported By is automatically assigned to your user account.
    - Staff member cannot change status to `resolved` (only authorized officers can).
 
-### 8.3. Self-Service Account Settings
-1. Click **Account Settings** in sidebar or top right user menu (`/profile`).
+### 7.3. Self-Service Account Settings
+1. Click **Account Settings** in sidebar (`/profile`).
 2. Update Profile Name or Email.
-3. Test security barrier:
-   - Verify no role selection field exists in the form.
-   - Member cannot promote their account to Administrator.
+3. Notice there is no role escalation field; members cannot elevate their role.
 
 ---
 
-## 9. Comprehensive Cross-Role Workflow Scenarios
+## 8. Comprehensive Cross-Role Workflow Scenario
 
-### Workflow A: End-to-End Asset Lifecycle
 ```
-[Inventory Officer] Creates Asset (AST-GEN-01) -> Available
+[BDRRMC Inventory Officer] 
+Registers new Generator (₱85,000) 
+-> Auto-classified as Capitalized PPE (10% salvage value: ₱8,500, Useful life: 7 yrs)
        |
-[BDRRMC Officer] Deploys Asset to Evacuation Center -> Deployed
+[BDRRMC Inventory Officer] 
+Deploys Generator to Barangay Evacuation Center -> Status: Deployed
        |
-[Staff Member] Reports Damaged Pull Cord on Asset -> Pending Report
+[Barangay Staff Member] 
+Submits report: "Engine pull cord stuck" -> Pending Incident Report
        |
-[Maintenance Specialist] Opens Work Order -> Under Maintenance
+[Maintenance Officer] 
+Opens Work Order & Inspects Generator -> Status: Under Maintenance
        |
-[Maintenance Specialist] Completes Repairs -> Available
+[Maintenance Officer] 
+Completes repairs (replaced cord & spark plug) -> Status: Available
        |
-[Barangay Captain] Years later, reviews salvage valuation -> Approves Decommission / Retire
+[BDRRMC Inventory Officer] 
+Processes return of Generator to Central Depot -> In Stock
+       |
+[Barangay Captain / Admin] 
+Reviews live depreciation schedule, accumulated amortization, and book value.
 ```
 
 ---
 
-## 10. Security & Input Resilience Checklist
-
-| Verification Item | Expected System Behavior | Result |
-| :--- | :--- | :---: |
-| **Direct URL IDOR / Route Tampering** | Navigating to `/users`, `/financials/*`, `/reports` as non-admin returns HTTP 403 Forbidden | PASS |
-| **Upper-casing Asset Codes** | Inputs like `ast-pmp01` are auto-capitalized to `AST-PMP01` | PASS |
-| **Currency & Number Formatting** | Inputs like `₱ 12,500.00` or `12,500` are stripped of commas/symbols and saved as `12500.00` | PASS |
-| **Date Logical Bounds** | Expected return date cannot precede deployment date; Inspection next due date cannot precede inspection date | PASS |
-| **Stock & Capacity Limits** | Operational requirement current level cannot exceed capacity; Consuming cannot drop below zero | PASS |
-| **Dangerous File Uploads** | Attempting to upload `.php`, `.exe`, `.html`, `.sh` as asset document is rejected by strict MIME/extension validator | PASS |
-| **Safe Document Downloads** | Downloaded filenames are sanitized against directory traversal; user must have view permission | PASS |
-| **Rate Limiting on Heavy Exports** | Export routes are rate-limited (`30 requests/minute`) to prevent denial-of-service | PASS |
-
----
-
-## 11. Automated Test Suite Verification
+## 9. Automated Test Suite Verification
 
 Run the full automated test suite anytime using:
 
@@ -364,5 +331,8 @@ Run the full automated test suite anytime using:
 php artisan test
 ```
 
-All **164+ tests** across Feature and Unit directories will execute and pass, validating RBAC policies, lifecycle state transitions, financial calculations, audit trail logging, and UI permissions.
-
+All **179 tests (641 assertions)** execute and pass with zero failures:
+* `PhilippineAccountingStandardTest`: Validates ₱50,000 statutory capitalization threshold, 10% residual value, and straight-line depreciation formulas.
+* `BdrrmcMemberAccessTest`: Validates role separation between Inventory Officer and Maintenance Officer, and HTTP 403 authorization guards.
+* `AssetFinancialsTest`: Validates depreciation schedules, salvage records, and CSV exports.
+* `SecurityAndInputHardeningTest`: Validates file upload security, input normalization, and rate limiting.

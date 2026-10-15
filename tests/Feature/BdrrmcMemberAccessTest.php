@@ -15,6 +15,8 @@ class BdrrmcMemberAccessTest extends TestCase
     use RefreshDatabase;
 
     private User $member;
+    private User $inventoryOfficer;
+    private User $maintenanceOfficer;
     private User $admin;
     private Asset $asset;
 
@@ -23,7 +25,14 @@ class BdrrmcMemberAccessTest extends TestCase
         parent::setUp();
 
         $this->member = User::factory()->create([
-            'role'      => 'bdrrmc_officer',
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        $this->inventoryOfficer = $this->member;
+
+        $this->maintenanceOfficer = User::factory()->create([
+            'role'      => 'maintenance_officer',
             'is_active' => true,
         ]);
 
@@ -164,8 +173,92 @@ class BdrrmcMemberAccessTest extends TestCase
         $response->assertRedirect(route('profile.edit'));
         $this->member->refresh();
 
-        $this->assertEquals('bdrrmc_officer', $this->member->role);
+        $this->assertEquals('inventory_officer', $this->member->role);
         $this->assertFalse($this->member->isAdmin());
+    }
+
+    public function test_inventory_officer_cannot_create_maintenance_work_orders(): void
+    {
+        // Inventory officer manages all equipment works aside from maintenance
+        $response = $this->actingAs($this->inventoryOfficer)->post(route('maintenance.store'), [
+            'asset_id'       => $this->asset->id,
+            'type'           => 'repair',
+            'status'         => 'in_progress',
+            'scheduled_date' => now()->toDateString(),
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_inventory_officer_cannot_record_inspections(): void
+    {
+        $response = $this->actingAs($this->inventoryOfficer)->post(route('inspection.store'), [
+            'asset_id'        => $this->asset->id,
+            'inspection_date' => now()->toDateString(),
+            'result'          => 'passed',
+        ]);
+
+        $response->assertForbidden();
+    }
+
+    public function test_maintenance_officer_can_manage_maintenance_and_inspections(): void
+    {
+        // Maintenance officer can create work order
+        $response = $this->actingAs($this->maintenanceOfficer)->post(route('maintenance.store'), [
+            'asset_id'       => $this->asset->id,
+            'type'           => 'repair',
+            'priority'       => 'medium',
+            'status'         => 'scheduled',
+            'scheduled_date' => now()->toDateString(),
+            'notes'          => 'Engine spark plug check',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('maintenances', [
+            'asset_id' => $this->asset->id,
+            'type'     => 'repair',
+        ]);
+
+        // Maintenance officer can record physical inspection
+        $inspResponse = $this->actingAs($this->maintenanceOfficer)->post(route('inspection.store'), [
+            'asset_id'        => $this->asset->id,
+            'inspection_date' => now()->toDateString(),
+            'result'          => 'passed',
+            'findings'        => 'Unit operates within specifications.',
+        ]);
+
+        $inspResponse->assertRedirect();
+        $this->assertDatabaseHas('inspections', [
+            'asset_id' => $this->asset->id,
+            'result'   => 'passed',
+        ]);
+    }
+
+    public function test_maintenance_officer_cannot_create_assets_or_deployments(): void
+    {
+        // Maintenance officer cannot register new assets
+        $assetResponse = $this->actingAs($this->maintenanceOfficer)->post(route('assets.store'), [
+            'name'             => 'Unauthorized Asset Registration',
+            'category_id'      => $this->asset->category_id,
+            'location_id'      => $this->asset->location_id,
+            'condition'        => 'good',
+            'status'           => 'available',
+            'acquisition_cost' => 60000.00,
+        ]);
+
+        $assetResponse->assertForbidden();
+
+        // Maintenance officer cannot create deployments
+        $deployResponse = $this->actingAs($this->maintenanceOfficer)->post(route('deployment.store'), [
+            'asset_id'        => $this->asset->id,
+            'deployed_to'     => 'Rescue Squad Alpha',
+            'location'        => 'Purok 1 Flood Zone',
+            'deployment_date' => now()->toDateString(),
+            'purpose'         => 'Disaster Rescue Drill',
+            'status'          => 'deployed',
+        ]);
+
+        $deployResponse->assertForbidden();
     }
 
     public function test_admin_can_access_all_restricted_modules(): void

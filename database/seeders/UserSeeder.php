@@ -38,19 +38,10 @@ class UserSeeder extends Seeder
             ],
 
             // ==========================================
-            // BDRRMC OPERATIONAL STAFF & OFFICERS (Member)
+            // OPERATIONAL STAFF & OFFICERS (Member Roles)
             // ==========================================
             [
-                'name'              => 'BDRRMC Officer Member',
-                'username'          => 'member',
-                'email'             => 'member@bdes.gov',
-                'role'              => 'bdrrmc_officer',
-                'password'          => Hash::make('password'),
-                'is_active'         => true,
-                'email_verified_at' => now(),
-            ],
-            [
-                'name'              => 'Inventory & Logistics Officer',
+                'name'              => 'BDRRMC Inventory Officer',
                 'username'          => 'inventory',
                 'email'             => 'inventory@bdes.gov',
                 'role'              => 'inventory_officer',
@@ -59,7 +50,16 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ],
             [
-                'name'              => 'Maintenance Specialist',
+                'name'              => 'BDRRMC Operational Officer',
+                'username'          => 'member',
+                'email'             => 'member@bdes.gov',
+                'role'              => 'inventory_officer',
+                'password'          => Hash::make('password'),
+                'is_active'         => true,
+                'email_verified_at' => now(),
+            ],
+            [
+                'name'              => 'Maintenance Specialist Officer',
                 'username'          => 'maintenance',
                 'email'             => 'maintenance@bdes.gov',
                 'role'              => 'maintenance_officer',
@@ -77,6 +77,9 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ],
         ];
+
+        // Migrate any legacy bdrrmc_officer roles to inventory_officer
+        User::where('role', 'bdrrmc_officer')->update(['role' => 'inventory_officer']);
 
         foreach ($users as $userData) {
             User::updateOrCreate(

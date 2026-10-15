@@ -13,7 +13,8 @@ class UpdateMaintenanceScheduleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        return $user && ($user->isAdmin() || $user->hasRole('maintenance_officer', 'bdrrmc_officer'));
     }
 
     /**

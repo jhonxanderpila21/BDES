@@ -15,7 +15,6 @@ class UserController extends Controller
         'barangay_captain',
         'inventory_officer',
         'maintenance_officer',
-        'bdrrmc_officer',
         'viewer',
     ];
 

@@ -42,6 +42,25 @@
             <p class="text-sm font-medium">{{ session('success') }}</p>
         </div>
     @endif
+    @if(session('error'))
+        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center gap-3">
+            <i class="fas fa-circle-exclamation text-rose-600 text-lg"></i>
+            <p class="text-sm font-medium">{{ session('error') }}</p>
+        </div>
+    @endif
+
+    {{-- Philippine Government Accounting Standard Statutory Notice (COA Circular No. 2022-004) --}}
+    <div class="p-4 bg-blue-50/70 border border-blue-200 rounded-xl flex items-start gap-3.5">
+        <div class="p-2 bg-blue-600 text-white rounded-lg mt-0.5 shadow-sm">
+            <i class="fas fa-scale-balanced text-sm"></i>
+        </div>
+        <div class="space-y-1">
+            <h4 class="text-xs font-bold text-blue-950 uppercase tracking-wider">Philippine Government Accounting Standard (COA Circular No. 2022-004 & GAM for LGUs)</h4>
+            <p class="text-xs text-blue-900 leading-relaxed">
+                Tangible items with acquisition costs <span class="font-bold underline">₱50,000.00 and above</span> are capitalized as <strong>Property, Plant, and Equipment (PPE)</strong> and amortized using the Straight-Line Depreciation method with a standard <strong>10% residual value</strong> (COA Circular No. 2003-007). Items below ₱50,000.00 are classified as <strong>Semi-Expendable Property</strong> (issued via Inventory Custodian Slip) and are legally non-depreciable (Depreciation & Salvage = ₱0.00).
+            </p>
+        </div>
+    </div>
 
     {{-- Financial KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -153,9 +172,16 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assets as $asset)
-                        <tr class="hover:bg-gray-50/80 transition">
+                        <tr class="hover:bg-gray-50/80 transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}">
                             <td class="px-4 py-3">
-                                <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
+                                    @if($asset->is_capitalized_ppe)
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">PPE</span>
+                                    @else
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Semi-Expendable (< ₱50,000) - Statutory non-depreciable under COA Circular No. 2022-004">Semi-Expendable</span>
+                                    @endif
+                                </div>
                                 <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                                     <span class="font-mono">{{ $asset->code }}</span>
                                     <span>•</span>
@@ -167,46 +193,76 @@
                                 <div class="text-[11px] text-gray-500">{{ $asset->purchase_date?->format('M d, Y') ?? 'No date' }}</div>
                             </td>
                             <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
-                                <div class="font-medium">{{ $asset->effective_useful_life }} yrs</div>
-                                <div class="text-xs text-gray-500">Age: {{ $asset->age_in_years }} yrs</div>
+                                @if($asset->is_capitalized_ppe)
+                                    <div class="font-medium">{{ $asset->effective_useful_life }} yrs</div>
+                                    <div class="text-xs text-gray-500">Age: {{ $asset->age_in_years }} yrs</div>
+                                @else
+                                    <div class="font-medium text-gray-400">N/A</div>
+                                    <div class="text-[10px] text-amber-700 font-medium">Non-Depreciable</div>
+                                @endif
                             </td>
                             <td class="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">
-                                ₱{{ number_format($asset->calculated_salvage_value, 2) }}
-                                <div class="text-[10px] {{ $asset->salvage_value ? 'text-blue-600 font-semibold' : 'text-gray-400' }}">
-                                    {{ $asset->salvage_value ? 'Custom' : 'Standard 10%' }}
-                                </div>
+                                @if($asset->is_capitalized_ppe)
+                                    ₱{{ number_format($asset->calculated_salvage_value, 2) }}
+                                    <div class="text-[10px] {{ $asset->salvage_value ? 'text-blue-600 font-semibold' : 'text-gray-400' }}">
+                                        {{ $asset->salvage_value ? 'Custom' : 'Standard 10%' }}
+                                    </div>
+                                @else
+                                    <span class="text-gray-400">₱0.00</span>
+                                    <div class="text-[10px] text-amber-700 font-medium">COA Limit (< ₱50k)</div>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
-                                ₱{{ number_format($asset->annual_depreciation, 2) }}
-                                <div class="text-[11px] text-gray-500">₱{{ number_format($asset->monthly_depreciation, 2) }}/mo</div>
+                                @if($asset->is_capitalized_ppe)
+                                    ₱{{ number_format($asset->annual_depreciation, 2) }}
+                                    <div class="text-[11px] text-gray-500">₱{{ number_format($asset->monthly_depreciation, 2) }}/mo</div>
+                                @else
+                                    <span class="text-gray-400">₱0.00</span>
+                                    <div class="text-[10px] text-gray-400">₱0.00/mo</div>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-rose-600 font-semibold whitespace-nowrap">
-                                ₱{{ number_format($asset->accumulated_depreciation, 2) }}
-                                <div class="text-[11px] text-gray-500 font-normal">{{ $asset->depreciation_percentage }}% depreciated</div>
+                                @if($asset->is_capitalized_ppe)
+                                    ₱{{ number_format($asset->accumulated_depreciation, 2) }}
+                                    <div class="text-[11px] text-gray-500 font-normal">{{ $asset->depreciation_percentage }}% depreciated</div>
+                                @else
+                                    <span class="text-gray-400 font-normal">₱0.00</span>
+                                    <div class="text-[10px] text-gray-400 font-normal">0.0%</div>
+                                @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
                                 <div class="font-bold text-emerald-700">₱{{ number_format($asset->current_book_value, 2) }}</div>
-                                <div class="w-24 bg-gray-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
-                                    @php
-                                        $remainingPct = max(0, 100 - $asset->depreciation_percentage);
-                                    @endphp
-                                    <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ $remainingPct }}%"></div>
-                                </div>
+                                @if($asset->is_capitalized_ppe)
+                                    <div class="w-24 bg-gray-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                                        @php
+                                            $remainingPct = max(0, 100 - $asset->depreciation_percentage);
+                                        @endphp
+                                        <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ $remainingPct }}%"></div>
+                                    </div>
+                                @else
+                                    <div class="text-[10px] text-amber-700 font-medium mt-1">Carried at Cost</div>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <button
-                                    type="button"
-                                    @click="selectedAsset = {
-                                        id: {{ $asset->id }},
-                                        name: '{{ addslashes($asset->name) }}',
-                                        code: '{{ $asset->code }}',
-                                        useful_life_years: {{ $asset->effective_useful_life }},
-                                        salvage_value: '{{ $asset->salvage_value ?? '' }}'
-                                    }; editModal = true;"
-                                    class="px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
-                                >
-                                    <i class="fas fa-pen-to-square mr-1"></i> Edit Parameters
-                                </button>
+                                @if($asset->is_capitalized_ppe)
+                                    <button
+                                        type="button"
+                                        @click="selectedAsset = {
+                                            id: {{ $asset->id }},
+                                            name: '{{ addslashes($asset->name) }}',
+                                            code: '{{ $asset->code }}',
+                                            useful_life_years: {{ $asset->effective_useful_life }},
+                                            salvage_value: '{{ $asset->salvage_value ?? '' }}'
+                                        }; editModal = true;"
+                                        class="px-2.5 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+                                    >
+                                        <i class="fas fa-pen-to-square mr-1"></i> Edit Parameters
+                                    </button>
+                                @else
+                                    <span class="px-2 py-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg inline-flex items-center gap-1 font-medium" title="Under COA Circular No. 2022-004, semi-expendable equipment (< ₱50,000) is legally non-depreciable">
+                                        <i class="fas fa-ban text-[10px]"></i> Non-Depreciable
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                     @empty

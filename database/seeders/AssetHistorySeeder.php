@@ -16,7 +16,7 @@ class AssetHistorySeeder extends Seeder
     public function run(): void
     {
         $admin = User::where('role', 'administrator')->first() ?? User::first();
-        $member = User::where('role', 'bdrrmc_officer')->first() ?? $admin;
+        $member = User::where('role', 'inventory_officer')->first() ?? User::where('role', 'bdrrmc_officer')->first() ?? $admin;
 
         $assets = Asset::all()->keyBy('code');
 

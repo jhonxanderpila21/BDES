@@ -66,6 +66,11 @@ class AssetDepreciationController extends Controller
      */
     public function update(Request $request, Asset $asset)
     {
+        // Enforce Philippine Government Standard: Items < ₱50,000 cannot have depreciation or salvage value
+        if (!$asset->is_capitalized_ppe) {
+            return redirect()->back()->with('error', "Under Philippine Government Accounting Standards (COA Circular No. 2022-004), items with acquisition cost below ₱50,000.00 are classified as Semi-Expendable Property and cannot have a depreciation schedule or salvage value.");
+        }
+
         if ($request->has('salvage_value') && is_string($request->salvage_value)) {
             $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
             $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
@@ -105,6 +110,7 @@ class AssetDepreciationController extends Controller
                 'Asset Code',
                 'Asset Name',
                 'Category',
+                'COA Classification',
                 'Purchase Date',
                 'Acquisition Cost (PHP)',
                 'Useful Life (Years)',
@@ -122,6 +128,7 @@ class AssetDepreciationController extends Controller
                     $asset->code,
                     $asset->name,
                     $asset->category?->name ?? 'Uncategorized',
+                    $asset->coa_classification,
                     $asset->purchase_date?->format('Y-m-d') ?? 'N/A',
                     number_format($asset->acquisition_cost, 2, '.', ''),
                     $asset->effective_useful_life,

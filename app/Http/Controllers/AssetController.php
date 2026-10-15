@@ -8,6 +8,7 @@ use App\Models\AssetType;
 use App\Models\Location;
 use App\Services\AssetLifecycleService;
 use App\Services\AuditTrailService;
+use App\Services\PhilippineAccountingStandardService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -177,6 +178,15 @@ class AssetController extends Controller
             'notes'            => ['nullable', 'string'],
         ]);
 
+        // Automate Philippine Government Standard accounting parameters (COA Circular No. 2022-004 & GAM for LGUs)
+        $category = AssetCategory::find($validated['category_id']);
+        $type = !empty($validated['type_id']) ? AssetType::find($validated['type_id']) : null;
+        $validated = PhilippineAccountingStandardService::applyCoaAccountingParameters(
+            $validated,
+            $category?->name,
+            $type?->name
+        );
+
         $asset = DB::transaction(function () use ($validated) {
             do {
                 $validated['code'] = 'AST-' . Str::upper(Str::random(8));
@@ -307,6 +317,21 @@ class AssetController extends Controller
                 $validated['retirement_date']   = now()->toDateString();
                 $validated['retirement_reason'] = $validated['notes'] ?? 'Decommissioned via asset profile update.';
                 $validated['retired_by']        = auth()->id();
+            }
+        }
+
+        // Enforce Philippine Government Standard accounting adjustments upon cost update
+        if (isset($validated['acquisition_cost'])) {
+            $newCost = (float) $validated['acquisition_cost'];
+            if ($newCost < PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) {
+                $validated['salvage_value'] = 0.00;
+                $validated['salvage_notes'] = 'Semi-Expendable Property (< ₱50,000.00 statutory threshold under COA Circular No. 2022-004 / GAM for LGUs). Non-depreciable; residual value set to ₱0.00.';
+            } elseif (($asset->acquisition_cost === null || (float) $asset->acquisition_cost < PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) && $newCost >= PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) {
+                // Newly capitalized asset: assign standard 10% residual value if not present
+                if (empty($asset->salvage_value) || (float) $asset->salvage_value <= 0) {
+                    $validated['salvage_value'] = round($newCost * PhilippineAccountingStandardService::DEFAULT_RESIDUAL_RATE, 2);
+                    $validated['salvage_notes'] = 'Capitalized PPE (₱50,000.00+ threshold under COA Circular No. 2022-004). Standard 10% residual value applied per COA Circular No. 2003-007.';
+                }
             }
         }
 

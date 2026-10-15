@@ -42,6 +42,25 @@
             <p class="text-sm font-medium">{{ session('success') }}</p>
         </div>
     @endif
+    @if(session('error'))
+        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center gap-3">
+            <i class="fas fa-circle-exclamation text-rose-600 text-lg"></i>
+            <p class="text-sm font-medium">{{ session('error') }}</p>
+        </div>
+    @endif
+
+    {{-- Philippine Government Accounting Standard Statutory Notice (COA Circular No. 2022-004) --}}
+    <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-start gap-3.5">
+        <div class="p-2 bg-emerald-600 text-white rounded-lg mt-0.5 shadow-sm">
+            <i class="fas fa-scale-balanced text-sm"></i>
+        </div>
+        <div class="space-y-1">
+            <h4 class="text-xs font-bold text-emerald-950 uppercase tracking-wider">Philippine Government Residual Valuation Standard (COA Circular No. 2003-007 & GAM for LGUs)</h4>
+            <p class="text-xs text-emerald-900 leading-relaxed">
+                Under COA guidelines, capitalized PPE items (₱50,000.00 and above) automatically carry a statutory <strong>10% residual value</strong> floor unless an explicit appraised scrap valuation is justified. Tangible equipment below ₱50,000.00 (Semi-Expendable Property) carries a mandatory <strong>₱0.00 salvage value</strong> and is expensed upon issuance.
+            </p>
+        </div>
+    </div>
 
     {{-- Salvage KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -149,9 +168,16 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assets as $asset)
-                        <tr class="hover:bg-gray-50/80 transition">
+                        <tr class="hover:bg-gray-50/80 transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}">
                             <td class="px-4 py-3">
-                                <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
+                                    @if($asset->is_capitalized_ppe)
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">PPE</span>
+                                    @else
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Semi-Expendable (< ₱50,000) - Mandatory ₱0.00 salvage value under COA Circular No. 2022-004">Semi-Expendable</span>
+                                    @endif
+                                </div>
                                 <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                                     <span class="font-mono">{{ $asset->code }}</span>
                                     <span>•</span>
@@ -162,42 +188,59 @@
                                 ₱{{ number_format($asset->acquisition_cost, 2) }}
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
-                                @if($asset->salvage_value !== null && $asset->salvage_value > 0)
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                                @if(!$asset->is_capitalized_ppe)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                                        <i class="fas fa-ban text-[10px]"></i> COA Semi-Expendable
+                                    </span>
+                                @elseif($asset->salvage_value !== null && $asset->salvage_value > 0)
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
                                         <i class="fas fa-tag text-[10px]"></i> Custom Appraised
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
                                         <i class="fas fa-scale-balanced text-[10px]"></i> COA 10% Standard
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 font-bold text-emerald-700 whitespace-nowrap">
+                            <td class="px-4 py-3 font-bold whitespace-nowrap {{ $asset->is_capitalized_ppe ? 'text-emerald-700' : 'text-gray-400' }}">
                                 ₱{{ number_format($asset->calculated_salvage_value, 2) }}
+                                @if(!$asset->is_capitalized_ppe)
+                                    <div class="text-[10px] text-amber-700 font-normal">Non-Salvageable (< ₱50k)</div>
+                                @endif
                             </td>
                             <td class="px-4 py-3 text-gray-600 max-w-xs truncate">
-                                {{ $asset->salvage_notes ?: 'Standard 10% statutory residual allowance under LGU guidelines.' }}
+                                @if(!$asset->is_capitalized_ppe)
+                                    <span class="italic text-gray-400">Semi-expendable property; legally non-salvageable under COA Circular No. 2022-004.</span>
+                                @else
+                                    {{ $asset->salvage_notes ?: 'Standard 10% statutory residual allowance under LGU guidelines.' }}
+                                @endif
                             </td>
                             <td class="px-4 py-3 whitespace-nowrap">
                                 <div class="font-bold text-gray-900">₱{{ number_format($asset->current_book_value, 2) }}</div>
-                                @if($asset->current_book_value <= $asset->calculated_salvage_value)
+                                @if($asset->is_capitalized_ppe && $asset->current_book_value <= $asset->calculated_salvage_value)
                                     <span class="text-[10px] text-amber-600 font-semibold uppercase tracking-wider">At Salvage Floor</span>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-right whitespace-nowrap">
-                                <button
-                                    type="button"
-                                    @click="selectedAsset = {
-                                        id: {{ $asset->id }},
-                                        name: '{{ addslashes($asset->name) }}',
-                                        code: '{{ $asset->code }}',
-                                        salvage_value: '{{ $asset->salvage_value ?? '' }}',
-                                        salvage_notes: '{{ addslashes($asset->salvage_notes ?? '') }}'
-                                    }; editModal = true;"
-                                    class="px-2.5 py-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
-                                >
-                                    <i class="fas fa-pen-to-square mr-1"></i> Update Record
-                                </button>
+                                @if($asset->is_capitalized_ppe)
+                                    <button
+                                        type="button"
+                                        @click="selectedAsset = {
+                                            id: {{ $asset->id }},
+                                            name: '{{ addslashes($asset->name) }}',
+                                            code: '{{ $asset->code }}',
+                                            salvage_value: '{{ $asset->salvage_value ?? '' }}',
+                                            salvage_notes: '{{ addslashes($asset->salvage_notes ?? '') }}'
+                                        }; editModal = true;"
+                                        class="px-2.5 py-1 text-xs font-medium text-emerald-700 hover:text-emerald-900 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition"
+                                    >
+                                        <i class="fas fa-pen-to-square mr-1"></i> Update Record
+                                    </button>
+                                @else
+                                    <span class="px-2 py-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg inline-flex items-center gap-1 font-medium" title="Under COA Circular No. 2022-004, semi-expendable equipment (< ₱50,000) cannot have a salvage value">
+                                        <i class="fas fa-ban text-[10px]"></i> Non-Salvageable
+                                    </span>
+                                @endif
                             </td>
                         </tr>
                     @empty

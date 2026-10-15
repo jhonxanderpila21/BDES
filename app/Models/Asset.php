@@ -211,8 +211,29 @@ class Asset extends Model
     }
 
     /**
-     * Financial & Valuation Accessors (Straight-line method)
+     * Financial & Valuation Accessors (Philippine Government Standard: COA Circular No. 2022-004 & GAM for LGUs)
      */
+    public function getIsCapitalizedPpeAttribute(): bool
+    {
+        return \App\Services\PhilippineAccountingStandardService::isCapitalizedPpe(
+            $this->acquisition_cost !== null ? (float) $this->acquisition_cost : null
+        );
+    }
+
+    public function getIsSemiExpendableAttribute(): bool
+    {
+        return \App\Services\PhilippineAccountingStandardService::isSemiExpendable(
+            $this->acquisition_cost !== null ? (float) $this->acquisition_cost : null
+        );
+    }
+
+    public function getCoaClassificationAttribute(): string
+    {
+        return \App\Services\PhilippineAccountingStandardService::getClassification(
+            $this->acquisition_cost !== null ? (float) $this->acquisition_cost : null
+        );
+    }
+
     public function getEffectiveUsefulLifeAttribute(): int
     {
         return $this->useful_life_years > 0 ? $this->useful_life_years : 5;
@@ -220,29 +241,47 @@ class Asset extends Model
 
     public function getCalculatedSalvageValueAttribute(): float
     {
+        // Enforce Philippine Statutory Limit: Items below ₱50,000 (Semi-Expendable) cannot have salvage value
+        if (!$this->is_capitalized_ppe) {
+            return 0.0;
+        }
+
         if ($this->salvage_value !== null && $this->salvage_value > 0) {
             return (float) $this->salvage_value;
         }
 
         // Philippine COA standard default: 10% residual value of acquisition cost
         $cost = (float) ($this->acquisition_cost ?? 0);
-        return round($cost * 0.10, 2);
+        return round($cost * \App\Services\PhilippineAccountingStandardService::DEFAULT_RESIDUAL_RATE, 2);
     }
 
     public function getDepreciableAmountAttribute(): float
     {
+        // Items below ₱50,000 cannot be depreciated under COA standard
+        if (!$this->is_capitalized_ppe) {
+            return 0.0;
+        }
+
         $cost = (float) ($this->acquisition_cost ?? 0);
-        return max(0, round($cost - $this->calculated_salvage_value, 2));
+        return max(0.0, round($cost - $this->calculated_salvage_value, 2));
     }
 
     public function getAnnualDepreciationAttribute(): float
     {
+        if (!$this->is_capitalized_ppe) {
+            return 0.0;
+        }
+
         $life = $this->effective_useful_life;
         return $life > 0 ? round($this->depreciable_amount / $life, 2) : 0.0;
     }
 
     public function getMonthlyDepreciationAttribute(): float
     {
+        if (!$this->is_capitalized_ppe) {
+            return 0.0;
+        }
+
         return round($this->annual_depreciation / 12, 2);
     }
 
@@ -258,6 +297,10 @@ class Asset extends Model
 
     public function getAccumulatedDepreciationAttribute(): float
     {
+        if (!$this->is_capitalized_ppe) {
+            return 0.0;
+        }
+
         $cappedAge = min((float) $this->effective_useful_life, $this->age_in_years);
         $accum = $cappedAge * $this->annual_depreciation;
         return min($this->depreciable_amount, round($accum, 2));
@@ -266,12 +309,21 @@ class Asset extends Model
     public function getCurrentBookValueAttribute(): float
     {
         $cost = (float) ($this->acquisition_cost ?? 0);
+
+        if (!$this->is_capitalized_ppe) {
+            return $cost;
+        }
+
         $val = $cost - $this->accumulated_depreciation;
         return max($this->calculated_salvage_value, round($val, 2));
     }
 
     public function getDepreciationPercentageAttribute(): float
     {
+        if (!$this->is_capitalized_ppe) {
+            return 0.0;
+        }
+
         $cost = (float) ($this->acquisition_cost ?? 0);
         if ($cost <= 0) {
             return 0.0;

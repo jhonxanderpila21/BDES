@@ -44,7 +44,7 @@ class MaintenancePolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('maintenance_officer', 'inventory_officer', 'bdrrmc_officer');
+        return $user->hasRole('maintenance_officer', 'bdrrmc_officer');
     }
 
     /**

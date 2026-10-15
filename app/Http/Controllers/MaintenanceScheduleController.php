@@ -57,6 +57,11 @@ class MaintenanceScheduleController extends Controller
      */
     public function destroy(MaintenanceSchedule $maintenanceSchedule)
     {
+        $user = request()->user();
+        if (!$user || (!$user->isAdmin() && !$user->hasRole('maintenance_officer', 'bdrrmc_officer'))) {
+            abort(403, 'Unauthorized. Schedule management requires Maintenance Officer or Administrator permissions.');
+        }
+
         $maintenanceSchedule->delete();
 
         return redirect()->route('maintenance-schedules.index')
@@ -68,6 +73,11 @@ class MaintenanceScheduleController extends Controller
      */
     public function complete(Request $request, MaintenanceSchedule $maintenanceSchedule)
     {
+        $user = $request->user();
+        if (!$user || (!$user->isAdmin() && !$user->hasRole('maintenance_officer', 'bdrrmc_officer'))) {
+            abort(403, 'Unauthorized. Completing maintenance schedules requires Maintenance Officer or Administrator permissions.');
+        }
+
         $input = $request->all();
         if (isset($input['technician'])) {
             $input['technician'] = strip_tags(trim($input['technician']));

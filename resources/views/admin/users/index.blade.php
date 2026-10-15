@@ -8,7 +8,6 @@
         'barangay_captain' => 'Barangay Captain',
         'inventory_officer' => 'Inventory Officer',
         'maintenance_officer' => 'Maintenance Officer',
-        'bdrrmc_officer' => 'BDRRMC Officer',
         'viewer' => 'Viewer',
     ];
 @endphp
@@ -181,11 +180,12 @@
                 <input type="text" name="middle_name" placeholder="Middle Name (optional)" value="{{ old('middle_name') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             </x-form-group>
 
-            <x-form-group label="Roles" required>
+            <x-form-group label="Role" required>
                 <select name="role" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     <option value="">Select Role</option>
-                    <option value="viewer" {{ old('role') === 'viewer' ? 'selected' : '' }}>Viewer</option>
-                    <option value="editor" {{ old('role') === 'editor' ? 'selected' : '' }}>Editor</option>
+                    @foreach($roleLabels as $value => $label)
+                        <option value="{{ $value }}" {{ old('role') === $value ? 'selected' : '' }}>{{ $label }}</option>
+                    @endforeach
                 </select>
             </x-form-group>
 

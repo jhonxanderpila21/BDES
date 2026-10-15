@@ -70,4 +70,28 @@ class User extends Authenticatable
     {
         return !$this->isAdmin();
     }
+
+    /**
+     * Check if the user is an Inventory & Equipment Officer.
+     */
+    public function isInventoryOfficer(): bool
+    {
+        return $this->hasRole('inventory_officer', 'bdrrmc_officer');
+    }
+
+    /**
+     * Check if the user is a Maintenance Officer.
+     */
+    public function isMaintenanceOfficer(): bool
+    {
+        return $this->hasRole('maintenance_officer');
+    }
+
+    /**
+     * Check if the user is a read-only viewer / staff member.
+     */
+    public function isViewer(): bool
+    {
+        return $this->hasRole('viewer');
+    }
 }

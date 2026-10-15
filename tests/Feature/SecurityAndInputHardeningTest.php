@@ -37,7 +37,7 @@ class SecurityAndInputHardeningTest extends TestCase
         ]);
 
         $this->member = User::factory()->create([
-            'role'      => 'bdrrmc_officer',
+            'role'      => 'inventory_officer',
             'is_active' => true,
         ]);
 
