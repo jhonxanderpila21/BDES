@@ -40,17 +40,8 @@
     </div>
 
     {{-- Session Alerts --}}
-    @if(session('success'))
-        <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
-    @endif
 
-    @if(session('info'))
-        <x-alert type="info" class="mb-6">{{ session('info') }}</x-alert>
-    @endif
 
-    @if($errors->any())
-        <x-alert type="danger" class="mb-6">{{ $errors->first() }}</x-alert>
-    @endif
 
     {{-- High-Level KPI Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">

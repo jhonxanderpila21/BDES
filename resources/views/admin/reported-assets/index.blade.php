@@ -19,13 +19,7 @@
         </button>
     </div>
 
-    @if(session('success'))
-        <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
-    @endif
 
-    @if($errors->any())
-        <x-alert type="danger" class="mb-6">{{ $errors->first() }}</x-alert>
-    @endif
 
     {{-- Dashboard Summary Cards --}}
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">

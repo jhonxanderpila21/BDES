@@ -110,6 +110,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/asset-history/export', [AssetHistoryController::class, 'export'])->name('asset-history.export')->middleware('throttle:60,1');
     Route::get('/asset-history', [AssetHistoryController::class, 'index'])->name('asset-history.index');
 
+    // Proof-of-cost receipts (shared by every costed module)
+    Route::get('/receipts/{receipt}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipts.show');
+    Route::delete('/receipts/{receipt}', [\App\Http\Controllers\ReceiptController::class, 'destroy'])->name('receipts.destroy');
+
     // Profile (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

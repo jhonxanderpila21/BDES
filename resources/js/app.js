@@ -65,31 +65,71 @@ function attachEyeToggle(input) {
 	if (input.dataset.eyeAttached) return;
 	input.dataset.eyeAttached = 'true';
 
-	// Ensure the parent is position:relative so the button can be positioned
-	const parent = input.parentElement;
-	if (getComputedStyle(parent).position === 'static') {
-		parent.style.position = 'relative';
-	}
+	// Wrap the input in its own tight, position:relative box. Anchoring to the
+	// original parent breaks centering when that parent also holds labels or
+	// error text, so the button would drift off the field.
+	const wrapper = document.createElement('div');
+	wrapper.className = 'password-eye-wrapper';
+	wrapper.style.position = 'relative';
+	wrapper.style.display = 'block';
+	wrapper.style.width = '100%';
 
-	// Add right padding to the input so text doesn't overlap the button
-	input.style.paddingRight = '2.5rem';
+	// Move vertical margins from the input to the wrapper so the wrapper's box
+	// equals the input's border box (keeps the icon exactly centered).
+	const cs = getComputedStyle(input);
+	wrapper.style.marginTop = cs.marginTop;
+	wrapper.style.marginBottom = cs.marginBottom;
+	input.style.marginTop = '0';
+	input.style.marginBottom = '0';
 
-	// Create the toggle button
+	input.parentNode.insertBefore(wrapper, input);
+	wrapper.appendChild(input);
+
+	// Leave room on the right so typed text never sits under the icon
+	input.style.paddingRight = '2.75rem';
+
 	const btn = document.createElement('button');
 	btn.type = 'button';
 	btn.tabIndex = -1;
-	btn.setAttribute('aria-label', 'Toggle password visibility');
-	btn.className = 'password-eye-btn absolute inset-y-0 right-0 flex items-center justify-center w-10 text-gray-400 hover:text-gray-600 focus:outline-none transition-colors';
-	btn.innerHTML = '<i class="fas fa-eye text-sm"></i>';
+	btn.setAttribute('aria-label', 'Show password');
+	btn.title = 'Show password';
+	btn.className = 'password-eye-btn text-gray-400 hover:text-gray-600 focus:outline-none transition-colors';
+	Object.assign(btn.style, {
+		position: 'absolute',
+		top: '50%',
+		right: '0.75rem',
+		transform: 'translateY(-50%)',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		width: '1.5rem',
+		height: '1.5rem',
+		padding: '0',
+		background: 'transparent',
+		border: '0',
+		lineHeight: '1',
+		cursor: 'pointer',
+		zIndex: '2',
+	});
+	btn.innerHTML = '<i class="fas fa-eye text-sm" aria-hidden="true"></i>';
 
-	btn.addEventListener('click', () => {
-		const isPassword = input.type === 'password';
-		input.type = isPassword ? 'text' : 'password';
-		btn.querySelector('i').className = isPassword ? 'fas fa-eye-slash text-sm' : 'fas fa-eye text-sm';
-		btn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+	btn.addEventListener('click', (e) => {
+		e.preventDefault();
+		const reveal = input.type === 'password';
+		input.type = reveal ? 'text' : 'password';
+		btn.querySelector('i').className = (reveal ? 'fas fa-eye-slash' : 'fas fa-eye') + ' text-sm';
+		const label = reveal ? 'Hide password' : 'Show password';
+		btn.setAttribute('aria-label', label);
+		btn.title = label;
+		input.focus();
 	});
 
-	parent.appendChild(btn);
+	// Always re-mask on submit so the browser never stores it as plain text
+	if (input.form) {
+		input.form.addEventListener('submit', () => { input.type = 'password'; });
+	}
+
+	wrapper.appendChild(btn);
 }
 
 function initPasswordEyeToggles(root) {

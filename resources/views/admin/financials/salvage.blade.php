@@ -36,18 +36,6 @@
     </div>
 
     {{-- Flash Notifications --}}
-    @if(session('success'))
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3">
-            <i class="fas fa-circle-check text-emerald-600 text-lg"></i>
-            <p class="text-sm font-medium">{{ session('success') }}</p>
-        </div>
-    @endif
-    @if(session('error'))
-        <div class="p-4 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl flex items-center gap-3">
-            <i class="fas fa-circle-exclamation text-rose-600 text-lg"></i>
-            <p class="text-sm font-medium">{{ session('error') }}</p>
-        </div>
-    @endif
 
     {{-- Philippine Government Accounting Standard Statutory Notice (COA Circular No. 2022-004) --}}
     <div class="p-4 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-start gap-3.5">

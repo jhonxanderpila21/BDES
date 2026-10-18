@@ -19,9 +19,6 @@
         </button>
     </div>
 
-    @if(session('success'))
-        <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
-    @endif
 
     {{-- Filters --}}
     <div class="flex flex-col sm:flex-row gap-4 mb-6">

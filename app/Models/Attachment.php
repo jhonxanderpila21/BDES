@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attachment extends Model
 {
+    use \App\Models\Concerns\HasReceipts;
+
     protected $fillable = [
         'name',
         'type',

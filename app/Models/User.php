@@ -34,6 +34,13 @@ class User extends Authenticatable
     ];
 
     /**
+     * Default attribute values (mirrors DB defaults so new in-memory models are consistent).
+     */
+    protected $attributes = [
+        'is_active' => true,
+    ];
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

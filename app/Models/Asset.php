@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Asset extends Model
 {
+    use \App\Models\Concerns\HasReceipts;
+
     protected $fillable = [
         'code',
         'name',

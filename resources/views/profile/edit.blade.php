@@ -13,24 +13,10 @@
             </h1>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Administration'],
                 ['label' => 'Account Settings']
             ]" />
         </div>
     </div>
-
-    {{-- Session Feedback Alerts --}}
-    @if(session('status') === 'profile-updated')
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3">
-            <i class="fas fa-circle-check text-emerald-600 text-lg"></i>
-            <p class="text-sm font-medium">Your profile information has been successfully updated.</p>
-        </div>
-    @elseif(session('status') === 'password-updated')
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3">
-            <i class="fas fa-circle-check text-emerald-600 text-lg"></i>
-            <p class="text-sm font-medium">Your account password has been updated securely.</p>
-        </div>
-    @endif
 
     {{-- Executive Profile Banner --}}
     <div class="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
