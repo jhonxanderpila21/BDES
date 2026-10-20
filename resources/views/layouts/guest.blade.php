@@ -26,19 +26,19 @@
             </div>
 
             <div class="relative z-10 w-full max-w-md">
-                {{-- BDES Brand Header --}}
-                <div class="text-center mb-8">
-                    <a href="{{ url('/') }}" class="inline-flex items-center gap-3.5 group">
-                        <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-14 h-14 object-contain rounded-full shadow-sm transition-transform group-hover:scale-105">
-                        <div class="text-left">
-                            <h1 class="text-2xl font-bold tracking-tight text-gray-900 leading-tight">BDES</h1>
-                            <p class="text-xs font-medium text-gray-500">Disaster Asset Management</p>
-                        </div>
-                    </a>
-                </div>
-
                 {{-- Card Container --}}
                 <div class="bg-white border border-gray-200/80 shadow-lg shadow-blue-500/5 rounded-2xl p-8 sm:p-10">
+                    {{-- BDES Brand Header --}}
+                    <div class="text-center mb-6 pb-6 border-b border-gray-100">
+                        <a href="{{ url('/') }}" class="inline-flex items-center justify-center gap-3.5 group">
+                            <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-14 h-14 object-cover aspect-square rounded-full shadow-sm transition-transform group-hover:scale-105">
+                            <div class="text-left">
+                                <h1 class="text-2xl font-bold tracking-tight text-gray-900 leading-tight">BDES</h1>
+                                <p class="text-xs font-medium text-gray-500">Disaster Asset Management</p>
+                            </div>
+                        </a>
+                    </div>
+
                     {{ $slot }}
                 </div>
 
