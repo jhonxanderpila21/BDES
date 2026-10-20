@@ -12,17 +12,18 @@
 <body class="bg-gray-100">
     <div class="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="w-full max-w-md">
-            {{-- Header --}}
-            <div class="text-center mb-8">
-                <div class="flex items-center justify-center mb-4">
-                    <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-16 h-16 object-contain rounded-full shadow-sm">
-                </div>
-                <h1 class="text-3xl font-bold text-gray-900">BDES</h1>
-                <p class="text-gray-600 mt-1">Barangay Disaster Asset Inventory</p>
-            </div>
-
             {{-- Content --}}
             <div class="bg-white rounded-lg shadow-md p-8 border border-gray-200">
+                {{-- Header --}}
+                <div class="text-center mb-6 pb-6 border-b border-gray-100">
+                    <div class="inline-flex items-center justify-center gap-3.5">
+                        <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-14 h-14 object-cover aspect-square rounded-full shadow-sm">
+                        <div class="text-left">
+                            <h1 class="text-2xl font-bold tracking-tight text-gray-900 leading-tight">BDES</h1>
+                            <p class="text-xs font-medium text-gray-500">Barangay Disaster Asset Inventory</p>
+                        </div>
+                    </div>
+                </div>
                 @if($errors->any())
                     <div class="mb-6">
                         <x-alert type="error">
