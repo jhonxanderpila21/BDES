@@ -39,3 +39,4 @@ class ReceiptController extends Controller
         return back()->with('success', 'Receipt removed successfully.');
     }
 }
+

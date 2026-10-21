@@ -12,6 +12,17 @@
                 <i class="fas fa-clock-rotate-left text-blue-600"></i>
                 Asset History & Audit Trail
             </h1>
+            <p class="text-xs text-gray-500 mt-1">
+                @if(auth()->user()->isAdmin())
+                    <span class="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+                        <i class="fas fa-shield-halved"></i> Full Administrative Access &bull; All System Accounts
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1 font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
+                        <i class="fas fa-user-shield"></i> Account-Specific Access &bull; Logs for {{ auth()->user()->name }}
+                    </span>
+                @endif
+            </p>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
                 ['label' => 'Tracking & Reporting'],
@@ -31,7 +42,9 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Audit Events</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    {{ auth()->user()->isAdmin() ? 'Total Audit Events' : 'My Audit Events' }}
+                </p>
                 <p class="text-2xl font-bold text-gray-900 mt-1">{{ number_format($metrics['total_logs']) }}</p>
             </div>
             <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
@@ -61,8 +74,14 @@
 
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Active Actors</p>
-                <p class="text-2xl font-bold text-purple-600 mt-1">{{ number_format($metrics['active_actors']) }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    {{ auth()->user()->isAdmin() ? 'Active Actors' : 'Account Role' }}
+                </p>
+                @if(auth()->user()->isAdmin())
+                    <p class="text-2xl font-bold text-purple-600 mt-1">{{ number_format($metrics['active_actors']) }}</p>
+                @else
+                    <p class="text-sm font-bold text-purple-600 mt-2 uppercase tracking-wide">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
+                @endif
             </div>
             <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
                 <i class="fas fa-users-gear"></i>
@@ -77,7 +96,7 @@
                 type="text" 
                 name="search" 
                 value="{{ request('search') }}" 
-                placeholder="Search description, target code, or user..." 
+                placeholder="Search description, target code, or action..." 
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             >
         </div>
@@ -90,12 +109,18 @@
             <option value="status_changed" {{ request('event') === 'status_changed' ? 'selected' : '' }}>Status Changed</option>
         </select>
 
-        <select name="user_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-            <option value="">All Actors / Users</option>
-            @foreach($users as $user)
-                <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
-            @endforeach
-        </select>
+        @if(auth()->user()->isAdmin())
+            <select name="user_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                <option value="">All Actors / Users</option>
+                @foreach($users as $user)
+                    <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                @endforeach
+            </select>
+        @else
+            <span class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 flex items-center gap-1.5" title="You are viewing logs recorded for your own account">
+                <i class="fas fa-user-circle text-blue-600"></i> {{ auth()->user()->name }} (My Account)
+            </span>
+        @endif
 
         <input type="date" name="date_from" value="{{ request('date_from') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white" title="From Date">
         <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white" title="To Date">

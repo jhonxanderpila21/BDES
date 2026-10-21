@@ -37,6 +37,11 @@ class OperationalRequirement extends Model
         return $this->belongsTo(AssetType::class, 'asset_type_id');
     }
 
+    public function restocks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OperationalRequirementRestock::class, 'operational_requirement_id')->latest();
+    }
+
     public function isLowStock(): bool
     {
         return $this->current_level <= $this->minimum_level;

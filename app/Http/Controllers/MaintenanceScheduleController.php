@@ -30,7 +30,9 @@ class MaintenanceScheduleController extends Controller
         $asset = Asset::with('type')->findOrFail($validated['asset_id']);
         $validated['asset_type'] = $asset->type->name ?? 'Unknown';
 
-        MaintenanceSchedule::create($validated);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
+        $schedule = MaintenanceSchedule::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($schedule, $request);
 
         return redirect()->route('maintenance-schedules.index')
             ->with('success', 'Preventive maintenance schedule created successfully!');

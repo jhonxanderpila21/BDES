@@ -124,14 +124,17 @@ class AttachmentController extends Controller
         }
         $request->merge($input);
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'name'          => 'required|string|max:255',
             'type'          => 'nullable|string|max:255',
             'asset_type_id' => 'nullable|exists:asset_types,id',
             'asset_id'      => 'nullable|exists:assets,id',
             'quantity'      => 'nullable|integer|min:0',
             'condition'     => 'nullable|string|in:excellent,good,fair,poor',
-        ]);
+            'unit_cost'     => 'nullable|numeric|min:0',
+        ], \App\Services\ReceiptService::rules());
+
+        $validated = $request->validate($rules, \App\Services\ReceiptService::messages());
 
         if (empty($validated['quantity'])) {
             $validated['quantity'] = 1;
@@ -145,10 +148,17 @@ class AttachmentController extends Controller
             }
         }
 
-        Attachment::create($validated);
+        $receiptData = [
+            'receipts' => $validated['receipts'] ?? null,
+            'receipt_reference_number' => $validated['receipt_reference_number'] ?? null,
+        ];
+        unset($validated['receipts'], $validated['receipt_reference_number']);
+
+        $attachment = Attachment::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($attachment, $request);
 
         return redirect()->route('attachments.index', ['tab' => 'attachments'])
-            ->with('success', 'Attachment created successfully!');
+            ->with('success', 'Attachment created successfully with supporting documents!');
     }
 
     /**

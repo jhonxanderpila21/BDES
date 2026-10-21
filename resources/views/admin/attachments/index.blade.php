@@ -71,14 +71,14 @@
             </div>
         </div>
 
-        {{-- Total Accessory Inventory Value --}}
+        {{-- Available Accessories --}}
         <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Accessory Value</p>
-                <p class="text-2xl font-bold text-emerald-700">₱{{ number_format($metrics['total_inventory_value'], 2) }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Available Units</p>
+                <p class="text-2xl font-bold text-emerald-700">{{ $metrics['available_accessories'] ?? 0 }}</p>
             </div>
             <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
-                <i class="fas fa-coins"></i>
+                <i class="fas fa-check-circle"></i>
             </div>
         </div>
     </div>
@@ -249,21 +249,6 @@
     {{-- TAB 2: ASSET ACCESSORIES                                                  --}}
     {{-- ========================================================================= --}}
     @if($activeTab === 'accessories')
-        {{-- Budgeting Summary (Inventory Value by Asset Type) --}}
-        @if($budgetSummary->isNotEmpty())
-            <div class="mb-8">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 mb-3">Inventory Value by Asset Type</h2>
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                    @foreach($budgetSummary as $type => $total)
-                        <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col justify-between">
-                            <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">{{ $type }}</span>
-                            <span class="text-2xl font-bold text-gray-900 mt-2">₱{{ number_format($total, 2) }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endif
-
         {{-- Filters & Search --}}
         <form action="{{ route('attachments.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
             <input type="hidden" name="tab" value="accessories">
@@ -313,8 +298,6 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Linked Asset</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Quantity</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Unit Cost</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Total Value</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -334,12 +317,6 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-bold {{ $acc->quantity > 0 ? 'text-gray-900' : 'text-red-600' }}">
                                     {{ $acc->quantity }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600 font-mono">
-                                    ₱{{ number_format($acc->unit_cost, 2) }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-semibold text-gray-900 font-mono">
-                                    ₱{{ number_format($acc->total_value, 2) }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($acc->status === 'Available')
@@ -371,7 +348,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="px-6 py-12 text-center">
+                                <td colspan="6" class="px-6 py-12 text-center">
                                     <x-empty-state icon="fas fa-tools" title="No accessories found" description="Click Add Accessory above to register auxiliary parts and components." />
                                 </td>
                             </tr>
@@ -390,7 +367,7 @@
     {{-- ========================================================================= --}}
     {{-- Add Attachment Modal --}}
     <x-modal id="add-attachment-modal" title="Add Asset Attachment">
-        <form action="{{ route('attachments.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('attachments.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <x-form-group label="Attachment Name" required>
@@ -431,14 +408,23 @@
                 </div>
             </div>
 
-            <x-form-group label="Condition" required>
-                <select name="condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option value="excellent">Excellent</option>
-                    <option value="good" selected>Good</option>
-                    <option value="fair">Fair</option>
-                    <option value="poor">Poor</option>
-                </select>
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Condition" required>
+                    <select name="condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="excellent">Excellent</option>
+                        <option value="good" selected>Good</option>
+                        <option value="fair">Fair</option>
+                        <option value="poor">Poor</option>
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Unit Cost (₱)">
+                    <input type="number" step="0.01" min="0" name="unit_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </x-form-group>
+            </div>
+
+            {{-- File / Photo / Receipt Input --}}
+            <x-receipt-input label="Proof of Cost / Official Receipt (OR) / Invoice (Optional)" help="Upload official receipt, invoice, or purchase order as proof of cost (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
 
             <div class="flex gap-3 pt-4 border-t border-gray-200">
                 <x-button variant="primary" type="submit" class="flex-1">Create Attachment</x-button>
@@ -512,7 +498,7 @@
     {{-- ========================================================================= --}}
     {{-- Add Accessory Modal --}}
     <x-modal id="add-accessory-modal" title="Add Accessory">
-        <form class="space-y-4" action="{{ route('asset-accessories.store') }}" method="POST">
+        <form class="space-y-4" action="{{ route('asset-accessories.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <x-form-group label="Accessory Name" required>
@@ -539,6 +525,9 @@
                     <input type="number" step="0.01" min="0" name="unit_cost" value="{{ old('unit_cost', '0.00') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
             </div>
+
+            {{-- File / Photo / Receipt Input --}}
+            <x-receipt-input label="Proof of Cost / Official Receipt (OR) / Invoice (Optional)" help="Upload official receipt, invoice, or purchase voucher as proof of cost (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
 
             <div class="flex gap-3 pt-4 border-t border-gray-200">
                 <x-button variant="primary" type="submit" class="flex-1">Create Accessory</x-button>

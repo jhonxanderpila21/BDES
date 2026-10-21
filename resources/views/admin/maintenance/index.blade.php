@@ -88,15 +88,19 @@
             </div>
         </div>
 
-        {{-- Cumulative Cost --}}
+        {{-- Completed Tasks --}}
         <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Repair Expenses</p>
-                <p class="text-xl font-bold text-gray-900">₱{{ number_format($metrics['total_repair_cost'] ?? 0, 0) }}</p>
-                <p class="text-[10px] text-gray-400">Total upkeep cost</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Completed Tasks</p>
+                <p class="text-xl font-bold text-gray-900">{{ $metrics['completed_maintenance'] ?? 0 }}</p>
+                @if(auth()->user()?->isAdmin())
+                    <a href="{{ route('financials.expenses') }}" class="text-[10px] text-blue-600 hover:underline">View costs in Financials &rarr;</a>
+                @else
+                    <p class="text-[10px] text-gray-400">Resolved work orders</p>
+                @endif
             </div>
             <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center text-lg">
-                <i class="fas fa-receipt"></i>
+                <i class="fas fa-check-double"></i>
             </div>
         </div>
     </div>
@@ -361,7 +365,7 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type & Priority</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Technician / Assigned</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Cost & Parts</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Parts & Materials</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service Dates</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                             <th class="px-5 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
@@ -407,11 +411,17 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 text-xs">
-                                    <p class="font-bold text-gray-900">₱{{ number_format($item->cost ?? 0, 2) }}</p>
                                     @if($item->parts_used)
-                                        <p class="text-gray-500 mt-0.5 truncate max-w-[150px]" title="{{ $item->parts_used }}">
-                                            <i class="fas fa-puzzle-piece text-gray-400 mr-0.5"></i> {{ $item->parts_used }}
+                                        <p class="font-medium text-gray-800 truncate max-w-[160px]" title="{{ $item->parts_used }}">
+                                            <i class="fas fa-puzzle-piece text-gray-400 mr-1"></i>{{ $item->parts_used }}
                                         </p>
+                                    @else
+                                        <span class="text-gray-400 italic">None specified</span>
+                                    @endif
+                                    @if($item->receipts && $item->receipts->isNotEmpty())
+                                        <div class="mt-1">
+                                            <x-receipt-list :receipts="$item->receipts" compact />
+                                        </div>
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-600">
@@ -613,7 +623,7 @@
     {{-- ========================================================================= --}}
     {{-- 1. Add Schedule Modal --}}
     <x-modal id="add-schedule-modal" title="Add Preventive Maintenance Schedule">
-        <form action="{{ route('maintenance-schedules.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('maintenance-schedules.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <x-form-group label="Select Asset" required>
@@ -646,6 +656,8 @@
             <x-form-group label="Last Maintenance Date" required>
                 <input type="date" name="last_maintenance_date" max="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
             </x-form-group>
+
+            <x-receipt-input label="Maintenance Procedure / Manual / Checklist (Optional)" :showReference="false" icon="fas fa-file-pdf" />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">
@@ -744,7 +756,7 @@
     {{-- ========================================================================= --}}
     {{-- 4. Create Maintenance Modal --}}
     <x-modal id="create-maintenance-modal" title="Log Maintenance or Repair Work Order">
-        <form action="{{ route('maintenance.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('maintenance.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <x-form-group label="Select Asset" required>
@@ -821,6 +833,8 @@
                     <input type="text" name="parts_used" placeholder="e.g. Spark plug, hydraulic seals" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </x-form-group>
             </div>
+
+            <x-receipt-input label="Proof of Cost / Service Receipt / Official Receipt (Optional)" help="Upload service receipt, repair quotation, or invoice as proof of maintenance cost (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
 
             <x-form-group label="Work Notes & Description">
                 <textarea name="notes" rows="2" placeholder="Describe the problem, service required, or components..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
@@ -932,7 +946,7 @@
 
     {{-- Complete Work Order Modal --}}
     <x-modal id="complete-workorder-modal" title="Complete Maintenance Work Order">
-        <form id="completeWorkOrderForm" method="POST" class="space-y-4">
+        <form id="completeWorkOrderForm" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
                 <p class="text-xs text-emerald-900 font-medium">
@@ -950,6 +964,8 @@
                 </x-form-group>
             </div>
 
+            <x-receipt-input label="Proof of Cost / Official Receipt (OR) / Final Invoice (Optional)" help="Upload official receipt or final service invoice as proof of cost (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
+
             <x-form-group label="Sign-Off & Quality Notes">
                 <textarea name="notes" rows="2" placeholder="Quality verification remarks, technician sign-off..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"></textarea>
             </x-form-group>
@@ -966,7 +982,7 @@
     {{-- ========================================================================= --}}
     {{-- 6. Create Inspection Modal --}}
     <x-modal id="create-inspection-modal" title="Record Asset Inspection">
-        <form action="{{ route('inspection.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('inspection.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             <x-form-group label="Select Asset" required>
@@ -1013,6 +1029,8 @@
             <x-form-group label="Findings & Recommendations">
                 <textarea name="findings" rows="3" placeholder="Document physical condition, pressure, fraying, wear..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
             </x-form-group>
+
+            <x-receipt-input label="Inspection Photos, Checklist or Report (Optional)" :showReference="false" icon="fas fa-camera" />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">

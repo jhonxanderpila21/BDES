@@ -33,10 +33,11 @@ class AssetAccessoryController extends Controller
         $asset = Asset::with('type')->findOrFail($validated['asset_id']);
         $validated['asset_type'] = $asset->type->name ?? 'Unknown';
 
-        AssetAccessory::create($validated);
+        $accessory = AssetAccessory::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($accessory, $request);
 
         return redirect()->route('asset-accessories.index')
-            ->with('success', 'Asset accessory created successfully!');
+            ->with('success', 'Asset accessory created successfully with supporting documents!');
     }
 
     /**

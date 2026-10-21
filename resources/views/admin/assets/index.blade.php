@@ -51,7 +51,7 @@
                 <div>
                     <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Total Assets</p>
                     <p class="text-xl font-bold text-gray-900 mt-0.5">{{ $metrics['total_assets'] }}</p>
-                    <p class="text-[10px] text-gray-400 mt-0.5">Val: ₱{{ number_format($metrics['total_acquisition_cost'] ?? 0, 0) }}</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">Registered Units</p>
                 </div>
                 <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
                     <i class="fas fa-boxes-stacked"></i>
@@ -207,7 +207,6 @@
                 <option value="code" {{ request('sort_by') === 'code' ? 'selected' : '' }}>Sort: Asset Code</option>
                 <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Name</option>
                 <option value="purchase_date" {{ request('sort_by') === 'purchase_date' ? 'selected' : '' }}>Sort: Purchase Date</option>
-                <option value="acquisition_cost" {{ request('sort_by') === 'acquisition_cost' ? 'selected' : '' }}>Sort: Acquisition Cost</option>
             </select>
 
             <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
@@ -230,7 +229,7 @@
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Code</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Name</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Category / Type</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Cost (PHP)</th>
+                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Serial Number</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                             <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
@@ -249,9 +248,9 @@
                                     <a href="{{ route('assets.show', $asset) }}" class="text-sm font-bold text-gray-900 hover:text-blue-600 transition-colors block">
                                         {{ $asset->name }}
                                     </a>
-                                    @if($asset->manufacturer || $asset->serial_number)
+                                    @if($asset->manufacturer)
                                         <p class="text-[11px] text-gray-400">
-                                            {{ $asset->manufacturer ?? '' }} {{ $asset->serial_number ? '(' . $asset->serial_number . ')' : '' }}
+                                            {{ $asset->manufacturer }}
                                         </p>
                                     @endif
                                 </td>
@@ -261,8 +260,8 @@
                                         <p class="text-[11px] text-gray-400">{{ $asset->type->name }}</p>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap text-xs font-bold text-gray-900">
-                                    ₱{{ number_format($asset->acquisition_cost ?? 0, 2) }}
+                                <td class="px-5 py-3.5 whitespace-nowrap text-xs font-mono text-gray-700">
+                                    {{ $asset->serial_number ?: '—' }}
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap">
                                     @php
@@ -596,102 +595,8 @@
     {{-- ========================================================================= --}}
     {{-- MODALS: ASSETS                                                            --}}
     {{-- ========================================================================= --}}
-    {{-- Add Asset Modal --}}
-    <x-modal id="add-asset-modal" title="Add New Asset">
-        <form action="{{ route('assets.store') }}" method="POST" class="space-y-4">
-            @csrf
+    @include('admin.assets.partials._add_asset_modal')
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Asset Name" required>
-                    <input type="text" name="name" placeholder="e.g., Rescue Boat A" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </x-form-group>
-
-                <x-form-group label="Manufacturer">
-                    <input type="text" name="manufacturer" placeholder="e.g., Yamaha, Honda" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </x-form-group>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Category" required>
-                    <select name="category_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">-- Choose Category --</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                        @endforeach
-                    </select>
-                </x-form-group>
-
-                <x-form-group label="Asset Type">
-                    <select name="type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">-- Optional Asset Type --</option>
-                        @foreach($types as $tp)
-                            <option value="{{ $tp->id }}">{{ $tp->name }} ({{ $tp->category->name ?? 'General' }})</option>
-                        @endforeach
-                    </select>
-                </x-form-group>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Serial Number">
-                    <input type="text" name="serial_number" placeholder="e.g., SN-98234-X" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono uppercase" oninput="this.value = this.value.toUpperCase()">
-                </x-form-group>
-
-                <x-form-group label="Assigned Location" required>
-                    <select name="location_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="">-- Choose Location --</option>
-                        @foreach($locations as $loc)
-                            <option value="{{ $loc->id }}">{{ $loc->name }}</option>
-                        @endforeach
-                    </select>
-                </x-form-group>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Condition" required>
-                    <select name="condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="excellent">Excellent</option>
-                        <option value="good" selected>Good</option>
-                        <option value="fair">Fair</option>
-                        <option value="poor">Poor</option>
-                    </select>
-                </x-form-group>
-
-                <x-form-group label="Operational Status" required>
-                    <select name="status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="available" selected>Available</option>
-                        <option value="deployed">Deployed</option>
-                        <option value="under_maintenance">Under Maintenance</option>
-                        <option value="out_of_service">Out of Service</option>
-                        <option value="lost">Lost / Missing</option>
-                        <option value="retired">Retired / Decommissioned</option>
-                    </select>
-                </x-form-group>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form-group label="Acquisition Cost (PHP)">
-                    <input type="number" step="0.01" min="0" inputmode="decimal" name="acquisition_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </x-form-group>
-
-                <x-form-group label="Purchase Date">
-                    <input type="date" name="purchase_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </x-form-group>
-
-                <x-form-group label="Warranty Expiry">
-                    <input type="date" name="warranty_expiry" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </x-form-group>
-            </div>
-
-            <x-form-group label="Notes / Description">
-                <textarea name="notes" rows="2" placeholder="Optional notes or specs..." class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
-            </x-form-group>
-
-            <div class="flex gap-3 pt-4 border-t border-gray-200">
-                <x-button variant="primary" type="submit" class="flex-1">Create Asset</x-button>
-                <x-button variant="secondary" type="button" onclick="window.closeModal('add-asset-modal')" class="flex-1">Cancel</x-button>
-            </div>
-        </form>
-    </x-modal>
 
     {{-- Edit Asset Modal --}}
     <x-modal id="edit-asset-modal" title="Edit Asset">

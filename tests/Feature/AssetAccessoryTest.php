@@ -53,7 +53,7 @@ class AssetAccessoryTest extends TestCase
         ]);
     }
 
-    public function test_index_displays_accessories_and_budget_summary(): void
+    public function test_index_displays_accessories(): void
     {
         AssetAccessory::create([
             'asset_id'       => $this->asset->id,
@@ -68,7 +68,12 @@ class AssetAccessoryTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Fuel Can');
         $response->assertSee('Generator');
-        $response->assertSee('600.00'); // 2 * 300 = 600 total budget
+        $response->assertSee('2'); // quantity
+
+        // Money and value info is tracked in Asset Financials Expenses Ledger
+        $finResponse = $this->actingAs($this->user)->get(route('financials.expenses'));
+        $finResponse->assertStatus(200);
+        $finResponse->assertSee('600.00'); // 2 * 300 = 600 total in Expenses Ledger
     }
 
     public function test_store_creates_accessory_with_auto_status(): void

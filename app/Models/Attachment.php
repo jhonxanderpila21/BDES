@@ -15,11 +15,13 @@ class Attachment extends Model
         'asset_type_id',
         'asset_id',
         'quantity',
+        'unit_cost',
         'condition',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
+        'unit_cost' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

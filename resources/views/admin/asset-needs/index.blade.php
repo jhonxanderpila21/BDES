@@ -153,7 +153,7 @@
     {{-- Add Asset Need Modal                           --}}
     {{-- ═══════════════════════════════════════════════ --}}
     <x-modal id="add-asset-need-modal" title="Add Asset Need">
-        <form class="space-y-4" action="{{ route('asset-needs.store') }}" method="POST">
+        <form class="space-y-4" action="{{ route('asset-needs.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <x-form-group label="Asset" required>
@@ -191,6 +191,8 @@
                     <input type="number" step="0.01" min="0" name="current_level" value="{{ old('current_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </x-form-group>
             </div>
+
+            <x-receipt-input label="Specification Sheet, Quotation, or Initial Receipt (Optional)" />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">Create Asset Need</x-button>

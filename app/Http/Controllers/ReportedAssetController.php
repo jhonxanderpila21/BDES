@@ -87,7 +87,9 @@ class ReportedAssetController extends Controller
         $validated['reported_by'] = auth()->id();
         $validated['status'] = ReportedAssetService::STATUS_PENDING;
 
+        unset($validated['receipts'], $validated['receipt_reference_number']);
         $report = ReportedAsset::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($report, $request);
 
         // Log initial status
         $report->statusHistories()->create([

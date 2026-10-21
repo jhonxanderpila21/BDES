@@ -119,7 +119,12 @@ class UnifiedAttachmentsAndAccessoriesTest extends TestCase
         $accResponse->assertStatus(200);
         $accResponse->assertViewHas('activeTab', 'accessories');
         $accResponse->assertSee('Oil Filter Replacement');
-        $accResponse->assertSee('1,250.00'); // 5 * 250 = 1250 total value
+        $accResponse->assertSee('5'); // quantity
+
+        // Money and value info is tracked in Asset Financials Expenses Ledger
+        $finResponse = $this->actingAs($this->user)->get(route('financials.expenses'));
+        $finResponse->assertStatus(200);
+        $finResponse->assertSee('1,250.00'); // 5 * 250 = 1250 total accessory value in Expenses Ledger
     }
 
     public function test_asset_accessories_route_delegates_to_unified_hub_with_accessories_tab(): void

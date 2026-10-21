@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\AssetLifecycleService;
 use App\Services\AuditTrailService;
 use App\Services\MaintenanceScheduleService;
+use App\Services\ReceiptService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -39,9 +40,10 @@ class MaintenanceController extends Controller
                 MaintenanceScheduleService::STATUS_DUE,
                 MaintenanceScheduleService::STATUS_OVERDUE,
             ])->count(),
-            'active_maintenance' => Maintenance::whereIn('status', ['in_progress', 'scheduled'])->count(),
-            'total_inspections'  => Inspection::count(),
-            'total_repair_cost'  => Maintenance::sum('cost') ?? 0,
+            'active_maintenance'    => Maintenance::whereIn('status', ['in_progress', 'scheduled'])->count(),
+            'completed_maintenance' => Maintenance::where('status', 'completed')->count(),
+            'total_inspections'     => Inspection::count(),
+            'total_repair_cost'     => Maintenance::sum('cost') ?? 0,
         ];
 
         // Assets and Users datasets
@@ -76,7 +78,7 @@ class MaintenanceController extends Controller
         $scheduleStatuses = MaintenanceScheduleService::statuses();
 
         // 2. Maintenance Logs & Work Orders Tab Data
-        $maintenancesQuery = Maintenance::with(['asset.category', 'assignedUser']);
+        $maintenancesQuery = Maintenance::with(['asset.category', 'assignedUser', 'receipts']);
         if ($request->filled('search') && $activeTab === 'logs') {
             $search = $request->search;
             $maintenancesQuery->where(function ($q) use ($search) {
@@ -178,7 +180,7 @@ class MaintenanceController extends Controller
         }
         $request->merge($input);
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'asset_id'           => 'required|exists:assets,id',
             'type'               => 'required|in:routine,preventive,repair,inspection,overhaul,emergency',
             'priority'           => 'nullable|in:low,medium,high,urgent',
@@ -190,7 +192,9 @@ class MaintenanceController extends Controller
             'parts_used'         => 'nullable|string|max:500',
             'notes'              => 'nullable|string',
             'status'             => 'required|in:scheduled,in_progress,completed,pending',
-        ]);
+        ], ReceiptService::rules());
+
+        $validated = $request->validate($rules, ReceiptService::messages());
 
         if (empty($validated['priority'])) {
             $validated['priority'] = 'medium';
@@ -200,8 +204,9 @@ class MaintenanceController extends Controller
             $validated['completed_at'] = now();
         }
 
-        $maintenance = DB::transaction(function () use ($validated) {
+        $maintenance = DB::transaction(function () use ($validated, $request) {
             $created = Maintenance::create($validated);
+            ReceiptService::attachFromRequest($created, $request);
             $asset = Asset::find($validated['asset_id']);
 
             if ($asset && $validated['status'] === 'in_progress') {
@@ -331,13 +336,15 @@ class MaintenanceController extends Controller
         }
         $request->merge($input);
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'cost'       => 'nullable|numeric|min:0',
             'parts_used' => 'nullable|string|max:500',
             'notes'      => 'nullable|string',
-        ]);
+        ], ReceiptService::rules());
 
-        DB::transaction(function () use ($maintenance, $validated) {
+        $validated = $request->validate($rules, ReceiptService::messages());
+
+        DB::transaction(function () use ($maintenance, $validated, $request) {
             $updateData = [
                 'status'       => 'completed',
                 'completed_at' => now(),
@@ -354,6 +361,7 @@ class MaintenanceController extends Controller
             }
 
             $maintenance->update($updateData);
+            ReceiptService::attachFromRequest($maintenance, $request);
 
             $asset = $maintenance->asset;
             if ($asset && $asset->status === AssetLifecycleService::STATUS_UNDER_MAINTENANCE) {

@@ -16,18 +16,30 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            <a href="{{ route('assets.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
-                <i class="fas fa-plus"></i>
-                <span>Register Asset</span>
-            </a>
-            <a href="{{ route('deployment.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-[#2563EB] border border-[#60A5FA]/40 rounded-xl text-xs font-bold transition-colors">
-                <i class="fas fa-truck-fast"></i>
-                <span>Deploy Equipment</span>
-            </a>
+            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasRole('inventory_officer', 'bdrrmc_officer')))
+                <a href="{{ route('assets.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
+                    <i class="fas fa-plus"></i>
+                    <span>Register Asset</span>
+                </a>
+                <a href="{{ route('deployment.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-[#2563EB] border border-[#60A5FA]/40 rounded-xl text-xs font-bold transition-colors">
+                    <i class="fas fa-truck-fast"></i>
+                    <span>Deploy Equipment</span>
+                </a>
+            @endif
+            @if(auth()->check() && auth()->user()->hasRole('maintenance_officer'))
+                <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
+                    <i class="fas fa-screwdriver-wrench"></i>
+                    <span>Work Orders</span>
+                </a>
+            @endif
             @if(auth()->check() && auth()->user()->isAdmin())
+                <a href="{{ route('financials.expenses') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-colors">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <span>Expenses Ledger</span>
+                </a>
                 <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-green-50 hover:bg-green-100 text-[#2E7D32] border border-[#2E7D32]/30 rounded-xl text-xs font-bold transition-colors">
                     <i class="fas fa-file-invoice"></i>
-                    <span>Reports Center</span>
+                    <span>Reports</span>
                 </a>
             @endif
         </div>
@@ -43,7 +55,11 @@
                     <span class="text-2xl font-bold text-[#003366] mt-1 block group-hover:text-[#2563EB] transition-colors">
                         {{ number_format($stats['total_assets']) }}
                     </span>
-                    <span class="text-[10px] text-[#6B7280] block mt-0.5 font-medium">₱{{ number_format($stats['total_value'], 0) }} total</span>
+                    @if(auth()->user()?->isAdmin())
+                        <span class="text-[10px] text-blue-600 block mt-0.5 font-medium hover:underline">Financials &rarr;</span>
+                    @else
+                        <span class="text-[10px] text-[#6B7280] block mt-0.5 font-medium">Active Inventory</span>
+                    @endif
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-blue-50 text-[#003366] flex items-center justify-center text-lg group-hover:bg-[#003366] group-hover:text-white transition-colors">
                     <i class="fas fa-boxes-stacked"></i>

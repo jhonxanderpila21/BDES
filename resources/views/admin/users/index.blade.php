@@ -49,6 +49,7 @@
                 <option value="">All Statuses</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
+                <option value="archived" {{ request('status') === 'archived' ? 'selected' : '' }}>Archived (Deleted)</option>
             </select>
         </form>
     </div>
@@ -86,44 +87,58 @@
                                 <x-badge variant="primary" size="sm">{{ $roleLabels[$user->role] ?? ucfirst($user->role) }}</x-badge>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <x-badge :variant="$user->is_active ? 'success' : 'secondary'" size="sm">
-                                    {{ $user->is_active ? 'Active' : 'Inactive' }}
-                                </x-badge>
+                                @if($user->trashed())
+                                    <x-badge variant="danger" size="sm">Archived</x-badge>
+                                @else
+                                    <x-badge :variant="$user->is_active ? 'success' : 'secondary'" size="sm">
+                                        {{ $user->is_active ? 'Active' : 'Inactive' }}
+                                    </x-badge>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 <div class="flex items-center gap-2">
-                                    <button
-                                        onclick="openEditUserModal({{ $user->id }}, @js($user->name), @js($user->username), @js($user->email), @js($user->role))"
-                                        class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600 hover:text-yellow-800" title="Edit"
-                                    >
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-
-                                    @if(auth()->id() !== $user->id)
-                                        <form action="{{ route('users.toggle-active', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ $user->is_active ? 'Disable' : 'Enable' }} this account?');">
+                                    @if($user->trashed())
+                                        <form action="{{ route('users.restore', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Restore this user account?');">
                                             @csrf
                                             @method('PATCH')
-                                            <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors {{ $user->is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800' }}" title="{{ $user->is_active ? 'Disable account' : 'Enable account' }}">
-                                                <i class="fas {{ $user->is_active ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+                                            <button type="submit" class="p-2 rounded hover:bg-emerald-50 transition-colors text-emerald-600 hover:text-emerald-800" title="Restore Account">
+                                                <i class="fas fa-trash-arrow-up"></i>
                                             </button>
                                         </form>
-                                    @endif
-
-                                    <form action="{{ route('users.reset-password', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Reset password for {{ $user->name }}? A temporary password will be generated.');">
-                                        @csrf
-                                        <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-blue-600 hover:text-blue-800" title="Reset Password">
-                                            <i class="fas fa-key"></i>
+                                    @else
+                                        <button
+                                            onclick="openEditUserModal({{ $user->id }}, @js($user->first_name), @js($user->middle_name), @js($user->last_name), @js($user->suffix), @js($user->username), @js($user->email), @js($user->role))"
+                                            class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600 hover:text-yellow-800" title="Edit"
+                                        >
+                                            <i class="fas fa-edit"></i>
                                         </button>
-                                    </form>
 
-                                    @if(auth()->id() !== $user->id)
-                                        <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                        @if(auth()->id() !== $user->id)
+                                            <form action="{{ route('users.toggle-active', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ $user->is_active ? 'Disable' : 'Enable' }} this account?');">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors {{ $user->is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800' }}" title="{{ $user->is_active ? 'Disable account' : 'Enable account' }}">
+                                                    <i class="fas {{ $user->is_active ? 'fa-user-slash' : 'fa-user-check' }}"></i>
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        <form action="{{ route('users.reset-password', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Reset password for {{ $user->name }} to standard temporary password (TempPass_123)?');">
                                             @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600 hover:text-red-800" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                            <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-blue-600 hover:text-blue-800" title="Reset to TempPass_123">
+                                                <i class="fas fa-key"></i>
                                             </button>
                                         </form>
+
+                                        @if(auth()->id() !== $user->id)
+                                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Archive (soft-delete) this user account?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600 hover:text-red-800" title="Archive / Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
@@ -159,9 +174,30 @@
             @csrf
             <input type="hidden" name="_form" value="add_user">
 
-            <x-form-group label="Full Name" required>
-                <input type="text" name="name" placeholder="e.g., Juan Dela Cruz" value="{{ old('name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="First Name" required>
+                    <input type="text" name="first_name" placeholder="e.g., Juan" value="{{ old('first_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <x-form-group label="Middle Name (Optional)">
+                    <input type="text" name="middle_name" placeholder="e.g., Santos" value="{{ old('middle_name') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Last Name" required>
+                    <input type="text" name="last_name" placeholder="e.g., Dela Cruz" value="{{ old('last_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <x-form-group label="Suffix (Optional)">
+                    <select name="suffix" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">None</option>
+                        @foreach(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $sfx)
+                            <option value="{{ $sfx }}" {{ old('suffix') === $sfx ? 'selected' : '' }}>{{ $sfx }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Username" required>
@@ -182,14 +218,10 @@
                 </select>
             </x-form-group>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Password" required>
-                    <input type="password" name="password" placeholder="•••••••• (min 8 chars)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
-
-                <x-form-group label="Confirm Password" required>
-                    <input type="password" name="password_confirmation" placeholder="••••••••" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
+            {{-- Auto-set password info --}}
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-center gap-2">
+                <i class="fas fa-shield-halved text-blue-600 text-sm"></i>
+                <span>Password will be automatically set to default temporary password: <strong>TempPass_123</strong>.</span>
             </div>
 
             <div class="flex gap-3 mt-6">
@@ -206,9 +238,30 @@
             @method('PUT')
             <input type="hidden" name="_form" value="edit_user">
 
-            <x-form-group label="Full Name" required>
-                <input type="text" name="name" id="edit-user-name" value="{{ old('_form') === 'edit_user' ? old('name') : '' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="First Name" required>
+                    <input type="text" name="first_name" id="edit-user-first-name" value="{{ old('_form') === 'edit_user' ? old('first_name') : '' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <x-form-group label="Middle Name (Optional)">
+                    <input type="text" name="middle_name" id="edit-user-middle-name" value="{{ old('_form') === 'edit_user' ? old('middle_name') : '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Last Name" required>
+                    <input type="text" name="last_name" id="edit-user-last-name" value="{{ old('_form') === 'edit_user' ? old('last_name') : '' }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <x-form-group label="Suffix (Optional)">
+                    <select name="suffix" id="edit-user-suffix" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">None</option>
+                        @foreach(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $sfx)
+                            <option value="{{ $sfx }}">{{ $sfx }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+            </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Username" required>
@@ -228,16 +281,6 @@
                 </select>
             </x-form-group>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="New Password (leave blank to keep current)">
-                    <input type="password" name="password" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
-
-                <x-form-group label="Confirm New Password">
-                    <input type="password" name="password_confirmation" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
-            </div>
-
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">Save Changes</x-button>
                 <x-button variant="secondary" type="button" onclick="window.closeModal('edit-user-modal')" class="flex-1">Cancel</x-button>
@@ -251,13 +294,16 @@
                 window.openModal('add-user-modal');
             }
 
-            function openEditUserModal(id, name, username, email, role) {
+            function openEditUserModal(id, firstName, middleName, lastName, suffix, username, email, role) {
                 const form = document.getElementById('edit-user-form');
                 form.action = `/users/${id}`;
-                document.getElementById('edit-user-name').value = name;
-                document.getElementById('edit-user-username').value = username;
-                document.getElementById('edit-user-email').value = email;
-                document.getElementById('edit-user-role').value = role;
+                document.getElementById('edit-user-first-name').value = firstName || '';
+                document.getElementById('edit-user-middle-name').value = middleName || '';
+                document.getElementById('edit-user-last-name').value = lastName || '';
+                document.getElementById('edit-user-suffix').value = suffix || '';
+                document.getElementById('edit-user-username').value = username || '';
+                document.getElementById('edit-user-email').value = email || '';
+                document.getElementById('edit-user-role').value = role || '';
                 window.openModal('edit-user-modal');
             }
         </script>

@@ -40,3 +40,4 @@
         <x-alert :type="$type">{{ $message }}</x-alert>
     </div>
 @endforeach
+

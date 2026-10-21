@@ -59,8 +59,7 @@
         || $isActive('inspection.*') 
         || $isActive('reported-assets.*');
 
-    $isFinancialsActive = (request()->routeIs('asset-accessories.index') && request('tab') === 'accessories')
-        || $isActive('financials.*');
+    $isFinancialsActive = $isActive('financials.*');
 
     $isTrackingActive = $isActive('asset-history.*') 
         || $isActive('locations.*') 
@@ -237,13 +236,13 @@
                         x-transition:leave-end="opacity-0 -translate-y-1"
                         class="pl-3 pr-1 space-y-1 border-l-2 {{ $treeBorderClass }} ml-3.5 my-1"
                     >
-                        {{-- Valuation & Budgeting --}}
+                        {{-- Expenses Ledger --}}
                         <a
-                            href="{{ route('asset-accessories.index', ['tab' => 'accessories']) }}"
-                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass(request()->routeIs('asset-accessories.index') && request('tab') === 'accessories') }}"
+                            href="{{ route('financials.expenses') }}"
+                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('financials.expenses*')) }}"
                         >
-                            <i class="fas fa-wallet w-4 text-center {{ $iconClass(request()->routeIs('asset-accessories.index') && request('tab') === 'accessories') }}"></i>
-                            <span>Valuation & Budgeting</span>
+                            <i class="fas fa-file-invoice-dollar w-4 text-center {{ $iconClass($isActive('financials.expenses*')) }}"></i>
+                            <span>Expenses Ledger</span>
                         </a>
 
                         {{-- Depreciation Tracking --}}

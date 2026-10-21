@@ -35,6 +35,9 @@
         </div>
     </div>
 
+    {{-- Asset Financials Navigation Tabs --}}
+    @include('admin.financials.partials._nav')
+
     {{-- Flash Notifications --}}
 
     {{-- Philippine Government Accounting Standard Statutory Notice (COA Circular No. 2022-004) --}}

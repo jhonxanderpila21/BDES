@@ -208,7 +208,7 @@
 
     {{-- Add Report Modal --}}
     <x-modal id="add-report-modal" title="File a Report">
-        <form class="space-y-4" action="{{ route('reported-assets.store') }}" method="POST">
+        <form class="space-y-4" action="{{ route('reported-assets.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <x-form-group label="Asset" required>
@@ -253,6 +253,8 @@
             <x-form-group label="Action Taken / Planned">
                 <input type="text" name="action" placeholder="e.g., Repair/Refill, Replace Unit" value="{{ old('action') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </x-form-group>
+
+            <x-receipt-input label="Photo Evidence or Damage Documentation (Optional)" :showReference="false" icon="fas fa-camera" />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">Submit Report</x-button>

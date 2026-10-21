@@ -6,16 +6,17 @@
     <x-receipt-input label="Proof of Payment" />
 --}}
 @props([
-    'label' => 'Receipt / Proof of Cost',
-    'help'  => 'Official Receipt, Sales Invoice, Delivery Receipt or Quotation. PDF/JPG/PNG/WEBP, up to 5 files, 5 MB each.',
+    'label'         => 'Files & Attachments',
+    'help'          => 'Upload files, photos, receipts or documents (PDF/JPG/PNG/WEBP, up to 5 files, 5 MB each).',
     'showReference' => true,
+    'icon'          => 'fas fa-paperclip',
 ])
 
 @php $uid = 'rcpt_' . \Illuminate\Support\Str::random(6); @endphp
 
 <div class="rounded-lg border border-dashed border-gray-300 bg-gray-50/60 p-3 space-y-2" x-data="{ files: [], tooBig: [], tooMany: false }">
     <label for="{{ $uid }}" class="block text-sm font-medium text-gray-700">
-        <i class="fas fa-receipt text-gray-400 mr-1"></i>{{ $label }}
+        <i class="{{ $icon }} text-gray-400 mr-1"></i>{{ $label }}
         <span class="text-xs font-normal text-gray-400">(optional)</span>
     </label>
 
@@ -51,3 +52,4 @@
     @error('receipts.*') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
     @error('receipt_reference_number') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
 </div>
+

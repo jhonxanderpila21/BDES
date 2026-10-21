@@ -2,16 +2,24 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasReceipts;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Deployment extends Model
 {
+    use HasReceipts;
     protected $fillable = [
         'asset_id',
         'destination',
         'assigned_team',
+        'borrower_type',
+        'borrower_name',
+        'borrower_contact',
+        'borrower_address',
+        'borrower_id_type',
+        'borrower_id_number',
         'responsible_person',
         'deployment_date',
         'expected_return_date',

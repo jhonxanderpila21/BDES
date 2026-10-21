@@ -80,7 +80,9 @@ class AssetNeedController extends Controller
         $asset = Asset::with('type')->findOrFail($validated['asset_id']);
         $validated['asset_type'] = $asset->type->name ?? 'Unknown';
 
-        AssetNeed::create($validated);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
+        $need = AssetNeed::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($need, $request);
 
         return redirect()->route('asset-needs.index')
             ->with('success', 'Asset need created successfully!');

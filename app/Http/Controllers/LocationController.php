@@ -59,7 +59,15 @@ class LocationController extends Controller
             'storage_capacity' => 'nullable|integer|min:0',
         ]);
 
-        Location::create($validated);
+        $created = Location::create($validated);
+
+        if ($request->input('return_to') === 'assets') {
+            return redirect()->route('assets.index', [
+                'tab'                  => 'assets',
+                'reopen_add_asset'     => 1,
+                'selected_location_id' => $created->id,
+            ])->with('success', 'Location created successfully!');
+        }
 
         return redirect()->route('locations.index')
             ->with('success', 'Location created successfully!');

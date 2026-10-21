@@ -14,7 +14,17 @@ class AssetHistoryController extends Controller
      */
     public function index(Request $request)
     {
+        $currentUser = $request->user();
+        $isAdmin = $currentUser && $currentUser->isAdmin();
+
         $query = AuditLog::with(['user', 'auditable'])->latest('id');
+
+        // Scoping: Non-admin users are strictly scoped to their own account's audit logs
+        if (!$isAdmin) {
+            $query->where('user_id', $currentUser->id);
+        } elseif ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -31,10 +41,6 @@ class AssetHistoryController extends Controller
 
         if ($request->filled('event')) {
             $query->where('event', $request->event);
-        }
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
         }
 
         if ($request->filled('auditable_type')) {
@@ -55,16 +61,22 @@ class AssetHistoryController extends Controller
 
         $logs = $query->paginate(20)->withQueryString();
 
+        // Metrics: Scoped appropriately to account or system
+        $metricsBase = AuditLog::query();
+        if (!$isAdmin) {
+            $metricsBase->where('user_id', $currentUser->id);
+        }
+
         $metrics = [
-            'total_logs'     => AuditLog::count(),
-            'today_logs'     => AuditLog::whereDate('created_at', today())->count(),
-            'status_changes' => AuditLog::where('event', 'status_changed')->count(),
-            'active_actors'  => AuditLog::distinct('user_id')->count('user_id'),
+            'total_logs'     => (clone $metricsBase)->count(),
+            'today_logs'     => (clone $metricsBase)->whereDate('created_at', today())->count(),
+            'status_changes' => (clone $metricsBase)->where('event', 'status_changed')->count(),
+            'active_actors'  => $isAdmin ? AuditLog::distinct('user_id')->count('user_id') : 1,
         ];
 
-        $users = User::orderBy('name')->get();
+        $users = $isAdmin ? User::orderBy('name')->get() : collect([$currentUser]);
 
-        return view('admin.asset-history.index', compact('logs', 'metrics', 'users'));
+        return view('admin.asset-history.index', compact('logs', 'metrics', 'users', 'isAdmin'));
     }
 
     /**
@@ -72,7 +84,17 @@ class AssetHistoryController extends Controller
      */
     public function export(Request $request): StreamedResponse
     {
+        $currentUser = $request->user();
+        $isAdmin = $currentUser && $currentUser->isAdmin();
+
         $query = AuditLog::with(['user', 'auditable'])->latest('id');
+
+        // Scoping: Non-admin users are strictly scoped to their own account's audit logs
+        if (!$isAdmin) {
+            $query->where('user_id', $currentUser->id);
+        } elseif ($request->filled('user_id')) {
+            $query->where('user_id', $request->user_id);
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -87,10 +109,6 @@ class AssetHistoryController extends Controller
             $query->where('event', $request->event);
         }
 
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-
         if ($request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $request->date_from);
         }
@@ -99,7 +117,8 @@ class AssetHistoryController extends Controller
             $query->whereDate('created_at', '<=', $request->date_to);
         }
 
-        $filename = 'audit_history_' . now()->format('Ymd_His') . '.csv';
+        $prefix = $isAdmin ? 'audit_history_system_' : 'audit_history_account_' . $currentUser->id . '_';
+        $filename = $prefix . now()->format('Ymd_His') . '.csv';
 
         $response = new StreamedResponse(function () use ($query) {
             $handle = fopen('php://output', 'w');

@@ -50,7 +50,15 @@ class AssetTypeController extends Controller
             $validated[$cb] = $request->boolean($cb);
         }
 
-        AssetType::create($validated);
+        $created = AssetType::create($validated);
+
+        if ($request->input('return_to') === 'assets') {
+            return redirect()->route('assets.index', [
+                'tab'              => 'assets',
+                'reopen_add_asset' => 1,
+                'selected_type_id' => $created->id,
+            ])->with('success', 'Asset type created successfully!');
+        }
 
         return redirect()->route('assets.index', ['tab' => 'types'])
             ->with('success', 'Asset type created successfully!');

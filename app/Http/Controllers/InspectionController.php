@@ -40,7 +40,7 @@ class InspectionController extends Controller
         }
         $request->merge($input);
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'asset_id'        => 'required|exists:assets,id',
             'inspector'       => 'nullable|string|max:255',
             'inspection_date' => 'required|date',
@@ -48,14 +48,20 @@ class InspectionController extends Controller
             'findings'        => 'nullable|string',
             'next_due_date'   => 'nullable|date|after_or_equal:inspection_date',
             'status'          => 'required|in:scheduled,completed,overdue',
-        ], [
-            'next_due_date.after_or_equal' => 'The next due date must be on or after the current inspection date.',
-        ]);
+        ], \App\Services\ReceiptService::rules());
 
-        Inspection::create($validated);
+        $messages = array_merge([
+            'next_due_date.after_or_equal' => 'The next due date must be on or after the current inspection date.',
+        ], \App\Services\ReceiptService::messages());
+
+        $validated = $request->validate($rules, $messages);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
+
+        $inspection = Inspection::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($inspection, $request);
 
         return redirect()->route('maintenance.index', ['tab' => 'inspections'])
-            ->with('success', 'Inspection record created successfully!');
+            ->with('success', 'Inspection record created successfully with supporting documents!');
     }
 
     public function update(Request $request, Inspection $inspection)

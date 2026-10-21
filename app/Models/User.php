@@ -5,25 +5,50 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
+
+    public const DEFAULT_TEMP_PASSWORD = 'TempPass_123';
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'suffix',
         'username',
         'email',
         'password',
         'role',
         'is_active',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->first_name || $user->last_name) {
+                $parts = array_filter([
+                    $user->first_name,
+                    $user->middle_name,
+                    $user->last_name,
+                ]);
+                $fullName = implode(' ', $parts);
+                if ($user->suffix) {
+                    $fullName .= ' ' . $user->suffix;
+                }
+                $user->name = trim($fullName);
+            }
+        });
+    }
 
     /**
      * The attributes that should be hidden for serialization.

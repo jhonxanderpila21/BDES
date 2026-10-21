@@ -48,8 +48,21 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        if ($user->isAdmin()) {
+            $otherActiveAdmins = User::whereIn('role', ['administrator', 'barangay_captain'])
+                ->where('is_active', true)
+                ->whereNull('deleted_at')
+                ->where('id', '!=', $user->id)
+                ->count();
+
+            if ($otherActiveAdmins < 1) {
+                return Redirect::route('profile.edit')->with('error', 'Cannot delete the only remaining active administrator account.');
+            }
+        }
+
         Auth::logout();
 
+        $user->update(['is_active' => false]);
         $user->delete();
 
         $request->session()->invalidate();

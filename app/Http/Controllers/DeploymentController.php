@@ -63,6 +63,12 @@ class DeploymentController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Active deployments for quick return modal
+        $activeDeployments = Deployment::with('asset')
+            ->where('status', '!=', 'returned')
+            ->orderBy('id', 'desc')
+            ->get();
+
         $locations = Location::orderBy('name')->get();
         $users = User::orderBy('name')->get();
 
@@ -70,6 +76,7 @@ class DeploymentController extends Controller
             'deployments',
             'statusCounts',
             'availableAssets',
+            'activeDeployments',
             'locations',
             'users'
         ));
@@ -84,39 +91,50 @@ class DeploymentController extends Controller
 
         // Normalize text inputs
         $input = $request->all();
-        if (isset($input['destination'])) {
-            $input['destination'] = strip_tags(trim($input['destination']));
-        }
-        if (isset($input['assigned_team'])) {
-            $input['assigned_team'] = strip_tags(trim($input['assigned_team']));
-        }
-        if (isset($input['responsible_person'])) {
-            $input['responsible_person'] = strip_tags(trim($input['responsible_person']));
-        }
-        if (isset($input['purpose'])) {
-            $input['purpose'] = strip_tags(trim($input['purpose']));
+        foreach (['destination', 'assigned_team', 'responsible_person', 'purpose', 'borrower_name', 'borrower_contact', 'borrower_address', 'borrower_id_type', 'borrower_id_number'] as $f) {
+            if (isset($input[$f])) {
+                $input[$f] = strip_tags(trim($input[$f]));
+            }
         }
         $request->merge($input);
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'asset_id'             => [
                 'required',
                 Rule::exists('assets', 'id')->where('status', 'available'),
             ],
+            'borrower_type'        => ['nullable', 'in:personnel,resident'],
             'destination'          => ['required', 'string', 'max:255'],
             'assigned_team'        => ['nullable', 'string', 'max:255'],
             'responsible_person'   => ['nullable', 'string', 'max:255'],
+            'borrower_name'        => ['nullable', 'string', 'max:255'],
+            'borrower_contact'     => ['nullable', 'string', 'max:50'],
+            'borrower_address'     => ['nullable', 'string', 'max:255'],
+            'borrower_id_type'     => ['nullable', 'string', 'max:50'],
+            'borrower_id_number'   => ['nullable', 'string', 'max:100'],
             'condition_before'     => ['nullable', 'in:excellent,good,fair,poor'],
             'approved_by'          => ['nullable', 'exists:users,id'],
             'deployment_date'      => ['required', 'date'],
             'expected_return_date' => ['nullable', 'date', 'after_or_equal:deployment_date'],
             'purpose'              => ['nullable', 'string'],
-        ], [
+        ], \App\Services\ReceiptService::rules());
+
+        $messages = array_merge([
             'asset_id.exists' => 'The selected asset is either not found or already deployed/unavailable.',
             'expected_return_date.after_or_equal' => 'The expected return date must be on or after the deployment date.',
-        ]);
+        ], \App\Services\ReceiptService::messages());
+
+        $validated = $request->validate($rules, $messages);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
 
         $validated['status'] = 'active';
+        $validated['borrower_type'] = $validated['borrower_type'] ?? 'personnel';
+
+        if ($validated['borrower_type'] === 'resident' && !empty($validated['borrower_name'])) {
+            $validated['responsible_person'] = $validated['borrower_name'];
+            $validated['assigned_team'] = 'Resident Borrower';
+        }
+
         if (empty($validated['approved_by'])) {
             $validated['approved_by'] = auth()->id();
         }
@@ -124,13 +142,14 @@ class DeploymentController extends Controller
             $validated['responsible_person'] = !empty($validated['assigned_team']) ? $validated['assigned_team'] : (auth()->user()?->name ?? 'Field Response Team');
         }
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
             $asset = Asset::find($validated['asset_id']);
             if (empty($validated['condition_before']) && $asset) {
                 $validated['condition_before'] = $asset->condition;
             }
 
             $deployment = Deployment::create($validated);
+            \App\Services\ReceiptService::attachFromRequest($deployment, $request);
 
             if ($asset) {
                 if (AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_DEPLOYED)) {
@@ -182,7 +201,7 @@ class DeploymentController extends Controller
 
         $depDate = $deployment->deployment_date ? \Carbon\Carbon::parse($deployment->deployment_date)->toDateString() : null;
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'return_date'         => array_merge(['required', 'date'], $depDate ? ['after_or_equal:' . $depDate] : []),
             'returned_by'         => ['nullable', 'string', 'max:255'],
             'received_by'         => ['nullable', 'exists:users,id'],
@@ -191,9 +210,14 @@ class DeploymentController extends Controller
             'missing_accessories' => ['nullable', 'string'],
             'actual_location'     => ['nullable', 'string', 'max:255'],
             'status'              => ['required', 'in:received,damage_noted,incomplete_accessories'],
-        ], [
+        ], \App\Services\ReceiptService::rules());
+
+        $messages = array_merge([
             'return_date.after_or_equal' => "The return date cannot precede the deployment date ({$depDate}).",
-        ]);
+        ], \App\Services\ReceiptService::messages());
+
+        $validated = $request->validate($rules, $messages);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
 
         if (empty($validated['received_by'])) {
             $validated['received_by'] = auth()->id();
@@ -202,7 +226,7 @@ class DeploymentController extends Controller
             $validated['returned_by'] = $deployment->responsible_person ?? ($deployment->assigned_team ?? auth()->user()?->name);
         }
 
-        DB::transaction(function () use ($validated, $deployment) {
+        DB::transaction(function () use ($validated, $deployment, $request) {
             // Create or update return record linked to deployment
             $returnRecord = $deployment->returnRecord()->updateOrCreate(
                 ['deployment_id' => $deployment->id],
@@ -218,6 +242,8 @@ class DeploymentController extends Controller
                     'status'              => $validated['status'],
                 ]
             );
+
+            \App\Services\ReceiptService::attachFromRequest($deployment, $request);
 
             // Transition deployment status to returned
             $deployment->update(['status' => 'returned']);

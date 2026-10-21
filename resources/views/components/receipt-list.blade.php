@@ -27,3 +27,4 @@
 @else
     <span class="text-xs text-gray-400 italic">No receipt</span>
 @endif
+

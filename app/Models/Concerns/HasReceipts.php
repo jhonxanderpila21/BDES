@@ -26,3 +26,4 @@ trait HasReceipts
         return $this->morphMany(Receipt::class, 'receiptable')->latest();
     }
 }
+
