@@ -13,7 +13,7 @@
 
             {{-- Logo --}}
             <div class="flex items-center gap-2.5">
-                <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-9 h-9 object-contain rounded-full shadow-sm">
+                <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-9 h-9 object-cover aspect-square rounded-full shadow-sm">
                 <div class="hidden sm:block">
                     <h2 class="text-base font-bold text-white leading-tight">BDES</h2>
                     <p class="text-[11px] font-medium text-[#60A5FA] leading-none">Disaster Assets</p>
