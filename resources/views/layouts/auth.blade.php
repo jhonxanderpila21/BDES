@@ -48,7 +48,7 @@
 
             {{-- Footer --}}
             <p class="text-center text-gray-600 text-sm mt-8">
-                © 2024 Barangay Disaster Asset Inventory System. All rights reserved.
+                &copy; {{ date('Y') }} Barangay Disaster Emergency Services. All rights reserved.
             </p>
         </div>
     </div>
