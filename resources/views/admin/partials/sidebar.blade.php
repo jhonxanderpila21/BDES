@@ -33,7 +33,7 @@
                 $isFinancialsActive = (request()->routeIs('asset-accessories.index') && request('tab') === 'accessories')
                     || $isActive('financials.*');
 
-                $isTrackingActive = $isActive('asset-history.*') || $isActive('reports.*');
+                $isTrackingActive = $isActive('asset-history.*') || $isActive('reports.*') || $isActive('notifications.*');
 
                 $isAdminActive = $isActive('users.*') 
                     || $isActive('roles.*') 
@@ -272,6 +272,15 @@
                     >
                         <i class="fas fa-clock-rotate-left w-4 text-center {{ $isActive('asset-history.*') ? 'text-blue-600' : 'text-gray-400' }}"></i>
                         <span>Asset History & Audit</span>
+                    </a>
+
+                    {{-- Notifications Center (All Roles) --}}
+                    <a
+                        href="{{ route('notifications.index') }}"
+                        class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium hover:bg-gray-50 {{ $isActive('notifications.*') ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-600' }}"
+                    >
+                        <i class="fas fa-bell w-4 text-center {{ $isActive('notifications.*') ? 'text-blue-600' : 'text-gray-400' }}"></i>
+                        <span>Notifications Center</span>
                     </a>
 
                     {{-- Reports Center (Admin Only) --}}

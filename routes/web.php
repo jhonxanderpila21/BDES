@@ -23,6 +23,7 @@ use App\Http\Controllers\AssetHistoryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AssetDepreciationController;
 use App\Http\Controllers\AssetSalvageController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -109,6 +110,12 @@ Route::middleware(['auth'])->group(function () {
     // Asset History & Audit Trail (Accessible to Members & Admins)
     Route::get('/asset-history/export', [AssetHistoryController::class, 'export'])->name('asset-history.export');
     Route::get('/asset-history', [AssetHistoryController::class, 'index'])->name('asset-history.index');
+
+    // Notifications Center & Actions
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/{id}/view', [NotificationController::class, 'viewRecord'])->name('notifications.view-record');
+    Route::post('/notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
     // Profile (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
