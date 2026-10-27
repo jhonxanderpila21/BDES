@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('operational_requirement_restocks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('operational_requirement_id')->constrained('operational_requirements')->onDelete('cascade');
+            $table->foreignId('operational_requirement_id')
+                ->constrained('operational_requirements', indexName: 'orr_op_requirement_id_foreign')
+                ->onDelete('cascade');
             $table->decimal('quantity', 10, 2);
             $table->decimal('unit_cost', 12, 2)->default(0.00);
             $table->decimal('total_cost', 14, 2)->default(0.00);
