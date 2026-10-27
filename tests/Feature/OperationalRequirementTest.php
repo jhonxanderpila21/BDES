@@ -100,4 +100,32 @@ class OperationalRequirementTest extends TestCase
         $lowStockResponse = $this->actingAs($this->user)->get(route('operational-requirements.index', ['low' => 1]));
         $lowStockResponse->assertOk();
     }
+
+    public function test_store_creates_requirement_without_asset_type_and_renders_name_unit_count(): void
+    {
+        $response = $this->actingAs($this->user)->post(route('operational-requirements.store'), [
+            'requirement_type' => 'Emergency Ration Pack',
+            'unit'             => 'Boxes',
+            'current_level'    => 75,
+            'maximum_capacity' => 200,
+            'minimum_level'    => 20,
+            'description'      => 'Barangay emergency response food packs.',
+        ]);
+
+        $response->assertRedirect(route('operational-requirements.index'));
+        $this->assertDatabaseHas('operational_requirements', [
+            'requirement_type' => 'Emergency Ration Pack',
+            'unit'             => 'Boxes',
+            'current_level'    => 75,
+            'maximum_capacity' => 200,
+            'asset_type_id'    => null,
+        ]);
+
+        $indexResponse = $this->actingAs($this->user)->get(route('operational-requirements.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee('Emergency Ration Pack');
+        $indexResponse->assertSee('Boxes');
+        $indexResponse->assertSee('75');
+        $indexResponse->assertSee('window.closeModal(\'add-requirement-modal\')', false);
+    }
 }

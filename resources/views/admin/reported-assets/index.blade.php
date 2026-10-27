@@ -19,13 +19,7 @@
         </button>
     </div>
 
-    @if(session('success'))
-        <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
-    @endif
 
-    @if($errors->any())
-        <x-alert type="danger" class="mb-6">{{ $errors->first() }}</x-alert>
-    @endif
 
     {{-- Dashboard Summary Cards --}}
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
@@ -214,7 +208,7 @@
 
     {{-- Add Report Modal --}}
     <x-modal id="add-report-modal" title="File a Report">
-        <form class="space-y-4" action="{{ route('reported-assets.store') }}" method="POST">
+        <form class="space-y-4" action="{{ route('reported-assets.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <x-form-group label="Asset" required>
@@ -259,6 +253,8 @@
             <x-form-group label="Action Taken / Planned">
                 <input type="text" name="action" placeholder="e.g., Repair/Refill, Replace Unit" value="{{ old('action') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
             </x-form-group>
+
+            <x-receipt-input label="Photo Evidence or Damage Documentation (Optional)" :showReference="false" icon="fas fa-camera" />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">Submit Report</x-button>

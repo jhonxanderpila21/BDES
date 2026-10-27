@@ -189,4 +189,103 @@ class AuditTrailTest extends TestCase
         $exportResponse->assertOk();
         $this->assertEquals('text/csv; charset=UTF-8', $exportResponse->headers->get('content-type'));
     }
+
+    public function test_non_admin_only_sees_own_account_audit_logs_and_admin_has_full_access(): void
+    {
+        $officer = User::factory()->create([
+            'name'      => 'Officer Juan',
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'updated',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 1,
+            'description'    => 'Admin confidential system configuration update.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $officer->id,
+            'event'          => 'created',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 2,
+            'description'    => 'Officer Juan registered new field equipment.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        // 1. Non-admin accessing index sees ONLY their own log
+        $officerResponse = $this->actingAs($officer)->get(route('asset-history.index'));
+        $officerResponse->assertOk();
+        $officerResponse->assertSee('Officer Juan registered new field equipment.');
+        $officerResponse->assertDontSee('Admin confidential system configuration update.');
+
+        // 2. Non-admin cannot bypass scoping by supplying ?user_id=
+        $bypassAttempt = $this->actingAs($officer)->get(route('asset-history.index', ['user_id' => $this->user->id]));
+        $bypassAttempt->assertOk();
+        $bypassAttempt->assertSee('Officer Juan registered new field equipment.');
+        $bypassAttempt->assertDontSee('Admin confidential system configuration update.');
+
+        // 3. Admin has full access to view both logs
+        $adminResponse = $this->actingAs($this->user)->get(route('asset-history.index'));
+        $adminResponse->assertOk();
+        $adminResponse->assertSee('Officer Juan registered new field equipment.');
+        $adminResponse->assertSee('Admin confidential system configuration update.');
+
+        // 4. Admin can filter by specific user
+        $filteredResponse = $this->actingAs($this->user)->get(route('asset-history.index', ['user_id' => $officer->id]));
+        $filteredResponse->assertOk();
+        $filteredResponse->assertSee('Officer Juan registered new field equipment.');
+        $filteredResponse->assertDontSee('Admin confidential system configuration update.');
+    }
+
+    public function test_asset_show_scopes_audit_logs_to_account_for_non_admin(): void
+    {
+        $officer = User::factory()->create([
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        $asset = Asset::create([
+            'name'             => 'Rescue Raft Alpha',
+            'code'             => 'RRF-001',
+            'category_id'      => $this->category->id,
+            'location_id'      => $this->location->id,
+            'condition'        => 'good',
+            'status'           => 'available',
+            'acquisition_cost' => 25000,
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'created',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => $asset->id,
+            'description'    => 'Admin created this asset.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $officer->id,
+            'event'          => 'updated',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => $asset->id,
+            'description'    => 'Officer Juan inspected this asset.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        // Non-admin sees only their own log on the asset
+        $officerShow = $this->actingAs($officer)->get(route('assets.show', $asset));
+        $officerShow->assertOk();
+        $officerShow->assertSee('Officer Juan inspected this asset.');
+        $officerShow->assertDontSee('Admin created this asset.');
+
+        // Admin sees both logs
+        $adminShow = $this->actingAs($this->user)->get(route('assets.show', $asset));
+        $adminShow->assertOk();
+        $adminShow->assertSee('Officer Juan inspected this asset.');
+        $adminShow->assertSee('Admin created this asset.');
+    }
 }

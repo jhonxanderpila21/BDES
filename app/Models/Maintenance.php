@@ -8,6 +8,8 @@ use Illuminate\Support\Str;
 
 class Maintenance extends Model
 {
+    use \App\Models\Concerns\HasReceipts;
+
     protected $fillable = [
         'work_order_number',
         'asset_id',

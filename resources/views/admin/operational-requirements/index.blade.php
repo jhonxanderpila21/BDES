@@ -19,9 +19,6 @@
         </button>
     </div>
 
-    @if(session('success'))
-        <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
-    @endif
 
     {{-- Filters --}}
     <div class="flex flex-col sm:flex-row gap-4 mb-6">
@@ -42,9 +39,9 @@
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement Name</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Unit</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Count</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
@@ -53,19 +50,29 @@
                     @forelse($requirements as $requirement)
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm font-medium text-gray-900">{{ $requirement->assetType->name ?? 'Unknown Asset Type' }}</p>
+                                <p class="text-sm font-bold text-gray-900">{{ $requirement->requirement_type }}</p>
+                                @if($requirement->description)
+                                    <p class="text-xs text-gray-400 truncate max-w-xs">{{ $requirement->description }}</p>
+                                @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $requirement->requirement_type }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $requirement->unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">{{ $requirement->unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="font-bold font-mono text-gray-900">{{ (float)$requirement->current_level }}</span>
+                                <span class="text-xs text-gray-400">/ {{ (float)$requirement->maximum_capacity }}</span>
+                                <span class="text-xs text-gray-500 font-medium ml-1">{{ $requirement->unit }}</span>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($requirement->isLowStock())
                                     <x-badge variant="danger" size="sm">Low Stock</x-badge>
                                 @else
-                                    <x-badge variant="success" size="sm">OK</x-badge>
+                                    <x-badge variant="success" size="sm">In Stock</x-badge>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 <div class="flex items-center gap-2">
+                                    <button onclick='openAddQuantityModal(@json($requirement))' class="p-2 rounded hover:bg-emerald-50 transition-colors text-emerald-600 hover:text-emerald-800" title="Add Quantity / Restock">
+                                        <i class="fas fa-plus-circle"></i>
+                                    </button>
                                     <button onclick='editRequirement(@json($requirement))' class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit Requirement">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -96,45 +103,39 @@
 
     {{-- Add Requirement Modal --}}
     <x-modal id="add-requirement-modal" title="Add Operational Requirement">
-        <form class="space-y-4" action="{{ route('operational-requirements.store') }}" method="POST">
+        <form class="space-y-4" action="{{ route('operational-requirements.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
-            <x-form-group label="Asset Type" required>
-                <select name="asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Asset Type</option>
-                    @foreach($assetTypes as $assetType)
-                        <option value="{{ $assetType->id }}" {{ old('asset_type_id') == $assetType->id ? 'selected' : '' }}>{{ $assetType->name }}</option>
-                    @endforeach
-                </select>
+            <x-form-group label="Requirement Name" required>
+                <input type="text" name="requirement_type" placeholder="e.g., Diesel Fuel, Battery Pack, First Aid Kits" value="{{ old('requirement_type') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </x-form-group>
 
-            <x-form-group label="Requirement Type" required>
-                <input type="text" name="requirement_type" placeholder="e.g., Diesel, Battery" value="{{ old('requirement_type') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
-
-            <x-form-group label="Unit" required>
-                <input type="text" name="unit" placeholder="e.g., liters, units" value="{{ old('unit') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <x-form-group label="Unit of Measurement" required>
+                <input type="text" name="unit" placeholder="e.g., liters, units, boxes, pairs" value="{{ old('unit') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </x-form-group>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form-group label="Current Level" required>
-                    <input type="number" step="0.01" min="0" id="req_current_level" name="current_level" value="{{ old('current_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                <x-form-group label="Count (Initial Stock)" required>
+                    <input type="number" step="0.01" min="0" id="req_current_level" name="current_level" value="{{ old('current_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </x-form-group>
                 <x-form-group label="Maximum Capacity" required>
-                    <input type="number" step="0.01" min="0.01" id="req_max_capacity" oninput="document.getElementById('req_current_level').max = this.value; document.getElementById('req_min_level').max = this.value;" name="maximum_capacity" value="{{ old('maximum_capacity') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="number" step="0.01" min="0.01" id="req_max_capacity" oninput="document.getElementById('req_current_level').max = this.value; document.getElementById('req_min_level').max = this.value;" name="maximum_capacity" value="{{ old('maximum_capacity') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </x-form-group>
                 <x-form-group label="Minimum Level" required>
-                    <input type="number" step="0.01" min="0" id="req_min_level" name="minimum_level" value="{{ old('minimum_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="number" step="0.01" min="0" id="req_min_level" name="minimum_level" value="{{ old('minimum_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </x-form-group>
             </div>
 
             <x-form-group label="Notes">
-                <textarea name="description" placeholder="Optional notes..." rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('description') }}</textarea>
+                <textarea name="description" placeholder="Optional notes..." rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">{{ old('description') }}</textarea>
             </x-form-group>
+
+            {{-- Specification / Document / Initial Receipt Input --}}
+            <x-receipt-input label="Specification Sheet, MSDS, or Initial Receipt" help="Upload safety data sheets, manuals, or purchase receipts (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">Create Requirement</x-button>
-                <x-button variant="secondary" type="button" @click="ModalStore['add-requirement-modal'] = false" class="flex-1">Cancel</x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('add-requirement-modal')" class="flex-1">Cancel</x-button>
             </div>
         </form>
     </x-modal>
@@ -145,25 +146,16 @@
             @csrf
             @method('PUT')
 
-            <x-form-group label="Asset Type" required>
-                <select name="asset_type_id" id="edit_asset_type_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white">
-                    <option value="">Select Asset Type</option>
-                    @foreach($assetTypes as $assetType)
-                        <option value="{{ $assetType->id }}">{{ $assetType->name }}</option>
-                    @endforeach
-                </select>
-            </x-form-group>
-
-            <x-form-group label="Requirement Type" required>
+            <x-form-group label="Requirement Name" required>
                 <input type="text" name="requirement_type" id="edit_requirement_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </x-form-group>
 
-            <x-form-group label="Unit" required>
+            <x-form-group label="Unit of Measurement" required>
                 <input type="text" name="unit" id="edit_unit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </x-form-group>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form-group label="Current Level" required>
+                <x-form-group label="Count (Current Level)" required>
                     <input type="number" step="0.01" min="0" id="edit_current_level" name="current_level" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </x-form-group>
                 <x-form-group label="Maximum Capacity" required>
@@ -185,15 +177,63 @@
         </form>
     </x-modal>
 
+    {{-- Add Quantity / Restock Modal --}}
+    <x-modal id="add-quantity-modal" title="Add Quantity / Restock Requirement">
+        <form class="space-y-4" id="add-quantity-form" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
+                <span class="font-semibold" id="restock_req_name">Operational Item</span>
+                <span class="text-xs text-blue-700 block mt-0.5">Current Stock: <strong id="restock_current_level">0</strong> <span id="restock_unit_label">units</span> (Max Capacity: <span id="restock_max_cap">0</span>)</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Quantity to Add" required>
+                    <input type="number" step="0.01" min="0.01" id="restock_amount" name="amount" required placeholder="e.g. 50" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+
+                <x-form-group label="Unit Cost (₱)">
+                    <input type="number" step="0.01" min="0" id="restock_unit_cost" name="unit_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+            </div>
+
+            <x-form-group label="Supplier / Vendor Source (Optional)">
+                <input type="text" name="supplier" placeholder="e.g. Caltex / Shell Barangay Depot" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </x-form-group>
+
+            {{-- Proof of Cost / Receipt Upload --}}
+            <x-receipt-input label="Proof of Cost / Official Receipt (OR) / Delivery Invoice (Optional)" help="Upload supplier official receipt, invoice, or delivery receipt as proof of cost (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
+
+            <x-form-group label="Restock Notes">
+                <textarea name="notes" placeholder="Delivery details, batch number, etc..." rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"></textarea>
+            </x-form-group>
+
+            <div class="flex gap-3 mt-6">
+                <x-button variant="primary" type="submit" class="flex-1">Add Stock & Record</x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('add-quantity-modal')" class="flex-1">Cancel</x-button>
+            </div>
+        </form>
+    </x-modal>
+
     @push('scripts')
         <script>
             function openAddRequirementModal() {
                 window.openModal('add-requirement-modal');
             }
+            function openAddQuantityModal(req) {
+                const form = document.getElementById('add-quantity-form');
+                form.action = '/operational-requirements/' + req.id + '/refill';
+                document.getElementById('restock_req_name').innerText = req.requirement_type;
+                document.getElementById('restock_current_level').innerText = req.current_level;
+                document.getElementById('restock_unit_label').innerText = req.unit;
+                document.getElementById('restock_max_cap').innerText = req.maximum_capacity + ' ' + req.unit;
+                document.getElementById('restock_amount').value = '';
+                document.getElementById('restock_unit_cost').value = '';
+                window.openModal('add-quantity-modal');
+            }
             function editRequirement(req) {
                 const form = document.getElementById('edit-requirement-form');
                 form.action = '/operational-requirements/' + req.id;
-                document.getElementById('edit_asset_type_id').value = req.asset_type_id;
                 document.getElementById('edit_requirement_type').value = req.requirement_type;
                 document.getElementById('edit_unit').value = req.unit;
                 document.getElementById('edit_current_level').value = req.current_level;

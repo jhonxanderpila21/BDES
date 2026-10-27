@@ -23,6 +23,7 @@ use App\Http\Controllers\AssetHistoryController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AssetDepreciationController;
 use App\Http\Controllers\AssetSalvageController;
+use App\Http\Controllers\ExpenseController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -38,6 +39,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Foundation Modules (Admin only)
     Route::middleware(['role:administrator,barangay_captain'])->group(function () {
+        Route::patch('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
         Route::resource('users', UserController::class);
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
         Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password')->middleware('throttle:10,1');
@@ -93,6 +95,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Asset Financials & Valuation (Admin Only)
     Route::middleware(['role:administrator,barangay_captain'])->group(function () {
+        Route::get('/financials/expenses/export', [ExpenseController::class, 'export'])->name('financials.expenses.export')->middleware('throttle:60,1');
+        Route::get('/financials/expenses', [ExpenseController::class, 'index'])->name('financials.expenses');
+
         Route::get('/financials/depreciation/export', [AssetDepreciationController::class, 'export'])->name('financials.depreciation.export')->middleware('throttle:60,1');
         Route::post('/financials/depreciation/{asset}', [AssetDepreciationController::class, 'update'])->name('financials.depreciation.update');
         Route::get('/financials/depreciation', [AssetDepreciationController::class, 'index'])->name('financials.depreciation');
@@ -109,6 +114,10 @@ Route::middleware(['auth'])->group(function () {
     // Asset History & Audit Trail (Accessible to Members & Admins)
     Route::get('/asset-history/export', [AssetHistoryController::class, 'export'])->name('asset-history.export')->middleware('throttle:60,1');
     Route::get('/asset-history', [AssetHistoryController::class, 'index'])->name('asset-history.index');
+
+    // Proof-of-cost receipts (shared by every costed module)
+    Route::get('/receipts/{receipt}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipts.show');
+    Route::delete('/receipts/{receipt}', [\App\Http\Controllers\ReceiptController::class, 'destroy'])->name('receipts.destroy');
 
     // Profile (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

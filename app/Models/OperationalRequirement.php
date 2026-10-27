@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OperationalRequirement extends Model
 {
+    use \App\Models\Concerns\HasReceipts;
+
     protected $table = 'operational_requirements';
 
     protected $fillable = [
@@ -33,6 +35,11 @@ class OperationalRequirement extends Model
     public function assetType(): BelongsTo
     {
         return $this->belongsTo(AssetType::class, 'asset_type_id');
+    }
+
+    public function restocks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OperationalRequirementRestock::class, 'operational_requirement_id')->latest();
     }
 
     public function isLowStock(): bool

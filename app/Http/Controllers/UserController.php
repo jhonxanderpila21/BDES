@@ -20,12 +20,26 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        $status = $request->query('status');
         $query = User::query();
+
+        if ($status === 'archived') {
+            $query->onlyTrashed();
+        } else {
+            $query->withoutTrashed();
+            if ($status === 'active') {
+                $query->where('is_active', true);
+            } elseif ($status === 'inactive') {
+                $query->where('is_active', false);
+            }
+        }
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
                   ->orWhere('username', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%");
             });
@@ -35,11 +49,7 @@ class UserController extends Controller
             $query->where('role', $request->role);
         }
 
-        if ($request->filled('status')) {
-            $query->where('is_active', $request->status === 'active');
-        }
-
-        $users = $query->latest()->paginate(10)->withQueryString();
+        $users = $query->latest('id')->paginate(10)->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }
@@ -48,28 +58,21 @@ class UserController extends Controller
     {
         $input = $request->all();
 
-        // Support first_name / last_name fallback if name is not explicitly passed
-        if (empty($input['name']) && (!empty($input['first_name']) || !empty($input['last_name']))) {
-            $nameParts = array_filter([
-                $input['first_name'] ?? null,
-                $input['middle_name'] ?? null,
-                $input['last_name'] ?? null,
-            ]);
-            $input['name'] = implode(' ', $nameParts);
+        // If raw 'name' is passed (e.g. from tests or scripts), split it if first_name not present
+        if (empty($input['first_name']) && !empty($input['name'])) {
+            $parts = explode(' ', trim($input['name']));
+            if (count($parts) === 1) {
+                $input['first_name'] = $parts[0];
+                $input['last_name'] = $parts[0];
+            } else {
+                $input['last_name'] = array_pop($parts);
+                $input['first_name'] = implode(' ', $parts);
+            }
         }
 
-        if (isset($input['name'])) {
-            $input['name'] = strip_tags(trim($input['name']));
-        }
-
-        // Auto-generate username from email or name if missing
-        if (empty($input['username'])) {
-            if (!empty($input['email'])) {
-                $base = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', explode('@', $input['email'])[0]));
-                $input['username'] = $base ?: 'user_' . Str::random(5);
-            } elseif (!empty($input['name'])) {
-                $base = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', str_replace(' ', '', $input['name'])));
-                $input['username'] = $base ?: 'user_' . Str::random(5);
+        foreach (['first_name', 'middle_name', 'last_name', 'suffix'] as $field) {
+            if (isset($input[$field])) {
+                $input[$field] = strip_tags(trim($input[$field]));
             }
         }
 
@@ -81,32 +84,57 @@ class UserController extends Controller
         }
         $request->merge($input);
 
+        $nameRegex = '/^[a-zA-Z\s\-\'\.ñÑáéíóúÁÉÍÓÚ]+$/u';
+
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'username' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:users'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'first_name' => ['required', 'string', 'max:50', 'regex:' . $nameRegex],
+            'middle_name' => ['nullable', 'string', 'max:50', 'regex:' . $nameRegex],
+            'last_name' => ['required', 'string', 'max:50', 'regex:' . $nameRegex],
+            'suffix' => ['nullable', 'string', 'max:20'],
+            'username' => ['required', 'string', 'max:255', 'alpha_dash', 'unique:users,username'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'role' => ['required', Rule::in(self::ROLES)],
+        ], [
+            'first_name.regex' => 'The First Name may only contain letters, spaces, hyphens, and apostrophes.',
+            'middle_name.regex' => 'The Middle Name may only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'The Last Name may only contain letters, spaces, hyphens, and apostrophes.',
         ]);
 
-        User::create([
-            'name' => $validated['name'],
+        $user = User::create([
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
+            'last_name' => $validated['last_name'],
+            'suffix' => $validated['suffix'] ?? null,
             'username' => $validated['username'],
             'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'password' => Hash::make(User::DEFAULT_TEMP_PASSWORD),
             'role' => $validated['role'],
             'is_active' => true,
         ]);
 
         return redirect()->route('users.index')
-            ->with('success', 'User created successfully!');
+            ->with('success', "User account for {$user->name} created successfully! Temporary password set to: " . User::DEFAULT_TEMP_PASSWORD);
     }
 
     public function update(Request $request, User $user)
     {
         $input = $request->all();
-        if (isset($input['name'])) {
-            $input['name'] = strip_tags(trim($input['name']));
+
+        if (empty($input['first_name']) && !empty($input['name'])) {
+            $parts = explode(' ', trim($input['name']));
+            if (count($parts) === 1) {
+                $input['first_name'] = $parts[0];
+                $input['last_name'] = $parts[0];
+            } else {
+                $input['last_name'] = array_pop($parts);
+                $input['first_name'] = implode(' ', $parts);
+            }
+        }
+
+        foreach (['first_name', 'middle_name', 'last_name', 'suffix'] as $field) {
+            if (isset($input[$field])) {
+                $input[$field] = strip_tags(trim($input[$field]));
+            }
         }
         if (isset($input['username'])) {
             $input['username'] = strtolower(trim(strip_tags($input['username'])));
@@ -116,16 +144,28 @@ class UserController extends Controller
         }
         $request->merge($input);
 
+        $nameRegex = '/^[a-zA-Z\s\-\'\.ñÑáéíóúÁÉÍÓÚ]+$/u';
+
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:50', 'regex:' . $nameRegex],
+            'middle_name' => ['nullable', 'string', 'max:50', 'regex:' . $nameRegex],
+            'last_name' => ['required', 'string', 'max:50', 'regex:' . $nameRegex],
+            'suffix' => ['nullable', 'string', 'max:20'],
             'username' => ['required', 'string', 'max:255', 'alpha_dash', Rule::unique('users')->ignore($user->id)],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'role' => ['required', Rule::in(self::ROLES)],
+        ], [
+            'first_name.regex' => 'The First Name may only contain letters, spaces, hyphens, and apostrophes.',
+            'middle_name.regex' => 'The Middle Name may only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'The Last Name may only contain letters, spaces, hyphens, and apostrophes.',
         ]);
 
         $updateData = [
-            'name' => $validated['name'],
+            'first_name' => $validated['first_name'],
+            'middle_name' => $validated['middle_name'] ?? null,
+            'last_name' => $validated['last_name'],
+            'suffix' => $validated['suffix'] ?? null,
             'username' => $validated['username'],
             'email' => $validated['email'],
             'role' => $validated['role'],
@@ -148,10 +188,33 @@ class UserController extends Controller
                 ->with('error', 'You cannot delete your own account!');
         }
 
+        if ($user->isAdmin()) {
+            $activeAdminCount = User::whereIn('role', ['administrator', 'barangay_captain'])
+                ->where('is_active', true)
+                ->whereNull('deleted_at')
+                ->where('id', '!=', $user->id)
+                ->count();
+
+            if ($activeAdminCount < 1) {
+                return redirect()->route('users.index')
+                    ->with('error', 'Cannot delete or archive the only remaining active administrator account!');
+            }
+        }
+
+        $user->update(['is_active' => false]);
         $user->delete();
 
         return redirect()->route('users.index')
-            ->with('success', 'User deleted successfully!');
+            ->with('success', "User account for {$user->name} has been archived (soft-deleted).");
+    }
+
+    public function restore($id)
+    {
+        $user = User::onlyTrashed()->findOrFail($id);
+        $user->restore();
+
+        return redirect()->route('users.index', ['status' => 'archived'])
+            ->with('success', "User account for {$user->name} restored successfully.");
     }
 
     /**
@@ -164,6 +227,19 @@ class UserController extends Controller
                 ->with('error', 'You cannot disable your own account!');
         }
 
+        if ($user->isAdmin() && $user->is_active) {
+            $otherActiveAdmins = User::whereIn('role', ['administrator', 'barangay_captain'])
+                ->where('is_active', true)
+                ->whereNull('deleted_at')
+                ->where('id', '!=', $user->id)
+                ->count();
+
+            if ($otherActiveAdmins < 1) {
+                return redirect()->route('users.index')
+                    ->with('error', 'Cannot disable the only remaining active administrator account!');
+            }
+        }
+
         $user->update(['is_active' => !$user->is_active]);
 
         return redirect()->route('users.index')
@@ -171,15 +247,13 @@ class UserController extends Controller
     }
 
     /**
-     * Reset the user's password to a freshly generated temporary one.
+     * Reset the user's password to the standard temporary password.
      */
     public function resetPassword(User $user)
     {
-        $temporaryPassword = Str::password(12);
-
-        $user->update(['password' => Hash::make($temporaryPassword)]);
+        $user->update(['password' => Hash::make(User::DEFAULT_TEMP_PASSWORD)]);
 
         return redirect()->route('users.index')
-            ->with('success', "Password reset. Temporary password for {$user->username}: {$temporaryPassword}");
+            ->with('success', "Password reset for {$user->name}. Temporary password is: " . User::DEFAULT_TEMP_PASSWORD);
     }
 }

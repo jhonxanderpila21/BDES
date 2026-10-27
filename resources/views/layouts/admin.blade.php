@@ -54,48 +54,7 @@
             {{-- Page Content --}}
             <main class="flex-1 overflow-y-auto">
                 <div class="px-4 sm:px-6 lg:px-8 py-8">
-                    @if($errors->any())
-                        <div class="mb-6">
-                            <x-alert type="error">
-                                <strong>Error!</strong>
-                                @foreach($errors->all() as $error)
-                                    <div>{{ $error }}</div>
-                                @endforeach
-                            </x-alert>
-                        </div>
-                    @endif
-
-                    @if(session('success'))
-                        <div class="mb-6">
-                            <x-alert type="success">
-                                {{ session('success') }}
-                            </x-alert>
-                        </div>
-                    @endif
-
-                    @if(session('error'))
-                        <div class="mb-6">
-                            <x-alert type="error">
-                                {{ session('error') }}
-                            </x-alert>
-                        </div>
-                    @endif
-
-                    @if(session('warning'))
-                        <div class="mb-6">
-                            <x-alert type="warning">
-                                {{ session('warning') }}
-                            </x-alert>
-                        </div>
-                    @endif
-
-                    @if(session('status'))
-                        <div class="mb-6">
-                            <x-alert type="info">
-                                {{ session('status') }}
-                            </x-alert>
-                        </div>
-                    @endif
+                    <x-flash-messages />
 
                     @yield('content')
                 </div>

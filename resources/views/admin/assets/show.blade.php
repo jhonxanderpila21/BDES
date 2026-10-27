@@ -331,6 +331,16 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- Official Proof of Purchase Receipts --}}
+                <div class="bg-white rounded-2xl p-5 border border-gray-200">
+                    <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Proof of Purchase / Official Receipts</h4>
+                    @if($asset->receipts && $asset->receipts->count() > 0)
+                        <x-receipt-list :receipts="$asset->receipts" />
+                    @else
+                        <p class="text-xs text-gray-400 italic">No receipts uploaded during acquisition.</p>
+                    @endif
+                </div>
             </div>
 
             {{-- TAB 3: OPERATIONAL DEPLOYMENTS --}}
@@ -723,7 +733,13 @@
                     <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
                         <i class="fas fa-timeline text-blue-600"></i> Immutable Audit Trail & Custody Movement History
                     </h3>
-                    <p class="text-xs text-gray-500">Chronological, tamper-evident log of every change, state transition, and user interaction on this asset.</p>
+                    <p class="text-xs text-gray-500">
+                        @if(auth()->user()?->isAdmin())
+                            Chronological, tamper-evident log of every change, state transition, and user interaction on this asset across all accounts (Full Administrative View).
+                        @else
+                            Chronological log of your interactions and changes on this asset. (Administrative access required for full multi-user audit trail).
+                        @endif
+                    </p>
                 </div>
 
                 @if($asset->auditLogs->count() > 0)
@@ -783,7 +799,13 @@
                 @else
                     <div class="text-center py-10 text-gray-500 bg-gray-50 rounded-xl">
                         <i class="fas fa-fingerprint text-3xl text-gray-400 mb-2"></i>
-                        <p class="text-sm font-medium">No audit events recorded yet.</p>
+                        <p class="text-sm font-medium">
+                            @if(auth()->user()?->isAdmin())
+                                No audit events recorded yet for this asset.
+                            @else
+                                No audit events recorded for your account on this asset yet.
+                            @endif
+                        </p>
                     </div>
                 @endif
             </div>

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Accessory extends Model
 {
+    use \App\Models\Concerns\HasReceipts;
+
     protected $fillable = [
         'name',
         'asset_type_id',

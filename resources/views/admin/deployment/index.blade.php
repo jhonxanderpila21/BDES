@@ -13,20 +13,20 @@
                 ['label' => 'Deployments & Returns']
             ]" />
         </div>
-        <button onclick="openCreateDeploymentModal()" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm">
-            <i class="fas fa-plus"></i>
-            Deploy Asset
-        </button>
+        <div class="flex items-center gap-3">
+            <button onclick="openGenericRecordReturnModal()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm">
+                <i class="fas fa-undo"></i>
+                Record Return
+            </button>
+            <button onclick="openCreateDeploymentModal()" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm">
+                <i class="fas fa-plus"></i>
+                Deploy Asset
+            </button>
+        </div>
     </div>
 
     {{-- Session Alerts --}}
-    @if(session('success'))
-        <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
-    @endif
 
-    @if($errors->any())
-        <x-alert type="danger" class="mb-6">{{ $errors->first() }}</x-alert>
-    @endif
 
     {{-- Dashboard Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -116,11 +116,11 @@
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Destination & Team</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Destination & Borrower</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Deployment Date</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Expected Return</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Return Inspection</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Inspection</th>
                         <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -276,7 +276,7 @@
     {{-- MODAL 1: Create Deployment                               --}}
     {{-- ======================================================== --}}
     <x-modal id="create-deployment-modal" title="Deploy Asset">
-        <form action="{{ route('deployment.store') }}" method="POST" class="space-y-4">
+        <form action="{{ route('deployment.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4" x-data="{ borrowerType: 'personnel' }">
             @csrf
 
             <x-form-group label="Select Available Asset" required>
@@ -296,11 +296,63 @@
                 @endif
             </x-form-group>
 
+            {{-- Borrower Type Selector --}}
+            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">Borrower / Deployment Type</label>
+                <div class="flex gap-4">
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
+                        <input type="radio" name="borrower_type" value="personnel" x-model="borrowerType" class="text-blue-600 focus:ring-blue-500">
+                        <span><i class="fas fa-user-shield text-blue-600 mr-1"></i>Barangay Personnel / Responder</span>
+                    </label>
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-sm font-medium text-gray-700">
+                        <input type="radio" name="borrower_type" value="resident" x-model="borrowerType" class="text-purple-600 focus:ring-purple-500">
+                        <span><i class="fas fa-house-user text-purple-600 mr-1"></i>Barangay Resident</span>
+                    </label>
+                </div>
+            </div>
+
+            {{-- Resident Borrower Fields --}}
+            <div x-show="borrowerType === 'resident'" x-cloak class="p-3 bg-purple-50/60 rounded-lg border border-purple-200 space-y-3">
+                <p class="text-xs font-semibold text-purple-900 flex items-center gap-1.5">
+                    <i class="fas fa-id-card text-purple-600"></i> Resident Borrower Credentials
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <x-form-group label="Resident Full Name">
+                        <input type="text" name="borrower_name" placeholder="e.g. Maria Corazon Santos" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                    </x-form-group>
+                    <x-form-group label="Contact Number">
+                        <input type="text" name="borrower_contact" placeholder="e.g. 0917-123-4567" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                    </x-form-group>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="md:col-span-1">
+                        <x-form-group label="Valid ID Type">
+                            <select name="borrower_id_type" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white">
+                                <option value="Barangay ID">Barangay ID</option>
+                                <option value="PhilHealth">PhilHealth</option>
+                                <option value="UMID">UMID / SSS</option>
+                                <option value="Driver's License">Driver's License</option>
+                                <option value="Voter's ID">Voter's ID</option>
+                                <option value="Passport">Passport</option>
+                            </select>
+                        </x-form-group>
+                    </div>
+                    <div class="md:col-span-2">
+                        <x-form-group label="Valid ID Number">
+                            <input type="text" name="borrower_id_number" placeholder="e.g. BRGY-2026-9812" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                        </x-form-group>
+                    </div>
+                </div>
+                <x-form-group label="Residential Address">
+                    <input type="text" name="borrower_address" placeholder="e.g. House 14, Purok 3, Barangay Proper" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
+                </x-form-group>
+            </div>
+
             <x-form-group label="Destination / Facility" required>
                 <input type="text" name="destination" required placeholder="e.g. Purok A Evacuation Center, Zone 3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </x-form-group>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" x-show="borrowerType === 'personnel'">
                 <x-form-group label="Assigned Team / Responder">
                     <input type="text" name="assigned_team" placeholder="e.g. Alpha Rescue Team, Tanod Night Watch" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
                 </x-form-group>
@@ -321,8 +373,16 @@
             </div>
 
             <x-form-group label="Purpose / Mission Description">
-                <textarea name="purpose" rows="3" placeholder="State the reason or operation for this deployment..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"></textarea>
+                <textarea name="purpose" rows="2" placeholder="State the reason or operation for this deployment..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"></textarea>
             </x-form-group>
+
+            {{-- Signed Form / Valid ID / Slip File Input --}}
+            <x-receipt-input 
+                label="Signed Borrowing Slip, Resident ID, or Requisition Document" 
+                help="Upload signed borrowing form, mission order, or resident ID photocopy (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." 
+                :showReference="false" 
+                icon="fas fa-file-signature" 
+            />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1" :disabled="$availableAssets->isEmpty()">
@@ -339,7 +399,7 @@
     {{-- MODAL 2: Record Return (Merged Action)                   --}}
     {{-- ======================================================== --}}
     <x-modal id="record-return-modal" title="Record Asset Return">
-        <form id="recordReturnForm" method="POST" class="space-y-4">
+        <form id="recordReturnForm" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
             {{-- Deployment Context Badge --}}
@@ -392,6 +452,14 @@
             <x-form-group label="Missing Accessories (if any)">
                 <textarea name="missing_accessories" id="return_missing_accessories" rows="2" placeholder="List any missing cables, straps, cases, or parts..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"></textarea>
             </x-form-group>
+
+            {{-- Return Inspection Photo / Document Upload --}}
+            <x-receipt-input 
+                label="Return Inspection Photo, Turn-In Slip, or Document" 
+                help="Upload return inspection photos or signed turn-in slip (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." 
+                :showReference="false" 
+                icon="fas fa-clipboard-check" 
+            />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">

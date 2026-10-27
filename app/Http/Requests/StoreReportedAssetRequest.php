@@ -30,13 +30,21 @@ class StoreReportedAssetRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'asset_id'      => ['required', 'exists:assets,id'],
             'reported_type' => ['required', Rule::in(ReportedAssetService::reportedTypes())],
             'location'      => ['required', 'string', 'max:255'],
             'description'   => ['nullable', 'string'],
             'action'        => ['nullable', 'string', 'max:255'],
             'reported_date' => ['required', 'date', 'before_or_equal:today'],
-        ];
+        ], \App\Services\ReceiptService::rules());
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return \App\Services\ReceiptService::messages();
     }
 }

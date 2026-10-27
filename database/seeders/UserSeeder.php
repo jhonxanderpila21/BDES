@@ -20,6 +20,8 @@ class UserSeeder extends Seeder
             // ==========================================
             [
                 'name'              => 'System Administrator',
+                'first_name'         => 'System',
+                'last_name'          => 'Administrator',
                 'username'          => 'admin',
                 'email'             => 'admin@bdes.gov',
                 'role'              => 'administrator',
@@ -29,6 +31,8 @@ class UserSeeder extends Seeder
             ],
             [
                 'name'              => 'Hon. Barangay Captain',
+                'first_name'         => 'Barangay',
+                'last_name'          => 'Captain',
                 'username'          => 'captain',
                 'email'             => 'captain@bdes.gov',
                 'role'              => 'barangay_captain',
@@ -42,6 +46,8 @@ class UserSeeder extends Seeder
             // ==========================================
             [
                 'name'              => 'BDRRMC Inventory Officer',
+                'first_name'         => 'Inventory',
+                'last_name'          => 'Officer',
                 'username'          => 'inventory',
                 'email'             => 'inventory@bdes.gov',
                 'role'              => 'inventory_officer',
@@ -51,6 +57,8 @@ class UserSeeder extends Seeder
             ],
             [
                 'name'              => 'BDRRMC Operational Officer',
+                'first_name'         => 'Operational',
+                'last_name'          => 'Officer',
                 'username'          => 'member',
                 'email'             => 'member@bdes.gov',
                 'role'              => 'inventory_officer',
@@ -60,6 +68,8 @@ class UserSeeder extends Seeder
             ],
             [
                 'name'              => 'Maintenance Specialist Officer',
+                'first_name'         => 'Maintenance',
+                'last_name'          => 'Officer',
                 'username'          => 'maintenance',
                 'email'             => 'maintenance@bdes.gov',
                 'role'              => 'maintenance_officer',
@@ -69,6 +79,8 @@ class UserSeeder extends Seeder
             ],
             [
                 'name'              => 'Barangay Staff Member',
+                'first_name'         => 'Barangay',
+                'last_name'          => 'Staff',
                 'username'          => 'staff',
                 'email'             => 'staff@bdes.gov',
                 'role'              => 'viewer',

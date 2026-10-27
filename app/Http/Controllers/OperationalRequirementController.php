@@ -56,23 +56,29 @@ class OperationalRequirementController extends Controller
         }
         $request->merge($input);
 
-        $validated = $request->validate([
-            'asset_type_id'    => 'required|exists:asset_types,id',
+        $rules = array_merge([
+            'asset_type_id'    => 'nullable|exists:asset_types,id',
             'requirement_type' => 'required|string|max:255',
             'unit'             => 'required|string|max:50',
             'maximum_capacity' => 'required|numeric|min:0.01',
             'minimum_level'    => 'required|numeric|min:0|lt:maximum_capacity',
             'current_level'    => 'required|numeric|min:0|lte:maximum_capacity',
             'description'      => 'nullable|string',
-        ], [
+        ], \App\Services\ReceiptService::rules());
+
+        $messages = array_merge([
             'minimum_level.lt'  => 'The minimum reserve level must be less than the maximum capacity.',
             'current_level.lte' => 'The current stock level cannot exceed the maximum capacity.',
-        ]);
+        ], \App\Services\ReceiptService::messages());
 
-        OperationalRequirement::create($validated);
+        $validated = $request->validate($rules, $messages);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
+
+        $requirement = OperationalRequirement::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($requirement, $request);
 
         return redirect()->route('operational-requirements.index')
-            ->with('success', 'Operational requirement created successfully!');
+            ->with('success', 'Operational requirement created successfully with supporting documents!');
     }
 
     public function update(Request $request, OperationalRequirement $operationalRequirement)
@@ -98,7 +104,7 @@ class OperationalRequirementController extends Controller
         $request->merge($input);
 
         $validated = $request->validate([
-            'asset_type_id'    => 'required|exists:asset_types,id',
+            'asset_type_id'    => 'nullable|exists:asset_types,id',
             'requirement_type' => 'required|string|max:255',
             'unit'             => 'required|string|max:50',
             'maximum_capacity' => 'required|numeric|min:0.01',
@@ -133,15 +139,40 @@ class OperationalRequirementController extends Controller
         if ($request->has('amount') && is_string($request->amount)) {
             $request->merge(['amount' => trim(str_replace([',', ' '], '', $request->amount))]);
         }
+        if ($request->has('unit_cost') && is_string($request->unit_cost)) {
+            $request->merge(['unit_cost' => trim(str_replace([',', ' '], '', $request->unit_cost))]);
+        }
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'amount' => 'required|numeric|min:0.01',
+            'unit_cost' => 'nullable|numeric|min:0',
+            'supplier' => 'nullable|string|max:255',
+            'notes' => 'nullable|string|max:1000',
+        ], \App\Services\ReceiptService::rules());
+
+        $validated = $request->validate($rules, \App\Services\ReceiptService::messages());
+
+        $qty = (float) $validated['amount'];
+        $unitCost = (float) ($validated['unit_cost'] ?? 0);
+        $totalCost = $qty * $unitCost;
+
+        $restock = \App\Models\OperationalRequirementRestock::create([
+            'operational_requirement_id' => $operationalRequirement->id,
+            'quantity' => $qty,
+            'unit_cost' => $unitCost,
+            'total_cost' => $totalCost,
+            'restocked_at' => now()->toDateString(),
+            'supplier' => $validated['supplier'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+            'recorded_by' => auth()->id(),
         ]);
 
-        $operationalRequirement->refill((float) $validated['amount']);
+        \App\Services\ReceiptService::attachFromRequest($restock, $request);
+
+        $operationalRequirement->refill($qty);
 
         return redirect()->route('operational-requirements.index')
-            ->with('success', "Refilled {$operationalRequirement->requirement_type}. Current balance: {$operationalRequirement->fresh()->current_level} {$operationalRequirement->unit}.");
+            ->with('success', "Added {$qty} {$operationalRequirement->unit} to {$operationalRequirement->requirement_type}. Current balance: {$operationalRequirement->fresh()->current_level} {$operationalRequirement->unit}.");
     }
 
     public function consume(Request $request, OperationalRequirement $operationalRequirement)

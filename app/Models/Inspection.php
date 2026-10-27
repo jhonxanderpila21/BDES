@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasReceipts;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Inspection extends Model
 {
+    use HasReceipts;
     protected $fillable = [
         'asset_id',
         'inspector',

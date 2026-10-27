@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AssetNeed extends Model
 {
+    use \App\Models\Concerns\HasReceipts;
+
     protected $fillable = [
         'asset_id',
         'asset_type',

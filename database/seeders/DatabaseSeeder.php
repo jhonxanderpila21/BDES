@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             OperationalRequirementSeeder::class,
             MaintenanceScheduleSeeder::class,
             AssetAccessorySeeder::class,
+            AttachmentSeeder::class,
             ReportedAssetSeeder::class,
             AssetHistorySeeder::class,
         ]);

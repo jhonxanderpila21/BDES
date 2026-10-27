@@ -9,6 +9,8 @@ use App\Models\Location;
 use App\Services\AssetLifecycleService;
 use App\Services\AuditTrailService;
 use App\Services\PhilippineAccountingStandardService;
+use App\Services\ReceiptService;
+use App\Services\SkuGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -163,10 +165,11 @@ class AssetController extends Controller
         }
         $request->merge($input);
 
-        $validated = $request->validate([
+        $rules = array_merge([
             'name'             => ['required', 'string', 'max:255'],
             'category_id'      => ['required', 'exists:asset_categories,id'],
             'type_id'          => ['nullable', 'exists:asset_types,id'],
+            'quantity'         => ['nullable', 'integer', 'min:1', 'max:100'],
             'serial_number'    => ['nullable', 'string', 'max:255'],
             'manufacturer'     => ['nullable', 'string', 'max:255'],
             'purchase_date'    => ['nullable', 'date'],
@@ -176,7 +179,12 @@ class AssetController extends Controller
             'condition'        => ['required', 'in:excellent,good,fair,poor'],
             'status'           => ['required', 'in:available,deployed,under_maintenance,out_of_service,lost,retired'],
             'notes'            => ['nullable', 'string'],
-        ]);
+        ], ReceiptService::rules());
+
+        $validated = $request->validate($rules, ReceiptService::messages());
+
+        $quantity = (int) ($validated['quantity'] ?? 1);
+        if ($quantity < 1) $quantity = 1;
 
         // Automate Philippine Government Standard accounting parameters (COA Circular No. 2022-004 & GAM for LGUs)
         $category = AssetCategory::find($validated['category_id']);
@@ -187,26 +195,60 @@ class AssetController extends Controller
             $type?->name
         );
 
-        $asset = DB::transaction(function () use ($validated) {
-            do {
-                $validated['code'] = 'AST-' . Str::upper(Str::random(8));
-            } while (Asset::where('code', $validated['code'])->exists());
+        unset($validated['quantity'], $validated['receipts'], $validated['receipt_reference_number']);
 
-            $created = Asset::create($validated);
+        $baseSerial = $validated['serial_number'] ?? null;
 
-            AuditTrailService::log(
-                'created',
-                $created,
-                "Asset [{$created->name}] ({$created->code}) registered into inventory.",
-                null,
-                $created->only(['name', 'code', 'status', 'condition', 'category_id', 'location_id', 'acquisition_cost'])
+        $createdAssets = DB::transaction(function () use ($validated, $quantity, $category, $type, $baseSerial, $request) {
+            $skus = SkuGenerator::generateBatch(
+                $quantity,
+                $validated['category_id'] ?? null,
+                $validated['type_id'] ?? null,
+                $validated['name'] ?? null
             );
+            $assets = [];
 
-            return $created;
+            foreach ($skus as $index => $sku) {
+                $recordData = $validated;
+                $recordData['code'] = $sku;
+
+                if (!empty($baseSerial)) {
+                    $recordData['serial_number'] = $quantity > 1 ? "{$baseSerial}-" . ($index + 1) : $baseSerial;
+                }
+
+                $asset = Asset::create($recordData);
+
+                if ($index === 0) {
+                    ReceiptService::attachFromRequest($asset, $request);
+                    $asset->load('receipts');
+                } elseif (!empty($assets[0]) && $assets[0]->receipts->isNotEmpty()) {
+                    ReceiptService::linkExisting($assets[0]->receipts, $asset);
+                }
+
+                AuditTrailService::log(
+                    'created',
+                    $asset,
+                    "Asset [{$asset->name}] ({$asset->code}) registered into inventory.",
+                    null,
+                    $asset->only(['name', 'code', 'status', 'condition', 'category_id', 'location_id', 'acquisition_cost'])
+                );
+
+                $assets[] = $asset;
+            }
+
+            return $assets;
         });
 
+        $count = count($createdAssets);
+        $first = $createdAssets[0] ?? null;
+        $skuList = collect($createdAssets)->pluck('code')->implode(', ');
+
+        $message = $count > 1
+            ? "Successfully registered {$count} assets: {$skuList}!"
+            : "Asset [{$first?->name}] ({$first?->code}) registered successfully!";
+
         return redirect()->route('assets.index', ['tab' => 'assets'])
-            ->with('success', "Asset [{$asset->name}] ({$asset->code}) registered successfully!");
+            ->with('success', $message);
     }
 
     /**
@@ -214,6 +256,8 @@ class AssetController extends Controller
      */
     public function show(Asset $asset)
     {
+        $isAdmin = auth()->user()?->isAdmin();
+
         $asset->load([
             'category',
             'type',
@@ -227,6 +271,11 @@ class AssetController extends Controller
             'attachments',
             'accessories',
             'documents.uploader',
+            'auditLogs' => function ($q) use ($isAdmin) {
+                if (!$isAdmin) {
+                    $q->where('user_id', auth()->id());
+                }
+            },
             'auditLogs.user',
             'reportedAssets'
         ]);

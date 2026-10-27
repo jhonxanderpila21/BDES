@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasReceipts;
 use App\Services\ReportedAssetService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReportedAsset extends Model
 {
+    use HasReceipts;
     protected $fillable = [
         'asset_id',
         'asset_category',

@@ -19,13 +19,7 @@
         </a>
     </div>
 
-    @if(session('success'))
-        <x-alert type="success" class="mb-6">{{ session('success') }}</x-alert>
-    @endif
 
-    @if($errors->any())
-        <x-alert type="danger" class="mb-6">{{ $errors->first() }}</x-alert>
-    @endif
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {{-- Left Column: Report Details --}}

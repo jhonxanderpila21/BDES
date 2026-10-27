@@ -43,21 +43,21 @@ class UserManagementTest extends TestCase
         $response->assertOk();
         $response->assertSee('User Management');
         $response->assertSee('Add New User');
-        $response->assertSee('name="name"', false);
+        $response->assertSee('name="first_name"', false);
+        $response->assertSee('name="last_name"', false);
         $response->assertSee('name="username"', false);
         $response->assertSee('name="email"', false);
-        $response->assertSee('name="password"', false);
+        $response->assertSee('TempPass_123');
     }
 
     public function test_admin_can_create_new_user_with_standard_modal_fields(): void
     {
         $userData = [
-            'name'                  => 'Officer Juan Dela Cruz',
-            'username'              => 'jdelacruz',
-            'email'                 => 'jdelacruz@bdes.gov',
-            'role'                  => 'inventory_officer',
-            'password'              => 'password123',
-            'password_confirmation' => 'password123',
+            'first_name' => 'Juan',
+            'last_name'  => 'Dela Cruz',
+            'username'   => 'jdelacruz',
+            'email'      => 'jdelacruz@bdes.gov',
+            'role'       => 'inventory_officer',
         ];
 
         $response = $this->actingAs($this->admin)->post(route('users.store'), $userData);
@@ -66,26 +66,27 @@ class UserManagementTest extends TestCase
         $response->assertSessionHas('success');
 
         $this->assertDatabaseHas('users', [
-            'name'      => 'Officer Juan Dela Cruz',
-            'username'  => 'jdelacruz',
-            'email'     => 'jdelacruz@bdes.gov',
-            'role'      => 'inventory_officer',
-            'is_active' => true,
+            'first_name' => 'Juan',
+            'last_name'  => 'Dela Cruz',
+            'username'   => 'jdelacruz',
+            'email'      => 'jdelacruz@bdes.gov',
+            'role'       => 'inventory_officer',
+            'is_active'  => true,
         ]);
 
         $created = User::where('username', 'jdelacruz')->first();
-        $this->assertTrue(Hash::check('password123', $created->password));
+        $this->assertEquals('Juan Dela Cruz', $created->name);
+        $this->assertTrue(Hash::check(User::DEFAULT_TEMP_PASSWORD, $created->password));
     }
 
     public function test_user_creation_with_first_name_and_last_name_fallback(): void
     {
         $userData = [
-            'first_name'            => 'Maria',
-            'last_name'             => 'Santos',
-            'email'                 => 'msantos@bdes.gov',
-            'role'                  => 'maintenance_officer',
-            'password'              => 'securepass123',
-            'password_confirmation' => 'securepass123',
+            'first_name' => 'Maria',
+            'last_name'  => 'Santos',
+            'username'   => 'msantos',
+            'email'      => 'msantos@bdes.gov',
+            'role'       => 'maintenance_officer',
         ];
 
         $response = $this->actingAs($this->admin)->post(route('users.store'), $userData);
@@ -102,16 +103,15 @@ class UserManagementTest extends TestCase
     public function test_user_creation_validation_errors(): void
     {
         $response = $this->actingAs($this->admin)->post(route('users.store'), [
-            '_form'                 => 'add_user',
-            'name'                  => '',
-            'username'              => '',
-            'email'                 => '',
-            'password'              => '',
-            'password_confirmation' => '',
-            'role'                  => '',
+            '_form'      => 'add_user',
+            'first_name' => '',
+            'last_name'  => '',
+            'username'   => '',
+            'email'      => '',
+            'role'       => '',
         ]);
 
-        $response->assertSessionHasErrors(['name', 'username', 'email', 'password', 'role']);
+        $response->assertSessionHasErrors(['first_name', 'last_name', 'username', 'email', 'role']);
     }
 
     public function test_admin_can_update_user(): void
