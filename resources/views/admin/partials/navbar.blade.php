@@ -125,8 +125,9 @@
 
                         <template x-for="item in filteredItems" :key="item.id">
                             <div 
-                                class="p-3 transition-colors duration-150 flex items-start gap-3 relative group"
+                                class="p-3 transition-colors duration-150 flex items-start gap-3 relative group cursor-pointer"
                                 :class="item.is_read ? 'bg-white opacity-85 hover:bg-gray-50' : 'bg-blue-50/40 hover:bg-blue-50/70 font-medium'"
+                                @click="openItem(item)"
                             >
                                 {{-- Severity / Category Icon --}}
                                 <div 
@@ -163,7 +164,7 @@
                                         <div class="flex items-center gap-1">
                                             <a 
                                                 :href="item.url" 
-                                                @click.stop="markAsRead(item)"
+                                                @click.stop="openItem(item)"
                                                 title="Open record"
                                                 class="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-100/60 rounded-md transition-colors"
                                             >
@@ -176,15 +177,10 @@
                         </template>
                     </div>
 
-                    {{-- Footer --}}
-                    <div class="p-2.5 sm:p-3 bg-gray-50 border-t border-gray-100 text-center">
-                        <a 
-                            href="{{ route('notifications.index') }}" 
-                            class="w-full inline-flex items-center justify-center gap-1.5 py-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50/80 rounded-lg transition-colors"
-                        >
-                            <span>View All Notifications</span>
-                            <i class="fas fa-arrow-right text-[10px]"></i>
-                        </a>
+                    {{-- Footer: Status Info --}}
+                    <div class="px-3 py-2 bg-gray-50 border-t border-gray-100 text-center text-[11px] text-gray-500 flex items-center justify-center gap-1.5 font-medium">
+                        <i class="fas fa-shield-alt text-blue-600 text-[10px]"></i>
+                        <span>Real-time operational alerts</span>
                     </div>
                 </div>
             </div>
@@ -319,6 +315,15 @@
                     return this.items.filter(item => !item.is_read);
                 }
                 return this.items;
+            },
+
+            openItem(item) {
+                if (!item.is_read) {
+                    this.markAsRead(item);
+                }
+                if (item.url) {
+                    window.location.href = item.url;
+                }
             },
 
             markAsRead(item, event) {

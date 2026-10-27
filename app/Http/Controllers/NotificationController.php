@@ -6,37 +6,12 @@ use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
     public function __construct(
         protected NotificationService $notificationService
     ) {}
-
-    /**
-     * Display the full Notifications Center page with category filtering.
-     */
-    public function index(Request $request): View
-    {
-        $currentFilter = $request->get('filter', 'all');
-        $allNotifications = $this->notificationService->getAllNotifications();
-
-        // Categorized statistics
-        $stats = [
-            'total' => $allNotifications->count(),
-            'unread' => $allNotifications->where('is_read', false)->count(),
-            'maintenance' => $allNotifications->where('category', 'maintenance')->count(),
-            'deployment' => $allNotifications->where('category', 'deployment')->count(),
-            'inspection' => $allNotifications->where('category', 'inspection')->count(),
-            'reported_asset' => $allNotifications->where('category', 'reported_asset')->count(),
-        ];
-
-        // Filtered list
-        $notifications = $this->notificationService->getAllNotifications($currentFilter);
-
-        return view('admin.notifications.index', compact('notifications', 'currentFilter', 'stats'));
-    }
 
     /**
      * Mark a single notification as read (supports both AJAX and form submit).
@@ -96,6 +71,6 @@ class NotificationController extends Controller
             return redirect()->to($notification['url']);
         }
 
-        return redirect()->route('notifications.index');
+        return redirect()->route('dashboard');
     }
 }

@@ -25,29 +25,39 @@ class NotificationCenterTest extends TestCase
     }
 
     /**
-     * Test notification center page loads successfully and does not mark notifications as read on load.
+     * Test the dedicated notification center page and its route have been removed.
      */
-    public function test_notification_center_renders_without_mark_read_buttons(): void
+    public function test_notification_center_page_and_route_are_removed(): void
     {
-        $response = $this->actingAs($this->user)->get(route('notifications.index'));
+        $response = $this->actingAs($this->user)->get('/notifications');
 
-        $response->assertStatus(200);
-        $response->assertSee('Notifications Center');
-        // Verify individual "Mark read" button is removed
-        $response->assertDontSee('title="Mark as read"', false);
-        $response->assertDontSee('>Mark read<', false);
+        $response->assertStatus(404);
     }
 
     /**
-     * Test merely visiting the page does not mark notifications as read.
+     * Test the sidebar no longer contains the Notifications Center menu item.
      */
-    public function test_page_open_does_not_mark_notifications_as_read(): void
+    public function test_sidebar_does_not_contain_notification_center(): void
     {
-        $notificationService = app(NotificationService::class);
-        $this->actingAs($this->user)->get(route('notifications.index'));
+        $response = $this->actingAs($this->user)->get(route('dashboard'));
 
-        $readIds = $notificationService->getReadNotificationIds();
-        $this->assertNotContains('non-existent-id', $readIds);
+        $response->assertStatus(200);
+        $response->assertDontSee('Notifications Center');
+        $response->assertDontSee('href="http://localhost/notifications"', false);
+    }
+
+    /**
+     * Test the top navigation bell is retained with dropdown and unread badge.
+     */
+    public function test_top_navbar_bell_is_retained(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('dashboard'));
+
+        $response->assertStatus(200);
+        $response->assertSee('fa-bell', false);
+        $response->assertSee('bdesNotificationComponent', false);
+        $response->assertSee(route('notifications.mark-read'), false);
+        $response->assertSee(route('notifications.mark-all-read'), false);
     }
 
     /**

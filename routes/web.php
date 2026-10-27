@@ -111,8 +111,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/asset-history/export', [AssetHistoryController::class, 'export'])->name('asset-history.export');
     Route::get('/asset-history', [AssetHistoryController::class, 'index'])->name('asset-history.index');
 
-    // Notifications Center & Actions
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    // Notifications Actions
     Route::get('/notifications/{id}/view', [NotificationController::class, 'viewRecord'])->name('notifications.view-record');
     Route::post('/notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
