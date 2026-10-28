@@ -126,7 +126,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($deployments as $deployment)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors group"
+                            onclick="if(!event.target.closest('button, a, form, input, select')) openDeploymentDetailsModal(@json($deployment));"
+                            title="Click to view full details for {{ $deployment->asset->name ?? 'Equipment' }}">
                             {{-- Asset Info --}}
                             <td class="px-6 py-4">
                                 <div class="flex items-start gap-3">
@@ -137,21 +139,27 @@
                                         <span class="inline-block px-2 py-0.5 text-xs font-mono font-semibold rounded bg-gray-100 text-gray-800 border border-gray-200 mb-1">
                                             {{ $deployment->asset->code ?? 'N/A' }}
                                         </span>
-                                        <p class="text-sm font-semibold text-gray-900">{{ $deployment->asset->name ?? 'Unknown Asset' }}</p>
+                                        <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $deployment->asset->name ?? 'Unknown Asset' }}</p>
                                         <p class="text-xs text-gray-500">{{ $deployment->asset->category->name ?? 'Uncategorized' }}</p>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- Destination & Team --}}
+                            {{-- Destination & Borrower --}}
                             <td class="px-6 py-4 text-sm">
                                 <p class="font-medium text-gray-900 flex items-center gap-1.5">
                                     <i class="fas fa-location-dot text-red-500 text-xs"></i>
                                     {{ $deployment->destination }}
                                 </p>
-                                <p class="text-gray-500 text-xs mt-1 flex items-center gap-1.5">
-                                    <i class="fas fa-users text-gray-400 text-xs"></i>
-                                    {{ $deployment->assigned_team ?? 'No team assigned' }}
+                                <p class="text-gray-700 text-xs mt-1 flex items-center gap-1.5 font-medium">
+                                    @if($deployment->borrower_type === 'resident')
+                                        <i class="fas fa-house-user text-purple-600 text-xs"></i>
+                                        <span>{{ $deployment->borrower_name ?: ($deployment->responsible_person ?? 'Resident Borrower') }}</span>
+                                        <span class="px-1.5 py-0.2 rounded text-[10px] bg-purple-100 text-purple-800 font-semibold">Resident</span>
+                                    @else
+                                        <i class="fas fa-user-shield text-blue-600 text-xs"></i>
+                                        <span>{{ $deployment->responsible_person ?: ($deployment->assigned_team ?? 'Field Team') }}</span>
+                                    @endif
                                 </p>
                                 @if($deployment->purpose)
                                     <p class="text-xs text-gray-400 mt-0.5 truncate max-w-xs" title="{{ $deployment->purpose }}">
@@ -230,13 +238,47 @@
 
                             {{-- Action Buttons --}}
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <div class="flex items-center justify-end gap-2">
+                                <div class="flex items-center justify-end gap-1.5">
+                                    {{-- Return Equipment Button (for active/pending deployments) --}}
+                                    @if($deployment->status !== 'returned')
+                                        <button 
+                                            type="button"
+                                            onclick='openRecordReturnModal(@json($deployment))' 
+                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-colors shadow-xs" 
+                                            title="Record Return of this Borrowed Equipment"
+                                        >
+                                            <i class="fas fa-undo"></i>
+                                            <span>Return</span>
+                                        </button>
+                                    @else
+                                        {{-- View Return Details --}}
+                                        @if($deployment->returnRecord)
+                                            <button 
+                                                type="button"
+                                                onclick='openViewReturnModal(@json($deployment->returnRecord), @js($deployment->asset->name ?? 'Asset'), @js($deployment->asset->code ?? 'N/A'))' 
+                                                class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors" 
+                                                title="View Return Inspection Details"
+                                            >
+                                                <i class="fas fa-clipboard-check"></i>
+                                            </button>
+                                        @endif
+                                    @endif
+
+                                    {{-- View Details Modal --}}
+                                    <button 
+                                        type="button"
+                                        onclick='openDeploymentDetailsModal(@json($deployment))' 
+                                        class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors" 
+                                        title="View Full Details"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                    </button>
 
                                     {{-- Edit Deployment --}}
                                     <button 
                                         type="button"
                                         onclick='openEditDeploymentModal(@json($deployment))' 
-                                        class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors" 
+                                        class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 transition-colors" 
                                         title="Edit Deployment"
                                     >
                                         <i class="fas fa-edit"></i>
@@ -246,7 +288,7 @@
                                     <form action="{{ route('deployment.destroy', $deployment) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this deployment record?');">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
+                                        <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -402,14 +444,39 @@
         <form id="recordReturnForm" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
 
+            {{-- Deployed Item Selector --}}
+            <div id="return_item_selector_wrapper" class="space-y-1.5">
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-700">
+                    Deployed / Borrowed Equipment to Return <span class="text-red-500">*</span>
+                </label>
+                @if($activeDeployments->isEmpty())
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs flex items-center gap-2">
+                        <i class="fas fa-triangle-exclamation text-amber-600 text-sm"></i>
+                        <span>There are currently no active deployed equipment to return.</span>
+                    </div>
+                @else
+                    <select id="generic_deployment_select" onchange="onDeploymentSelectChange(this)" class="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium text-gray-800">
+                        <option value="">-- Choose from {{ $activeDeployments->count() }} Deployed Equipment --</option>
+                        @foreach($activeDeployments as $actDep)
+                            <option value="{{ $actDep->id }}" data-deployment="{{ base64_encode(json_encode($actDep)) }}">
+                                [{{ $actDep->asset->code ?? 'AST' }}] {{ $actDep->asset->name ?? 'Equipment' }} — Deployed: {{ $actDep->deployment_date ? \Carbon\Carbon::parse($actDep->deployment_date)->format('M d, Y') : 'Active' }}
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
+            </div>
+
             {{-- Deployment Context Badge --}}
-            <div class="p-3.5 bg-blue-50 border border-blue-200 rounded-lg">
-                <div class="flex items-center justify-between mb-1">
+            <div id="return_context_card" class="p-3.5 bg-blue-50/80 border border-blue-200 rounded-lg space-y-1">
+                <div class="flex items-center justify-between">
                     <span id="return_asset_code" class="text-xs font-mono font-bold text-blue-900 bg-white px-2 py-0.5 rounded border border-blue-200">AST-000</span>
                     <span id="return_deployment_dest" class="text-xs text-blue-700 font-medium">Destination</span>
                 </div>
-                <h4 id="return_asset_name" class="text-sm font-bold text-gray-900 mb-0.5">Asset Name</h4>
-                <p id="return_deployment_team" class="text-xs text-gray-600">Assigned Team</p>
+                <h4 id="return_asset_name" class="text-sm font-bold text-gray-900">Asset Name</h4>
+                <div class="flex items-center justify-between text-xs text-gray-600">
+                    <p id="return_deployment_team">Assigned Team</p>
+                    <p id="return_deployment_date" class="text-gray-500"></p>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -462,7 +529,7 @@
             />
 
             <div class="flex gap-3 mt-6">
-                <x-button variant="primary" type="submit" class="flex-1">
+                <x-button variant="primary" type="submit" id="submit_return_btn" class="flex-1" :disabled="$activeDeployments->isEmpty()">
                     <i class="fas fa-check-circle mr-1.5"></i> Confirm Return
                 </x-button>
                 <x-button variant="secondary" type="button" onclick="window.closeModal('record-return-modal')" class="flex-1">
@@ -585,24 +652,246 @@
         </form>
     </x-modal>
 
+    {{-- ======================================================== --}}
+    {{-- MODAL 5: View Full Deployment & Return Dossier            --}}
+    {{-- ======================================================== --}}
+    <x-modal id="view-deployment-modal" title="Deployment & Return Details">
+        <div class="space-y-5 text-sm">
+            {{-- Asset Identification Header --}}
+            <div class="p-4 bg-gray-50 border border-gray-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center text-lg flex-shrink-0 mt-0.5">
+                        <i class="fas fa-boxes-stacked"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="dossier_asset_code" class="text-xs font-mono font-bold text-blue-800 bg-white px-2 py-0.5 rounded border border-blue-200">AST-000</span>
+                            <span id="dossier_asset_serial" class="text-xs text-gray-500 font-mono"></span>
+                        </div>
+                        <h4 id="dossier_asset_name" class="font-bold text-gray-900 text-base mt-1">Equipment Name</h4>
+                        <p id="dossier_asset_category" class="text-xs text-gray-500 mt-0.5">Category</p>
+                    </div>
+                </div>
+                <div id="dossier_status_badge" class="flex items-center">
+                    {{-- Status Badge injected dynamically --}}
+                </div>
+            </div>
+
+            {{-- Deployment / Borrowing Information --}}
+            <div class="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
+                <h5 class="text-xs font-bold uppercase tracking-wider text-blue-900 border-b border-gray-100 pb-2 flex items-center gap-2">
+                    <i class="fas fa-truck-ramp-box text-blue-600"></i> Mission & Borrowing Record
+                </h5>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                        <span class="text-xs text-gray-500 block">Destination / Facility</span>
+                        <p id="dossier_destination" class="font-semibold text-gray-900 mt-0.5"></p>
+                    </div>
+
+                    <div>
+                        <span class="text-xs text-gray-500 block">Borrower Classification</span>
+                        <div id="dossier_borrower_type" class="mt-0.5 text-xs font-medium"></div>
+                    </div>
+
+                    <div>
+                        <span class="text-xs text-gray-500 block">Responsible Custodian / Borrower</span>
+                        <p id="dossier_borrower_name" class="font-semibold text-gray-900 mt-0.5"></p>
+                    </div>
+
+                    <div>
+                        <span class="text-xs text-gray-500 block">Assigned Unit / Team</span>
+                        <p id="dossier_assigned_team" class="font-medium text-gray-800 mt-0.5"></p>
+                    </div>
+                </div>
+
+                {{-- Resident Borrower Specific Credentials --}}
+                <div id="dossier_resident_credentials" class="p-3 bg-purple-50/60 border border-purple-200 rounded-lg space-y-2 hidden">
+                    <span class="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <i class="fas fa-id-card text-purple-600"></i> Resident Borrower Credentials
+                    </span>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                        <div>
+                            <span class="text-gray-500 block">Contact Phone:</span>
+                            <span id="dossier_borrower_contact" class="font-semibold text-gray-900"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block">Valid ID:</span>
+                            <span id="dossier_borrower_id" class="font-semibold text-gray-900"></span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block">Residential Address:</span>
+                            <span id="dossier_borrower_address" class="font-medium text-gray-800"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2 border-t border-gray-100">
+                    <div>
+                        <span class="text-xs text-gray-500 block">Deployment Date</span>
+                        <p id="dossier_deployment_date" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Expected Return Date</span>
+                        <p id="dossier_expected_return_date" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Approving Officer</span>
+                        <p id="dossier_approved_by" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-xs text-gray-500 block">Purpose / Operation Notes</span>
+                    <p id="dossier_purpose" class="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-200 mt-1 leading-relaxed"></p>
+                </div>
+
+                {{-- Attached Borrowing Documents / Signed Slips --}}
+                <div id="dossier_receipts_container" class="hidden pt-1">
+                    <span class="text-xs text-gray-500 block mb-1.5 font-medium">Attached Requisition Slip / Documents</span>
+                    <div id="dossier_receipts_list" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+
+            {{-- Return Record & Inspection Details (Only shown if returned or return record exists) --}}
+            <div id="dossier_return_section" class="border border-emerald-200 rounded-xl p-4 bg-emerald-50/20 space-y-3 hidden">
+                <h5 class="text-xs font-bold uppercase tracking-wider text-emerald-900 border-b border-emerald-200/60 pb-2 flex items-center justify-between">
+                    <span class="flex items-center gap-2">
+                        <i class="fas fa-clipboard-check text-emerald-600"></i> Return & Turn-in Inspection
+                    </span>
+                    <span id="dossier_return_status" class="text-xs uppercase px-2 py-0.5 rounded font-bold bg-white text-emerald-800 border border-emerald-200"></span>
+                </h5>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                        <span class="text-xs text-gray-500 block">Return Date</span>
+                        <p id="dossier_return_date" class="font-semibold text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Returned By</span>
+                        <p id="dossier_returned_by" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Receiving Officer</span>
+                        <p id="dossier_received_by" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Post-Return Condition</span>
+                        <div id="dossier_return_condition" class="mt-1"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-emerald-200/50">
+                    <div>
+                        <span class="text-xs text-gray-500 block">Actual Storage Location</span>
+                        <p id="dossier_actual_location" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <span class="text-xs text-gray-500 block">Damage Notes</span>
+                        <div id="dossier_damage_notes" class="mt-1 p-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 whitespace-pre-wrap">None reported</div>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Missing Accessories</span>
+                        <div id="dossier_missing_accessories" class="mt-1 p-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 whitespace-pre-wrap">None reported</div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer Action Buttons --}}
+            <div class="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                    <button type="button" id="dossier_process_return_btn" onclick="closeDeploymentDetailsAndReturn()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                        <i class="fas fa-undo"></i>
+                        <span>Process Return of Asset</span>
+                    </button>
+                    <button type="button" onclick="closeDeploymentDetailsAndEdit()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-colors">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit Deployment</span>
+                    </button>
+                </div>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('view-deployment-modal')">
+                    Close Details
+                </x-button>
+            </div>
+        </div>
+    </x-modal>
+
     @push('scripts')
         <script>
+            let currentDeploymentModalData = null;
+
             function openCreateDeploymentModal() {
                 window.openModal('create-deployment-modal');
             }
 
+            function openGenericRecordReturnModal() {
+                const select = document.getElementById('generic_deployment_select');
+                if (select) {
+                    if (select.options.length > 1) {
+                        if (!select.value) {
+                            select.selectedIndex = 1;
+                        }
+                        onDeploymentSelectChange(select);
+                    } else {
+                        const form = document.getElementById('recordReturnForm');
+                        form.action = '#';
+                        const submitBtn = document.getElementById('submit_return_btn');
+                        if (submitBtn) submitBtn.disabled = true;
+                    }
+                }
+                window.openModal('record-return-modal');
+            }
+
+            function onDeploymentSelectChange(selectElem) {
+                const selectedOption = selectElem.options[selectElem.selectedIndex];
+                if (!selectedOption || !selectedOption.value) return;
+
+                try {
+                    const rawData = selectedOption.getAttribute('data-deployment');
+                    if (rawData) {
+                        const depData = JSON.parse(atob(rawData));
+                        populateReturnModalFields(depData);
+                    }
+                } catch(e) {
+                    console.error('Error parsing deployment option data', e);
+                }
+            }
+
             function openRecordReturnModal(deployment) {
+                const select = document.getElementById('generic_deployment_select');
+                if (select) {
+                    select.value = deployment.id;
+                }
+                populateReturnModalFields(deployment);
+                window.openModal('record-return-modal');
+            }
+
+            function populateReturnModalFields(deployment) {
                 const form = document.getElementById('recordReturnForm');
                 form.action = '/deployment/' + deployment.id + '/return';
 
-                document.getElementById('return_asset_code').textContent = deployment.asset ? deployment.asset.code : 'AST-N/A';
-                document.getElementById('return_asset_name').textContent = deployment.asset ? deployment.asset.name : 'Unknown Asset';
+                const submitBtn = document.getElementById('submit_return_btn');
+                if (submitBtn) submitBtn.disabled = false;
+
+                const asset = deployment.asset || {};
+                document.getElementById('return_asset_code').textContent = asset.code || 'AST-N/A';
+                document.getElementById('return_asset_name').textContent = asset.name || 'Unknown Asset';
                 document.getElementById('return_deployment_dest').textContent = deployment.destination || 'Field';
-                document.getElementById('return_deployment_team').textContent = 'Deployed to: ' + (deployment.assigned_team || 'Unassigned');
-                document.getElementById('return_returned_by').value = deployment.assigned_team || deployment.responsible_person || '';
+
+                const borrowerDisplay = deployment.borrower_name || deployment.responsible_person || deployment.assigned_team || 'Field Team';
+                document.getElementById('return_deployment_team').textContent = 'Borrower / Custodian: ' + borrowerDisplay;
+                document.getElementById('return_returned_by').value = borrowerDisplay;
 
                 let depDate = deployment.deployment_date || '';
                 if (depDate.includes('T')) depDate = depDate.split('T')[0];
+                const depDateElem = document.getElementById('return_deployment_date');
+                if (depDateElem) {
+                    depDateElem.textContent = depDate ? 'Deployed: ' + depDate : '';
+                }
+
                 if (depDate) {
                     const retDateField = document.getElementById('return_date');
                     retDateField.min = depDate;
@@ -610,8 +899,134 @@
                         retDateField.value = depDate;
                     }
                 }
+            }
 
-                window.openModal('record-return-modal');
+            function openDeploymentDetailsModal(deployment) {
+                currentDeploymentModalData = deployment;
+
+                // Asset Info
+                const asset = deployment.asset || {};
+                document.getElementById('dossier_asset_code').textContent = asset.code || 'AST-N/A';
+                document.getElementById('dossier_asset_name').textContent = asset.name || 'Unknown Equipment';
+                document.getElementById('dossier_asset_category').textContent = (asset.category ? asset.category.name : 'Uncategorized') + (asset.type ? ' · ' + asset.type.name : '');
+                document.getElementById('dossier_asset_serial').textContent = asset.serial_number ? 'S/N: ' + asset.serial_number : 'Unserialized';
+
+                // Status Badge
+                const status = deployment.status || 'active';
+                const statusBadges = {
+                    'active': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Active in Field</span>',
+                    'pending_return': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">Pending Return</span>',
+                    'returned': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800 border border-purple-200">Returned</span>'
+                };
+                let statusHtml = statusBadges[status] || `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">${status}</span>`;
+
+                let expDate = deployment.expected_return_date || '';
+                if (expDate.includes('T')) expDate = expDate.split('T')[0];
+                const today = new Date().toISOString().split('T')[0];
+                if (status !== 'returned' && expDate && expDate < today) {
+                    statusHtml += ' <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-800 border border-rose-200 ml-1.5">Overdue</span>';
+                }
+                document.getElementById('dossier_status_badge').innerHTML = statusHtml;
+
+                // Destination & Borrower
+                document.getElementById('dossier_destination').textContent = deployment.destination || 'Not specified';
+
+                const isResident = deployment.borrower_type === 'resident';
+                const borrowerTypeElem = document.getElementById('dossier_borrower_type');
+                if (borrowerTypeElem) {
+                    borrowerTypeElem.innerHTML = isResident
+                        ? '<span class="inline-flex items-center gap-1 text-purple-700 font-semibold"><i class="fas fa-house-user"></i> Barangay Resident</span>'
+                        : '<span class="inline-flex items-center gap-1 text-blue-700 font-semibold"><i class="fas fa-user-shield"></i> Barangay Responder / Personnel</span>';
+                }
+
+                document.getElementById('dossier_borrower_name').textContent = deployment.borrower_name || deployment.responsible_person || 'Not specified';
+                document.getElementById('dossier_assigned_team').textContent = deployment.assigned_team || 'No team assigned';
+
+                // Resident specific credentials section
+                const residentSection = document.getElementById('dossier_resident_credentials');
+                if (residentSection) {
+                    if (isResident) {
+                        residentSection.classList.remove('hidden');
+                        document.getElementById('dossier_borrower_contact').textContent = deployment.borrower_contact || 'None';
+                        document.getElementById('dossier_borrower_id').textContent = (deployment.borrower_id_type || 'ID') + ': ' + (deployment.borrower_id_number || 'None');
+                        document.getElementById('dossier_borrower_address').textContent = deployment.borrower_address || 'None';
+                    } else {
+                        residentSection.classList.add('hidden');
+                    }
+                }
+
+                // Dates
+                let depDate = deployment.deployment_date || '';
+                if (depDate.includes('T')) depDate = depDate.split('T')[0];
+                document.getElementById('dossier_deployment_date').textContent = depDate || 'Not specified';
+                document.getElementById('dossier_expected_return_date').textContent = expDate || 'Open-ended';
+
+                // Approving Officer & Condition Before
+                const approvedBy = deployment.approved_by_user ? deployment.approved_by_user.name : (deployment.user ? deployment.user.name : 'Authorized Official');
+                document.getElementById('dossier_approved_by').textContent = approvedBy;
+                document.getElementById('dossier_condition_before').textContent = (deployment.condition_before || asset.condition || 'Good').toUpperCase();
+                document.getElementById('dossier_purpose').textContent = deployment.purpose || 'None provided';
+
+                // Attached receipts / borrow slip
+                const receiptsContainer = document.getElementById('dossier_receipts_container');
+                const receiptsList = document.getElementById('dossier_receipts_list');
+                if (receiptsContainer && receiptsList) {
+                    if (deployment.receipts && deployment.receipts.length > 0) {
+                        receiptsContainer.classList.remove('hidden');
+                        receiptsList.innerHTML = deployment.receipts.map(r => `
+                            <a href="${r.file_url || ('/storage/' + r.file_path)}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-medium text-blue-700 transition-colors">
+                                <i class="fas fa-file text-gray-500"></i>
+                                <span>${r.original_name || 'Signed Form / Document'}</span>
+                                <i class="fas fa-arrow-up-right-from-square text-[10px] text-gray-400"></i>
+                            </a>
+                        `).join('');
+                    } else {
+                        receiptsContainer.classList.add('hidden');
+                        receiptsList.innerHTML = '';
+                    }
+                }
+
+                // Return Inspection Section
+                const returnSection = document.getElementById('dossier_return_section');
+                const processReturnBtn = document.getElementById('dossier_process_return_btn');
+                if (deployment.status === 'returned' || deployment.return_record) {
+                    if (returnSection) returnSection.classList.remove('hidden');
+                    if (processReturnBtn) processReturnBtn.classList.add('hidden');
+
+                    const ret = deployment.return_record || {};
+                    let retDate = ret.return_date || '';
+                    if (retDate.includes('T')) retDate = retDate.split('T')[0];
+                    document.getElementById('dossier_return_date').textContent = retDate || 'Recorded';
+                    document.getElementById('dossier_returned_by').textContent = ret.returned_by || 'Not specified';
+                    document.getElementById('dossier_received_by').textContent = (ret.received_by_user ? ret.received_by_user.name : 'Receiving Officer');
+                    document.getElementById('dossier_actual_location').textContent = ret.actual_location || 'Not specified';
+                    document.getElementById('dossier_return_status').textContent = (ret.status || 'received').replace(/_/g, ' ').toUpperCase();
+
+                    const cond = (ret.condition || 'good').toUpperCase();
+                    document.getElementById('dossier_return_condition').innerHTML = `<span class="px-2 py-0.5 text-xs font-bold rounded-full ${cond === 'EXCELLENT' || cond === 'GOOD' ? 'bg-emerald-100 text-emerald-800' : (cond === 'FAIR' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')}">${cond}</span>`;
+
+                    document.getElementById('dossier_damage_notes').textContent = ret.damage_notes || 'None reported';
+                    document.getElementById('dossier_missing_accessories').textContent = ret.missing_accessories || 'None reported';
+                } else {
+                    if (returnSection) returnSection.classList.add('hidden');
+                    if (processReturnBtn) processReturnBtn.classList.remove('hidden');
+                }
+
+                window.openModal('view-deployment-modal');
+            }
+
+            function closeDeploymentDetailsAndReturn() {
+                window.closeModal('view-deployment-modal');
+                if (currentDeploymentModalData) {
+                    openRecordReturnModal(currentDeploymentModalData);
+                }
+            }
+
+            function closeDeploymentDetailsAndEdit() {
+                window.closeModal('view-deployment-modal');
+                if (currentDeploymentModalData) {
+                    openEditDeploymentModal(currentDeploymentModalData);
+                }
             }
 
             function openViewReturnModal(returnRecord, assetName, assetCode) {

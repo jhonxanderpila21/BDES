@@ -21,7 +21,14 @@ class DeploymentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Deployment::with(['asset.category', 'returnRecord.receivedByUser', 'approvedByUser', 'user']);
+        $query = Deployment::with([
+            'asset.category',
+            'asset.type',
+            'returnRecord.receivedByUser',
+            'approvedByUser',
+            'user',
+            'receipts',
+        ]);
 
         // Search
         if ($request->filled('search')) {
@@ -64,7 +71,7 @@ class DeploymentController extends Controller
             ->get();
 
         // Active deployments for quick return modal
-        $activeDeployments = Deployment::with('asset')
+        $activeDeployments = Deployment::with(['asset.category', 'asset.type', 'approvedByUser'])
             ->where('status', '!=', 'returned')
             ->orderBy('id', 'desc')
             ->get();
