@@ -136,11 +136,21 @@ function initPasswordEyeToggles(root) {
 	(root || document).querySelectorAll('input[type="password"]').forEach(attachEyeToggle);
 }
 
+function startEyeObserver() {
+	if (document.body) {
+		_eyeObserver.observe(document.body, { childList: true, subtree: true });
+	}
+}
+
 // Run on initial page load
 if (document.readyState === 'loading') {
-	document.addEventListener('DOMContentLoaded', () => initPasswordEyeToggles());
+	document.addEventListener('DOMContentLoaded', () => {
+		initPasswordEyeToggles();
+		startEyeObserver();
+	});
 } else {
 	initPasswordEyeToggles();
+	startEyeObserver();
 }
 
 // Re-run whenever a modal opens (new inputs may have been added to the DOM)
@@ -154,7 +164,7 @@ const _eyeObserver = new MutationObserver((mutations) => {
 	for (const mutation of mutations) {
 		for (const node of mutation.addedNodes) {
 			if (node.nodeType !== 1) continue;
-			if (node.matches('input[type="password"]')) {
+			if (node.matches && node.matches('input[type="password"]')) {
 				attachEyeToggle(node);
 			} else {
 				node.querySelectorAll && node.querySelectorAll('input[type="password"]').forEach(attachEyeToggle);
@@ -162,4 +172,3 @@ const _eyeObserver = new MutationObserver((mutations) => {
 		}
 	}
 });
-_eyeObserver.observe(document.body, { childList: true, subtree: true });

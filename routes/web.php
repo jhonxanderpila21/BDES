@@ -96,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Asset Financials & Valuation (Admin Only)
     Route::middleware(['role:administrator,barangay_captain'])->group(function () {
+        Route::redirect('/financials', '/financials/expenses')->name('financials.index');
         Route::get('/financials/expenses/export', [ExpenseController::class, 'export'])->name('financials.expenses.export')->middleware('throttle:60,1');
         Route::get('/financials/expenses', [ExpenseController::class, 'index'])->name('financials.expenses');
 
