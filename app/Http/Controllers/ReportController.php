@@ -84,8 +84,9 @@ class ReportController extends Controller
 
         $categories = AssetCategory::orderBy('name')->get();
         $data = $this->fetchReportData($selectedType, $request, 25);
+        $summary = $this->getReportSummary($selectedType);
 
-        return view('admin.reports.index', compact('types', 'selectedType', 'categories', 'data'));
+        return view('admin.reports.index', compact('types', 'selectedType', 'categories', 'data', 'summary'));
     }
 
     /**
@@ -319,6 +320,226 @@ class ReportController extends Controller
                 });
                 break;
         }
+    }
+
+    /**
+     * Get 3 highlight summary metrics for the given report type.
+     */
+    protected function getReportSummary(string $type): array
+    {
+        return match ($type) {
+            'inventory' => [
+                [
+                    'label'   => 'Total Assets',
+                    'value'   => number_format(Asset::count()),
+                    'icon'    => 'fas fa-boxes-stacked',
+                    'color'   => 'blue',
+                    'subtext' => 'All registered barangay equipment',
+                ],
+                [
+                    'label'   => 'Total Valuation',
+                    'value'   => '₱' . number_format((float) Asset::sum('acquisition_cost'), 2),
+                    'icon'    => 'fas fa-peso-sign',
+                    'color'   => 'emerald',
+                    'subtext' => 'Combined acquisition cost',
+                ],
+                [
+                    'label'   => 'Asset Categories',
+                    'value'   => number_format(AssetCategory::count()),
+                    'icon'    => 'fas fa-tags',
+                    'color'   => 'indigo',
+                    'subtext' => 'Distinct classification groups',
+                ],
+            ],
+            'readiness' => [
+                [
+                    'label'   => 'Ready-to-Deploy Assets',
+                    'value'   => number_format(Asset::where('status', 'available')->whereIn('condition', ['excellent', 'good'])->count()),
+                    'icon'    => 'fas fa-circle-check',
+                    'color'   => 'emerald',
+                    'subtext' => 'Available in good / excellent state',
+                ],
+                [
+                    'label'   => 'Available in Storage',
+                    'value'   => number_format(Asset::where('status', 'available')->count()),
+                    'icon'    => 'fas fa-warehouse',
+                    'color'   => 'blue',
+                    'subtext' => 'Stationed and ready for assignment',
+                ],
+                [
+                    'label'   => 'Readiness Rate',
+                    'value'   => (Asset::count() > 0 ? round((Asset::where('status', 'available')->whereIn('condition', ['excellent', 'good'])->count() / Asset::count()) * 100, 1) : 100) . '%',
+                    'icon'    => 'fas fa-gauge-high',
+                    'color'   => 'indigo',
+                    'subtext' => 'Fleet readiness percentage',
+                ],
+            ],
+            'deployment_history', 'active_deployments' => [
+                [
+                    'label'   => 'Active Deployments',
+                    'value'   => number_format(Deployment::where('status', 'active')->count()),
+                    'icon'    => 'fas fa-truck-fast',
+                    'color'   => 'amber',
+                    'subtext' => 'Assets currently in field operations',
+                ],
+                [
+                    'label'   => 'Returned Equipment',
+                    'value'   => number_format(Deployment::where('status', 'returned')->count()),
+                    'icon'    => 'fas fa-rotate-left',
+                    'color'   => 'emerald',
+                    'subtext' => 'Safely returned and checked in',
+                ],
+                [
+                    'label'   => 'Total Deployments',
+                    'value'   => number_format(Deployment::count()),
+                    'icon'    => 'fas fa-clipboard-list',
+                    'color'   => 'blue',
+                    'subtext' => 'Lifetime deployment records',
+                ],
+            ],
+            'maintenance_overdue' => [
+                [
+                    'label'   => 'Open Work Orders',
+                    'value'   => number_format(Maintenance::whereIn('status', ['pending', 'in_progress'])->count()),
+                    'icon'    => 'fas fa-wrench',
+                    'color'   => 'amber',
+                    'subtext' => 'Pending or actively in-service',
+                ],
+                [
+                    'label'   => 'In-Progress Repairs',
+                    'value'   => number_format(Maintenance::where('status', 'in_progress')->count()),
+                    'icon'    => 'fas fa-screwdriver-wrench',
+                    'color'   => 'blue',
+                    'subtext' => 'Currently being repaired by staff',
+                ],
+                [
+                    'label'   => 'Completed Restorations',
+                    'value'   => number_format(Maintenance::where('status', 'completed')->count()),
+                    'icon'    => 'fas fa-circle-check',
+                    'color'   => 'emerald',
+                    'subtext' => 'Successfully restored to service',
+                ],
+            ],
+            'maintenance_expenses' => [
+                [
+                    'label'   => 'Total Repair Cost',
+                    'value'   => '₱' . number_format((float) Maintenance::where('status', 'completed')->sum('cost'), 2),
+                    'icon'    => 'fas fa-peso-sign',
+                    'color'   => 'emerald',
+                    'subtext' => 'Cumulative completed repair costs',
+                ],
+                [
+                    'label'   => 'Completed Repairs',
+                    'value'   => number_format(Maintenance::where('status', 'completed')->count()),
+                    'icon'    => 'fas fa-clipboard-check',
+                    'color'   => 'blue',
+                    'subtext' => 'Finished work orders',
+                ],
+                [
+                    'label'   => 'Average Cost / Repair',
+                    'value'   => '₱' . number_format(Maintenance::where('status', 'completed')->count() > 0 ? ((float) Maintenance::where('status', 'completed')->sum('cost') / Maintenance::where('status', 'completed')->count()) : 0, 2),
+                    'icon'    => 'fas fa-calculator',
+                    'color'   => 'purple',
+                    'subtext' => 'Average per completed order',
+                ],
+            ],
+            'inspections' => [
+                [
+                    'label'   => 'Total Inspections',
+                    'value'   => number_format(Inspection::count()),
+                    'icon'    => 'fas fa-clipboard-check',
+                    'color'   => 'blue',
+                    'subtext' => 'Total equipment checks conducted',
+                ],
+                [
+                    'label'   => 'Passed Inspections',
+                    'value'   => number_format(Inspection::where('result', 'passed')->count()),
+                    'icon'    => 'fas fa-shield-check',
+                    'color'   => 'emerald',
+                    'subtext' => 'Verified fit for disaster duty',
+                ],
+                [
+                    'label'   => 'Failed / Flagged',
+                    'value'   => number_format(Inspection::where('result', 'failed')->count()),
+                    'icon'    => 'fas fa-triangle-exclamation',
+                    'color'   => 'rose',
+                    'subtext' => 'Flagged for repairs or replacement',
+                ],
+            ],
+            'high_risk' => [
+                [
+                    'label'   => 'Out of Service / Lost',
+                    'value'   => number_format(Asset::whereIn('status', ['out_of_service', 'lost'])->count()),
+                    'icon'    => 'fas fa-ban',
+                    'color'   => 'rose',
+                    'subtext' => 'Unavailable for emergency dispatch',
+                ],
+                [
+                    'label'   => 'Poor Condition Assets',
+                    'value'   => number_format(Asset::where('condition', 'poor')->count()),
+                    'icon'    => 'fas fa-triangle-exclamation',
+                    'color'   => 'amber',
+                    'subtext' => 'Critical wear requiring attention',
+                ],
+                [
+                    'label'   => 'Total High-Risk Items',
+                    'value'   => number_format(Asset::where(function ($q) {
+                        $q->whereIn('status', ['out_of_service', 'lost'])
+                          ->orWhere('condition', 'poor');
+                    })->count()),
+                    'icon'    => 'fas fa-radiation',
+                    'color'   => 'purple',
+                    'subtext' => 'Requiring urgent administrative action',
+                ],
+            ],
+            'decommissioned' => [
+                [
+                    'label'   => 'Retired Assets',
+                    'value'   => number_format(Asset::where('status', 'retired')->count()),
+                    'icon'    => 'fas fa-box-archive',
+                    'color'   => 'gray',
+                    'subtext' => 'Officially decommissioned assets',
+                ],
+                [
+                    'label'   => 'Disposed Valuation',
+                    'value'   => '₱' . number_format((float) Asset::where('status', 'retired')->sum('acquisition_cost'), 2),
+                    'icon'    => 'fas fa-peso-sign',
+                    'color'   => 'blue',
+                    'subtext' => 'Original acquisition value of retired units',
+                ],
+                [
+                    'label'   => 'Disposed This Year',
+                    'value'   => number_format(Asset::where('status', 'retired')->whereYear('retirement_date', now()->year)->count()),
+                    'icon'    => 'fas fa-calendar-xmark',
+                    'color'   => 'amber',
+                    'subtext' => 'Decommissioned in ' . now()->year,
+                ],
+            ],
+            'audit_trail' => [
+                [
+                    'label'   => 'Total Audit Events',
+                    'value'   => number_format(AuditLog::count()),
+                    'icon'    => 'fas fa-list-check',
+                    'color'   => 'blue',
+                    'subtext' => 'Immutable system logs recorded',
+                ],
+                [
+                    'label'   => 'Activity Logged Today',
+                    'value'   => number_format(AuditLog::whereDate('created_at', today())->count()),
+                    'icon'    => 'fas fa-clock',
+                    'color'   => 'emerald',
+                    'subtext' => 'Events within the last 24 hours',
+                ],
+                [
+                    'label'   => 'Active Audited Users',
+                    'value'   => number_format(AuditLog::distinct('user_id')->count('user_id')),
+                    'icon'    => 'fas fa-users-gear',
+                    'color'   => 'indigo',
+                    'subtext' => 'Users who performed recorded actions',
+                ],
+            ],
+            default => [],
+        };
     }
 }
 

@@ -26,19 +26,23 @@
         </div>
     </div>
 
-    {{-- Report Directory (Standard Reports Grid) --}}
-    <div class="mb-8">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <h2 class="text-lg font-bold text-gray-900">Standard Disaster Equipment Audit Reports</h2>
-                <p class="text-sm text-gray-500">Select any official report to preview data and export registers.</p>
+    {{-- Compact Report Type Selector Bar --}}
+    <div class="mb-6 bg-white rounded-xl shadow-xs border border-gray-200 p-2.5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 pb-2 border-b border-gray-100 mb-2">
+            <div class="flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <i class="fas fa-layer-group text-blue-600"></i>
+                <span>Report Modules:</span>
+                <span class="text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md font-semibold normal-case">
+                    {{ $types[$selectedType]['title'] }}
+                </span>
             </div>
-            <span class="text-xs font-semibold px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full">
-                {{ count($types) }} Available Reports
-            </span>
+            <div class="text-xs text-gray-400">
+                {{ count($types) }} standard reports available
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        {{-- Desktop / Tablet Compact Pill Bar --}}
+        <div class="hidden sm:flex flex-wrap items-center gap-1.5">
             @foreach($types as $key => $meta)
                 @php
                     $isActive = ($selectedType === $key);
@@ -57,35 +61,34 @@
                     };
                 @endphp
                 <a href="{{ route('reports.index', ['type' => $key]) }}"
-                   class="group block p-4 rounded-xl border transition-all duration-200 {{ $isActive ? 'bg-blue-50/80 border-blue-500 shadow-md ring-2 ring-blue-500/20' : 'bg-white border-gray-200 hover:border-blue-300 hover:bg-gray-50/60 shadow-sm' }}">
-                    <div class="flex items-start justify-between mb-2">
-                        <div class="w-9 h-9 rounded-lg flex items-center justify-center text-sm {{ $isActive ? 'bg-blue-600 text-white shadow' : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600' }} transition-colors">
-                            <i class="{{ $iconName }}"></i>
-                        </div>
-                        @if($isActive)
-                            <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Active
-                            </span>
-                        @endif
-                    </div>
-                    <h3 class="font-semibold text-xs leading-snug line-clamp-2 {{ $isActive ? 'text-blue-900' : 'text-gray-800 group-hover:text-blue-600' }}">
-                        {{ $meta['title'] }}
-                    </h3>
-                    <p class="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-relaxed">
-                        {{ $meta['description'] }}
-                    </p>
+                   title="{{ $meta['description'] }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ $isActive ? 'bg-blue-600 text-white shadow-xs font-semibold' : 'bg-gray-50 text-gray-700 hover:bg-blue-50 hover:text-blue-600 border border-gray-200/80 hover:border-blue-200' }}">
+                    <i class="{{ $iconName }} text-[11px] {{ $isActive ? 'text-blue-200' : 'text-gray-400' }}"></i>
+                    <span>{{ $meta['title'] }}</span>
                 </a>
             @endforeach
         </div>
+
+        {{-- Mobile Dropdown Selector --}}
+        <div class="sm:hidden">
+            <label for="mobile-report-select" class="sr-only">Select Report</label>
+            <select id="mobile-report-select" onchange="window.location.href=this.value" class="w-full text-xs py-2 px-3 border border-gray-300 rounded-lg bg-gray-50 font-medium text-gray-800 focus:ring-2 focus:ring-blue-500">
+                @foreach($types as $key => $meta)
+                    <option value="{{ route('reports.index', ['type' => $key]) }}" {{ $selectedType === $key ? 'selected' : '' }}>
+                        {{ $meta['title'] }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
-    {{-- Official Report Document Container --}}
+    {{-- Official Report Document Container (Primary Focus & Emphasis) --}}
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
-        {{-- LGU Government Official Header Banner (Prints nicely) --}}
-        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50/30">
+        {{-- Report Focus Header Banner --}}
+        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-blue-50/40">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div class="flex items-start gap-4">
-                    <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md flex-shrink-0">
+                    <div class="w-13 h-13 p-3 rounded-xl bg-blue-600 text-white flex items-center justify-center text-2xl shadow-md flex-shrink-0">
                         @php
                             $activeIcon = match($types[$selectedType]['icon'] ?? 'clipboard-list') {
                                 'clipboard-list' => 'fas fa-clipboard-list',
@@ -104,24 +107,59 @@
                         <i class="{{ $activeIcon }}"></i>
                     </div>
                     <div>
-                        <div class="text-[11px] uppercase tracking-wider font-semibold text-blue-600">
-                            Barangay Disaster Risk Reduction & Management Council (BDRRMC)
+                        <div class="flex items-center gap-2">
+                            <span class="text-[11px] uppercase tracking-wider font-bold text-blue-600">
+                                Barangay Disaster Risk Reduction & Management Council (BDRRMC)
+                            </span>
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Active View
+                            </span>
                         </div>
-                        <h2 class="text-xl font-bold text-gray-900 mt-0.5">
+                        <h2 class="text-2xl font-extrabold text-gray-900 mt-1">
                             {{ $types[$selectedType]['title'] }}
                         </h2>
-                        <p class="text-sm text-gray-600 mt-1">
+                        <p class="text-sm text-gray-600 mt-1 max-w-2xl">
                             {{ $types[$selectedType]['description'] }}
                         </p>
                     </div>
                 </div>
 
-                <div class="text-left md:text-right text-xs text-gray-500 space-y-1">
+                <div class="text-left md:text-right text-xs text-gray-500 space-y-1 bg-white/70 backdrop-blur-xs p-3 rounded-lg border border-gray-200/60 shadow-2xs">
                     <div><span class="font-semibold text-gray-700">Generated:</span> {{ now()->format('M d, Y h:i A') }}</div>
-                    <div><span class="font-semibold text-gray-700">Official Report ID:</span> <span class="font-mono uppercase">REP-{{ strtoupper(substr(md5($selectedType), 0, 6)) }}-{{ date('Ymd') }}</span></div>
-                    <div><span class="font-semibold text-gray-700">Records Shown:</span> {{ is_countable($data) ? count($data) : ($data->total() ?? 0) }} matching entries</div>
+                    <div><span class="font-semibold text-gray-700">Official Report ID:</span> <span class="font-mono uppercase font-semibold text-gray-800">REP-{{ strtoupper(substr(md5($selectedType), 0, 6)) }}-{{ date('Ymd') }}</span></div>
+                    <div><span class="font-semibold text-gray-700">Records In View:</span> <span class="font-bold text-blue-700">{{ is_countable($data) ? count($data) : ($data->total() ?? 0) }} matching</span></div>
                 </div>
             </div>
+
+            {{-- Summary KPI Metric Highlight Deck --}}
+            @if(!empty($summary))
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-5 pt-5 border-t border-gray-200/80">
+                    @foreach($summary as $metric)
+                        @php
+                            $colorClasses = match($metric['color'] ?? 'blue') {
+                                'emerald' => ['bg' => 'bg-emerald-50/70', 'border' => 'border-emerald-200', 'iconBg' => 'bg-emerald-100 text-emerald-600'],
+                                'amber' => ['bg' => 'bg-amber-50/70', 'border' => 'border-amber-200', 'iconBg' => 'bg-amber-100 text-amber-600'],
+                                'rose', 'red' => ['bg' => 'bg-rose-50/70', 'border' => 'border-rose-200', 'iconBg' => 'bg-rose-100 text-rose-600'],
+                                'purple' => ['bg' => 'bg-purple-50/70', 'border' => 'border-purple-200', 'iconBg' => 'bg-purple-100 text-purple-600'],
+                                'indigo' => ['bg' => 'bg-indigo-50/70', 'border' => 'border-indigo-200', 'iconBg' => 'bg-indigo-100 text-indigo-600'],
+                                default => ['bg' => 'bg-blue-50/70', 'border' => 'border-blue-200', 'iconBg' => 'bg-blue-100 text-blue-600'],
+                            };
+                        @endphp
+                        <div class="p-3.5 rounded-xl border {{ $colorClasses['border'] }} {{ $colorClasses['bg'] }} flex items-center justify-between shadow-2xs">
+                            <div>
+                                <div class="text-[11px] font-bold uppercase tracking-wider text-gray-600">{{ $metric['label'] }}</div>
+                                <div class="text-xl font-extrabold text-gray-900 mt-0.5 tracking-tight">{{ $metric['value'] }}</div>
+                                @if(!empty($metric['subtext']))
+                                    <div class="text-[11px] text-gray-500 mt-0.5">{{ $metric['subtext'] }}</div>
+                                @endif
+                            </div>
+                            <div class="w-10 h-10 rounded-lg {{ $colorClasses['iconBg'] }} flex items-center justify-center text-sm shadow-xs flex-shrink-0">
+                                <i class="{{ $metric['icon'] }}"></i>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
 
             {{-- Optional Filter Bar (if inventory) --}}
             @if($selectedType === 'inventory')
