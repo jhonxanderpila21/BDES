@@ -5,15 +5,15 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
-                        <x-application-logo class="block h-9 w-9 rounded-full object-cover aspect-square shadow-sm" />
-                        <div class="hidden sm:block">
-                            <h2 class="text-base font-bold text-white leading-tight">BDES</h2>
-                            <p class="text-[11px] font-medium text-[#60A5FA] leading-none">Disaster Assets</p>
-                        </div>
-                    </a>
-                </div>
+    <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
+        <x-application-logo class="block h-9 w-9 rounded-full object-cover aspect-square shadow-sm" />
 
+        <div class="hidden sm:block">
+            <h2 class="text-base font-bold text-white leading-tight">BDES</h2>
+            <p class="text-[11px] font-medium text-[#60A5FA] leading-none">Disaster Assets</p>
+        </div>
+    </a>
+</div>
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
