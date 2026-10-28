@@ -24,15 +24,12 @@
         </div>
     </div>
 
-    {{-- Asset Financials Navigation Tabs --}}
-    @include('admin.financials.partials._nav')
-
     {{-- Financial KPI Metric Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {{-- Total Outlay --}}
+        {{-- Total Expenses --}}
         <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">Total Public Outlay</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">Total Expenses</p>
                 <p class="text-2xl font-bold text-emerald-700">₱{{ number_format($kpis['total_expenses'], 2) }}</p>
                 <p class="text-xs text-emerald-600 mt-1">{{ $kpis['total_count'] }} recorded expenditures</p>
             </div>
@@ -41,12 +38,12 @@
             </div>
         </div>
 
-        {{-- Capital Assets --}}
+        {{-- Asset Purchases --}}
         <div class="bg-white rounded-xl p-5 border border-blue-200 bg-blue-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-blue-800 mb-1">Capital Assets</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-blue-800 mb-1">Asset Purchases</p>
                 <p class="text-2xl font-bold text-blue-700">₱{{ number_format($kpis['assets_total'], 2) }}</p>
-                <p class="text-xs text-blue-600 mt-1">Disaster equipment & vehicles</p>
+                <p class="text-xs text-blue-600 mt-1">Equipment and vehicles</p>
             </div>
             <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
                 <i class="fas fa-boxes-stacked"></i>
@@ -58,19 +55,19 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-800 mb-1">Maintenance & Repairs</p>
                 <p class="text-2xl font-bold text-amber-700">₱{{ number_format($kpis['maintenance_total'], 2) }}</p>
-                <p class="text-xs text-amber-600 mt-1">Servicing, oil & parts upkeep</p>
+                <p class="text-xs text-amber-600 mt-1">Servicing, repairs & parts upkeep</p>
             </div>
             <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
                 <i class="fas fa-wrench"></i>
             </div>
         </div>
 
-        {{-- Supplies & Accessories --}}
+        {{-- Supplies & Parts --}}
         <div class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-purple-800 mb-1">Supplies & Accessories</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-purple-800 mb-1">Supplies & Parts</p>
                 <p class="text-2xl font-bold text-purple-700">₱{{ number_format($kpis['supplies_total'] + $kpis['accessories_total'], 2) }}</p>
-                <p class="text-xs text-purple-600 mt-1">Restocks & peripheral attachments</p>
+                <p class="text-xs text-purple-600 mt-1">Consumables and attachments</p>
             </div>
             <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
                 <i class="fas fa-gas-pump"></i>
@@ -84,7 +81,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {{-- Search --}}
                 <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Search Keyword</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Search</label>
                     <div class="relative">
                         <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
                             <i class="fas fa-search text-xs"></i>
@@ -93,7 +90,7 @@
                             type="text"
                             name="search"
                             value="{{ request('search') }}"
-                            placeholder="Search by asset name, SKU, reference, notes..."
+                            placeholder="Search by asset name, code, reference, notes..."
                             class="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                         >
                     </div>
@@ -101,12 +98,12 @@
 
                 {{-- Category Filter --}}
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Expense Category</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Expense Type</label>
                     <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                        <option value="all" {{ request('category') === 'all' || !request('category') ? 'selected' : '' }}>All Categories</option>
-                        <option value="asset" {{ request('category') === 'asset' ? 'selected' : '' }}>Capital Assets</option>
+                        <option value="all" {{ request('category') === 'all' || !request('category') ? 'selected' : '' }}>All Types</option>
+                        <option value="asset" {{ request('category') === 'asset' ? 'selected' : '' }}>Asset Purchases</option>
                         <option value="maintenance" {{ request('category') === 'maintenance' ? 'selected' : '' }}>Maintenance & Repairs</option>
-                        <option value="operational_requirement" {{ request('category') === 'operational_requirement' ? 'selected' : '' }}>Operational Supplies</option>
+                        <option value="operational_requirement" {{ request('category') === 'operational_requirement' ? 'selected' : '' }}>Supplies & Restocks</option>
                         <option value="accessory" {{ request('category') === 'accessory' ? 'selected' : '' }}>Accessories</option>
                         <option value="attachment" {{ request('category') === 'attachment' ? 'selected' : '' }}>Attachments</option>
                     </select>
@@ -116,9 +113,9 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Sort By</label>
                     <select name="sort_by" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                        <option value="date" {{ request('sort_by') === 'date' || !request('sort_by') ? 'selected' : '' }}>Date (Most Recent)</option>
-                        <option value="total_cost" {{ request('sort_by') === 'total_cost' ? 'selected' : '' }}>Total Cost (Highest)</option>
-                        <option value="item_name" {{ request('sort_by') === 'item_name' ? 'selected' : '' }}>Item Name (A-Z)</option>
+                        <option value="date" {{ request('sort_by') === 'date' || !request('sort_by') ? 'selected' : '' }}>Date (Newest First)</option>
+                        <option value="total_cost" {{ request('sort_by') === 'total_cost' ? 'selected' : '' }}>Total Cost (Highest First)</option>
+                        <option value="item_name" {{ request('sort_by') === 'item_name' ? 'selected' : '' }}>Item Name (A to Z)</option>
                     </select>
                 </div>
             </div>
@@ -126,7 +123,7 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 pt-2 border-t border-gray-100">
                 {{-- Date From --}}
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Start Date</label>
                     <input
                         type="date"
                         name="date_from"
@@ -137,7 +134,7 @@
 
                 {{-- Date To --}}
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">End Date</label>
                     <input
                         type="date"
                         name="date_to"
@@ -148,7 +145,7 @@
 
                 {{-- Min Amount --}}
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1">Min Cost (₱)</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Min Amount (₱)</label>
                     <input
                         type="number"
                         step="0.01"
@@ -183,12 +180,12 @@
                     <tr>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Category</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Item & Reference</th>
-                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Qty</th>
-                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Unit Cost</th>
-                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Total Outlay</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Proof / Receipts</th>
-                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Item Name & Reference</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Cost per Unit</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Total Cost</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Receipts</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Details</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">

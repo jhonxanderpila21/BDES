@@ -245,13 +245,13 @@
                             <span>Expenses Ledger</span>
                         </a>
 
-                        {{-- Depreciation Tracking --}}
+                        {{-- Depreciation Schedule --}}
                         <a
                             href="{{ route('financials.depreciation') }}"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('financials.depreciation*')) }}"
                         >
                             <i class="fas fa-arrow-trend-down w-4 text-center {{ $iconClass($isActive('financials.depreciation*')) }}"></i>
-                            <span>Depreciation Tracking</span>
+                            <span>Depreciation Schedule</span>
                         </a>
 
                         {{-- Salvage Value Records --}}
