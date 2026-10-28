@@ -23,26 +23,22 @@
                 <i class="fas fa-file-csv"></i>
                 Export {{ $types[$selectedType]['title'] ?? 'Report' }} (CSV)
             </a>
-            <button onclick="window.print()" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors font-medium text-sm shadow-sm print:hidden">
-                <i class="fas fa-print"></i>
-                Print Report
-            </button>
         </div>
     </div>
 
-    {{-- Report Directory (10 Standard Reports Grid) --}}
-    <div class="mb-8 print:hidden">
+    {{-- Report Directory (Standard Reports Grid) --}}
+    <div class="mb-8">
         <div class="flex items-center justify-between mb-4">
             <div>
                 <h2 class="text-lg font-bold text-gray-900">Standard Disaster Equipment Audit Reports</h2>
-                <p class="text-sm text-gray-500">Select any official LGU compliance or operational report to preview data and export registers.</p>
+                <p class="text-sm text-gray-500">Select any official report to preview data and export registers.</p>
             </div>
             <span class="text-xs font-semibold px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full">
-                10 Available Reports
+                {{ count($types) }} Available Reports
             </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             @foreach($types as $key => $meta)
                 @php
                     $isActive = ($selectedType === $key);
@@ -203,22 +199,14 @@
                                 <th class="px-4 py-3">Readiness Status</th>
                                 <th class="px-4 py-3">Last Verified</th>
                             </tr>
-                        @elseif($selectedType === 'active_deployments')
+                        @elseif($selectedType === 'active_deployments' || $selectedType === 'deployment_history')
                             <tr>
                                 <th class="px-4 py-3">Asset Code</th>
                                 <th class="px-4 py-3">Asset Name</th>
                                 <th class="px-4 py-3">Deployed By</th>
-                                <th class="px-4 py-3">Custodian / Responsible</th>
+                                <th class="px-4 py-3">Borrower / Custodian</th>
                                 <th class="px-4 py-3">Field Destination</th>
-                                <th class="px-4 py-3">Mission Purpose</th>
-                                <th class="px-4 py-3">Deploy Date</th>
-                                <th class="px-4 py-3">Expected Return</th>
-                            </tr>
-                        @elseif($selectedType === 'deployment_history')
-                            <tr>
-                                <th class="px-4 py-3">Asset Code</th>
-                                <th class="px-4 py-3">Asset Name</th>
-                                <th class="px-4 py-3">Destination</th>
+                                <th class="px-4 py-3">Purpose</th>
                                 <th class="px-4 py-3">Deploy Date</th>
                                 <th class="px-4 py-3">Expected Return</th>
                                 <th class="px-4 py-3">Status</th>
@@ -347,7 +335,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-gray-500">{{ $row->updated_at->format('M d, Y') }}</td>
 
-                                @elseif($selectedType === 'active_deployments')
+                                @elseif($selectedType === 'active_deployments' || $selectedType === 'deployment_history')
                                     <td class="px-4 py-3 font-semibold font-mono text-blue-600">
                                         <a href="{{ route('assets.show', $row->asset_id) }}" class="hover:underline">{{ $row->asset?->code ?? 'N/A' }}</a>
                                     </td>
@@ -355,21 +343,12 @@
                                     <td class="px-4 py-3 text-gray-600">{{ $row->user?->name ?? 'N/A' }}</td>
                                     <td class="px-4 py-3 font-medium text-gray-800">{{ $row->responsible_person ?? 'N/A' }}</td>
                                     <td class="px-4 py-3 text-gray-700">{{ $row->location }}</td>
-                                    <td class="px-4 py-3 text-gray-600 max-w-xs truncate">{{ $row->purpose }}</td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $row->deployment_date?->format('M d, Y') ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $row->expected_return_date?->format('M d, Y') ?? 'N/A' }}</td>
-
-                                @elseif($selectedType === 'deployment_history')
-                                    <td class="px-4 py-3 font-semibold font-mono text-blue-600">
-                                        <a href="{{ route('assets.show', $row->asset_id) }}" class="hover:underline">{{ $row->asset?->code ?? 'N/A' }}</a>
-                                    </td>
-                                    <td class="px-4 py-3 font-medium text-gray-900">{{ $row->asset?->name ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3 text-gray-700">{{ $row->location }}</td>
+                                    <td class="px-4 py-3 text-gray-600 max-w-xs truncate">{{ $row->purpose ?? 'N/A' }}</td>
                                     <td class="px-4 py-3 text-gray-600">{{ $row->deployment_date?->format('M d, Y') ?? 'N/A' }}</td>
                                     <td class="px-4 py-3 text-gray-600">{{ $row->expected_return_date?->format('M d, Y') ?? 'N/A' }}</td>
                                     <td class="px-4 py-3">
                                         <span class="inline-flex px-2 py-0.5 rounded text-[11px] font-semibold {{ $row->status === 'returned' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800' }}">
-                                            {{ ucfirst($row->status) }}
+                                            {{ $row->status === 'deployed' ? 'Active in Field' : ucfirst($row->status) }}
                                         </span>
                                     </td>
                                     <td class="px-4 py-3 text-gray-600">{{ $row->returnRecord?->return_date?->format('M d, Y') ?? ($row->status === 'returned' ? 'Returned' : 'In Field') }}</td>
@@ -498,27 +477,4 @@
         @endif
     </div>
 
-    {{-- Official Sign-Off Section for Physical Printouts --}}
-    <div class="hidden print:block mt-12 pt-8 border-t-2 border-gray-300">
-        <div class="grid grid-cols-3 gap-8 text-center text-xs">
-            <div>
-                <div class="border-b border-gray-400 pb-1 mb-1 font-semibold text-gray-900">
-                    {{ auth()->user()->name ?? 'System Officer' }}
-                </div>
-                <div class="text-gray-600">Prepared By (Custodian / Officer)</div>
-            </div>
-            <div>
-                <div class="border-b border-gray-400 pb-1 mb-1 font-semibold text-gray-900">
-                    ____________________________________
-                </div>
-                <div class="text-gray-600">Verified By (Barangay Secretary)</div>
-            </div>
-            <div>
-                <div class="border-b border-gray-400 pb-1 mb-1 font-semibold text-gray-900">
-                    ____________________________________
-                </div>
-                <div class="text-gray-600">Approved By (Punong Barangay / Chairman)</div>
-            </div>
-        </div>
-    </div>
 @endsection

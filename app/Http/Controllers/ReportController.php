@@ -21,53 +21,48 @@ class ReportController extends Controller
     {
         return [
             'inventory' => [
-                'title'       => 'Comprehensive Master Asset Inventory',
-                'description' => 'Complete register of all barangay disaster equipment with location, cost, and status.',
+                'title'       => 'Master Asset Inventory',
+                'description' => 'Complete list of all barangay disaster assets with location, cost, condition, and status.',
                 'icon'        => 'clipboard-list',
             ],
             'readiness' => [
-                'title'       => 'Deployment Readiness & Available Assets',
-                'description' => 'Assets immediately ready for disaster dispatch and emergency operations.',
+                'title'       => 'Ready-to-Deploy Assets',
+                'description' => 'Emergency equipment in good or excellent condition ready for immediate field dispatch.',
                 'icon'        => 'check-circle',
             ],
-            'active_deployments' => [
-                'title'       => 'Current Active Field Deployments',
-                'description' => 'Assets currently deployed in the field with responsible custodians and stations.',
+            'deployment_history' => [
+                'title'       => 'Deployments & Returns History',
+                'description' => 'Active field deployments and returned equipment with return dates and condition ratings.',
                 'icon'        => 'truck',
             ],
-            'deployment_history' => [
-                'title'       => 'Deployment History & Return Compliance',
-                'description' => 'Full log of past missions, return timestamps, and return condition assessments.',
-                'icon'        => 'clock',
-            ],
             'maintenance_overdue' => [
-                'title'       => 'Maintenance Schedule & Work Orders',
-                'description' => 'Pending, overdue, and scheduled preventive maintenance tasks and work orders.',
+                'title'       => 'Maintenance & Work Orders',
+                'description' => 'Scheduled, pending, and in-progress preventive maintenance work orders.',
                 'icon'        => 'wrench',
             ],
             'maintenance_expenses' => [
-                'title'       => 'Maintenance Cost & Expense Summary',
-                'description' => 'Breakdown of repair expenditures, spare parts consumed, and service charges.',
+                'title'       => 'Maintenance Repair Costs',
+                'description' => 'Summary of repair expenses, replacement parts used, and completed maintenance costs.',
                 'icon'        => 'currency-dollar',
             ],
             'inspections' => [
-                'title'       => 'Physical Asset Condition & Inspection Ratings',
-                'description' => 'Quality ratings, safety findings, and scheduled re-inspection timelines.',
+                'title'       => 'Equipment Inspections',
+                'description' => 'Physical inspection findings, pass/fail ratings, and scheduled next inspection dates.',
                 'icon'        => 'shield-check',
             ],
             'high_risk' => [
-                'title'       => 'High-Risk / Damaged / Out-of-Service Assets',
-                'description' => 'Equipment requiring urgent rehabilitation, replacement, or write-off.',
+                'title'       => 'Damaged & High-Risk Assets',
+                'description' => 'Damaged, lost, or out-of-service equipment requiring urgent repair or replacement.',
                 'icon'        => 'exclamation-triangle',
             ],
             'decommissioned' => [
-                'title'       => 'Decommissioned & Retired Assets Register',
-                'description' => 'Assets retired from active duty with authorization signatures and justifications.',
+                'title'       => 'Retired & Disposed Assets',
+                'description' => 'Assets officially decommissioned or retired from service with authorization records.',
                 'icon'        => 'archive',
             ],
             'audit_trail' => [
-                'title'       => 'Audit Trail & Custody Movement History',
-                'description' => 'Immutable audit log of user actions, status transitions, and data modifications.',
+                'title'       => 'Activity Audit Trail',
+                'description' => 'Full activity log of user actions, custody transitions, and system changes.',
                 'icon'        => 'fingerprint',
             ],
         ];
@@ -80,6 +75,9 @@ class ReportController extends Controller
     {
         $types = static::reportTypes();
         $selectedType = $request->get('type', 'inventory');
+        if ($selectedType === 'active_deployments') {
+            $selectedType = 'deployment_history';
+        }
         if (!array_key_exists($selectedType, $types)) {
             $selectedType = 'inventory';
         }
@@ -97,6 +95,9 @@ class ReportController extends Controller
     {
         $types = static::reportTypes();
         $selectedType = $request->get('type', 'inventory');
+        if ($selectedType === 'active_deployments') {
+            $selectedType = 'deployment_history';
+        }
         if (!array_key_exists($selectedType, $types)) {
             $selectedType = 'inventory';
         }
@@ -134,12 +135,7 @@ class ReportController extends Controller
                 ->orderBy('name')
                 ->paginate($limit)->withQueryString(),
 
-            'active_deployments' => Deployment::with(['asset.category', 'user'])
-                ->where('status', 'deployed')
-                ->latest('deployment_date')
-                ->paginate($limit)->withQueryString(),
-
-            'deployment_history' => Deployment::with(['asset', 'user', 'returnRecord.receivedByUser'])
+            'deployment_history', 'active_deployments' => Deployment::with(['asset.category', 'user', 'returnRecord.receivedByUser'])
                 ->latest('deployment_date')
                 ->paginate($limit)->withQueryString(),
 
@@ -210,31 +206,23 @@ class ReportController extends Controller
                 });
                 break;
 
-            case 'active_deployments':
-                fputcsv($handle, ['Asset Code', 'Asset Name', 'Deployed By', 'Responsible Person', 'Destination', 'Purpose', 'Deployment Date', 'Expected Return']);
-                Deployment::with(['asset', 'user'])->where('status', 'deployed')->chunk(200, function ($deps) use ($handle) {
-                    foreach ($deps as $d) {
-                        fputcsv($handle, [
-                            $d->asset?->code ?? 'N/A', $d->asset?->name ?? 'N/A', $d->user?->name ?? 'N/A',
-                            $d->responsible_person ?? 'N/A', $d->location, $d->purpose,
-                            $d->deployment_date?->format('Y-m-d') ?? 'N/A',
-                            $d->expected_return_date?->format('Y-m-d') ?? 'N/A'
-                        ]);
-                    }
-                });
-                break;
-
             case 'deployment_history':
-                fputcsv($handle, ['Asset Code', 'Asset Name', 'Destination', 'Deployed Date', 'Expected Return', 'Status', 'Returned On', 'Condition Upon Return', 'Received By']);
-                Deployment::with(['asset', 'returnRecord.receivedByUser'])->chunk(200, function ($deps) use ($handle) {
+            case 'active_deployments':
+                fputcsv($handle, ['Asset Code', 'Asset Name', 'Deployed By', 'Responsible / Borrower', 'Destination', 'Purpose', 'Deployment Date', 'Expected Return', 'Status', 'Returned Date', 'Return Condition', 'Received By']);
+                Deployment::with(['asset', 'user', 'returnRecord.receivedByUser'])->chunk(200, function ($deps) use ($handle) {
                     foreach ($deps as $d) {
                         $ret = $d->returnRecord;
                         fputcsv($handle, [
-                            $d->asset?->code ?? 'N/A', $d->asset?->name ?? 'N/A', $d->location,
+                            $d->asset?->code ?? 'N/A',
+                            $d->asset?->name ?? 'N/A',
+                            $d->user?->name ?? 'N/A',
+                            $d->responsible_person ?? 'N/A',
+                            $d->location,
+                            $d->purpose ?? 'N/A',
                             $d->deployment_date?->format('Y-m-d') ?? 'N/A',
                             $d->expected_return_date?->format('Y-m-d') ?? 'N/A',
-                            ucfirst($d->status),
-                            $ret?->return_date?->format('Y-m-d') ?? ($d->status === 'returned' ? 'Yes' : 'Pending'),
+                            $d->status === 'deployed' ? 'Active in Field' : ucfirst($d->status),
+                            $ret?->return_date?->format('Y-m-d') ?? ($d->status === 'returned' ? 'Returned' : 'In Field'),
                             $ret?->condition ?? 'N/A',
                             $ret?->receivedByUser?->name ?? 'N/A',
                         ]);
