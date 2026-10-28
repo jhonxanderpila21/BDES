@@ -52,9 +52,9 @@ class PhilippineAccountingStandardTest extends TestCase
         ]);
     }
 
-    public function test_equipment_below_50k_classified_as_semi_expendable_with_zero_depreciation_and_salvage(): void
+    public function test_equipment_below_threshold_classified_as_semi_expendable_with_zero_depreciation_and_salvage(): void
     {
-        // Add equipment with acquisition cost below ₱50,000 (COA Circular No. 2022-004)
+        // Add equipment with acquisition cost below ₱20,000
         $response = $this->actingAs($this->inventoryOfficer)->post(route('assets.store'), [
             'name'             => 'Portable Water Pump',
             'category_id'      => $this->toolsCategory->id,
@@ -62,17 +62,17 @@ class PhilippineAccountingStandardTest extends TestCase
             'condition'        => 'good',
             'status'           => 'available',
             'purchase_date'    => Carbon::now()->subYears(2)->toDateString(),
-            'acquisition_cost' => '₱ 35,000.00', // Under ₱50k threshold
+            'acquisition_cost' => '₱ 12,000.00', // Under ₱20k threshold
         ]);
 
         $response->assertRedirect();
 
         $asset = Asset::where('name', 'Portable Water Pump')->firstOrFail();
 
-        // Enforce Philippine statutory rules
+        // Enforce statutory rules
         $this->assertTrue($asset->is_semi_expendable);
         $this->assertFalse($asset->is_capitalized_ppe);
-        $this->assertEquals('Semi-Expendable Property (< ₱50,000)', $asset->coa_classification);
+        $this->assertEquals('Semi-Expendable Property (< ₱20,000)', $asset->coa_classification);
 
         // Salvage and depreciation MUST evaluate to zero
         $this->assertEquals(0.00, $asset->calculated_salvage_value);
@@ -83,12 +83,12 @@ class PhilippineAccountingStandardTest extends TestCase
         $this->assertEquals(0.00, $asset->depreciation_percentage);
 
         // Book value remains at original cost
-        $this->assertEquals(35000.00, $asset->current_book_value);
+        $this->assertEquals(12000.00, $asset->current_book_value);
     }
 
-    public function test_equipment_at_or_above_50k_auto_calculates_10_percent_salvage_and_coa_useful_life(): void
+    public function test_equipment_at_or_above_threshold_auto_calculates_10_percent_salvage_and_coa_useful_life(): void
     {
-        // Add tangible vehicle with acquisition cost ≥ ₱50,000 (Capitalized PPE)
+        // Add tangible vehicle with acquisition cost ≥ ₱20,000 (Capitalized PPE)
         $response = $this->actingAs($this->inventoryOfficer)->post(route('assets.store'), [
             'name'             => 'Disaster Rescue Ambulance Van',
             'category_id'      => $this->vehicleCategory->id,
@@ -106,7 +106,7 @@ class PhilippineAccountingStandardTest extends TestCase
         // Enforce Capitalized PPE status
         $this->assertTrue($asset->is_capitalized_ppe);
         $this->assertFalse($asset->is_semi_expendable);
-        $this->assertEquals('Capitalized PPE (₱50,000+)', $asset->coa_classification);
+        $this->assertEquals('Capitalized PPE (₱20,000+)', $asset->coa_classification);
 
         // Auto-computed 10% COA residual value (₱120,000 * 10% = ₱12,000)
         $this->assertEquals(12000.00, $asset->calculated_salvage_value);
@@ -146,7 +146,7 @@ class PhilippineAccountingStandardTest extends TestCase
             'useful_life_years' => 3,
         ]);
 
-        // Attempt to update depreciation schedule on item below ₱50,000
+        // Attempt to update depreciation schedule on item below ₱20,000
         $response = $this->actingAs($this->admin)->post(route('financials.depreciation.update', $semiExpendable), [
             'useful_life_years' => 5,
             'salvage_value'     => 1000.00,
@@ -154,9 +154,9 @@ class PhilippineAccountingStandardTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
-        $this->assertTrue(str_contains(session('error'), 'COA Circular No. 2022-004'));
+        $this->assertTrue(str_contains(session('error'), 'Semi-Expendable Property'));
 
-        // Attempt to update salvage record on item below ₱50,000
+        // Attempt to update salvage record on item below ₱20,000
         $salvageResponse = $this->actingAs($this->admin)->post(route('financials.salvage.update', $semiExpendable), [
             'salvage_value' => 850.00,
             'salvage_notes' => 'Custom salvage valuation',
@@ -164,10 +164,10 @@ class PhilippineAccountingStandardTest extends TestCase
 
         $salvageResponse->assertRedirect();
         $salvageResponse->assertSessionHas('error');
-        $this->assertTrue(str_contains(session('error'), 'COA Circular No. 2022-004'));
+        $this->assertTrue(str_contains(session('error'), 'Semi-Expendable Property'));
     }
 
-    public function test_updating_cost_to_meet_50k_promotes_asset_to_capitalized_ppe(): void
+    public function test_updating_cost_to_meet_20k_promotes_asset_to_capitalized_ppe(): void
     {
         $asset = Asset::create([
             'code'              => 'TEST-PROMO-01',
@@ -176,7 +176,7 @@ class PhilippineAccountingStandardTest extends TestCase
             'location_id'       => $this->depotLocation->id,
             'condition'         => 'good',
             'status'            => 'available',
-            'acquisition_cost'  => 40000.00, // Semi-Expendable
+            'acquisition_cost'  => 15000.00, // Semi-Expendable (< 20k)
         ]);
 
         $this->assertFalse($asset->is_capitalized_ppe);

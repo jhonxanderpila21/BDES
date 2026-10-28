@@ -369,17 +369,17 @@ class AssetController extends Controller
             }
         }
 
-        // Enforce Philippine Government Standard accounting adjustments upon cost update
+        // Enforce accounting adjustments upon cost update
         if (isset($validated['acquisition_cost'])) {
             $newCost = (float) $validated['acquisition_cost'];
             if ($newCost < PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) {
                 $validated['salvage_value'] = 0.00;
-                $validated['salvage_notes'] = 'Semi-Expendable Property (< ₱50,000.00 statutory threshold under COA Circular No. 2022-004 / GAM for LGUs). Non-depreciable; residual value set to ₱0.00.';
+                $validated['salvage_notes'] = 'Semi-Expendable Property (< ₱20,000.00 threshold). Non-depreciable; residual value set to ₱0.00.';
             } elseif (($asset->acquisition_cost === null || (float) $asset->acquisition_cost < PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) && $newCost >= PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) {
                 // Newly capitalized asset: assign standard 10% residual value if not present
                 if (empty($asset->salvage_value) || (float) $asset->salvage_value <= 0) {
                     $validated['salvage_value'] = round($newCost * PhilippineAccountingStandardService::DEFAULT_RESIDUAL_RATE, 2);
-                    $validated['salvage_notes'] = 'Capitalized PPE (₱50,000.00+ threshold under COA Circular No. 2022-004). Standard 10% residual value applied per COA Circular No. 2003-007.';
+                    $validated['salvage_notes'] = 'Capitalized PPE (₱20,000.00+ threshold). Standard 10% residual value applied per COA Circular No. 2003-007.';
                 }
             }
         }

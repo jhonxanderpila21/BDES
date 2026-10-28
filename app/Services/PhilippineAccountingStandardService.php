@@ -8,11 +8,11 @@ use Carbon\Carbon;
 class PhilippineAccountingStandardService
 {
     /**
-     * Statutory capitalization threshold for tangible items under COA Circular No. 2022-004
-     * (Amending COA Circular No. 2005-002 and aligned with GAM for LGUs Volume I).
+     * Statutory capitalization threshold for tangible items.
+     * Set to ₱20,000.00 to capture and track high-value disaster equipment (generators, pumps, radios, rescue gear).
      * Items below this threshold are classified as Semi-Expendable Property and are non-depreciable.
      */
-    public const CAPITALIZATION_THRESHOLD = 50000.00;
+    public const CAPITALIZATION_THRESHOLD = 20000.00;
 
     /**
      * Standard residual / salvage rate (10%) mandated by COA Circular No. 2003-007
@@ -42,7 +42,7 @@ class PhilippineAccountingStandardService
     }
 
     /**
-     * Check if the asset's acquisition cost qualifies as Semi-Expendable Property (< ₱50,000.00).
+     * Check if the asset's acquisition cost qualifies as Semi-Expendable Property (< ₱20,000.00).
      */
     public static function isSemiExpendable(?float $acquisitionCost): bool
     {
@@ -55,11 +55,11 @@ class PhilippineAccountingStandardService
     public static function getClassification(?float $acquisitionCost): string
     {
         if (self::isCapitalizedPpe($acquisitionCost)) {
-            return 'Capitalized PPE (₱50,000+)';
+            return 'Capitalized PPE (₱20,000+)';
         }
 
         if (self::isSemiExpendable($acquisitionCost)) {
-            return 'Semi-Expendable Property (< ₱50,000)';
+            return 'Semi-Expendable Property (< ₱20,000)';
         }
 
         return 'Unclassified / Zero Cost';
@@ -118,7 +118,7 @@ class PhilippineAccountingStandardService
 
     /**
      * Compute depreciable amount under Philippine COA Straight-Line method.
-     * Enforces COA limit: Items < ₱50,000 cannot have depreciation (returns 0.00).
+     * Enforces limit: Items < ₱20,000 cannot have depreciation (returns 0.00).
      */
     public static function calculateDepreciableAmount(?float $acquisitionCost, ?float $salvageValue = null): float
     {
@@ -141,14 +141,14 @@ class PhilippineAccountingStandardService
             // Semi-Expendable Property: Non-depreciable, ₱0.00 salvage value
             $attributes['salvage_value'] = 0.00;
             $attributes['salvage_notes'] = $attributes['salvage_notes'] 
-                ?? 'Semi-Expendable Property (< ₱50,000.00 statutory threshold under COA Circular No. 2022-004 / GAM for LGUs). Non-depreciable; residual value set to ₱0.00.';
+                ?? 'Semi-Expendable Property (< ₱20,000.00 threshold). Non-depreciable; residual value set to ₱0.00.';
             
             // Set useful life to standard lifecycle or existing value, but depreciation accessors evaluate to 0
             if (empty($attributes['useful_life_years'])) {
                 $attributes['useful_life_years'] = self::getStandardUsefulLife($categoryName, $typeName);
             }
         } else {
-            // Capitalized PPE (₱50,000.00+)
+            // Capitalized PPE (₱20,000.00+)
             if (empty($attributes['salvage_value']) || (float) $attributes['salvage_value'] <= 0) {
                 $attributes['salvage_value'] = round($cost * self::DEFAULT_RESIDUAL_RATE, 2);
                 $attributes['salvage_notes'] = $attributes['salvage_notes'] 

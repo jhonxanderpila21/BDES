@@ -36,9 +36,9 @@
             <i class="fas fa-scale-balanced text-sm"></i>
         </div>
         <div class="space-y-1">
-            <h4 class="text-xs font-bold text-emerald-950 uppercase tracking-wider">Salvage Value Standard (COA Circular No. 2003-007)</h4>
+            <h4 class="text-xs font-bold text-emerald-950 uppercase tracking-wider">Salvage Value Standard & Capitalization Threshold</h4>
             <p class="text-xs text-emerald-900 leading-relaxed">
-                Equipment ₱50,000.00 and above automatically carries a standard <strong>10% salvage value</strong> at the end of its useful life, unless an explicit appraised scrap value is entered. Items below ₱50,000.00 (semi-expendable) have <strong>₱0.00 salvage value</strong>.
+                Equipment ₱20,000.00 and above automatically carries a standard <strong>10% salvage value</strong> at the end of its useful life, unless an explicit appraised scrap value is entered. Items below ₱20,000.00 (semi-expendable) have <strong>₱0.00 salvage value</strong>.
             </p>
         </div>
     </div>
@@ -156,7 +156,7 @@
                                     @if($asset->is_capitalized_ppe)
                                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">PPE</span>
                                     @else
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Semi-Expendable (< ₱50,000) - Does not carry salvage value">Semi-Expendable</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Semi-Expendable (< ₱20,000) - Does not carry salvage value">Semi-Expendable</span>
                                     @endif
                                 </div>
                                 <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
@@ -171,7 +171,7 @@
                             <td class="px-4 py-3 whitespace-nowrap">
                                 @if(!$asset->is_capitalized_ppe)
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
-                                        <i class="fas fa-ban text-[10px]"></i> Under ₱50k (No Salvage)
+                                        <i class="fas fa-ban text-[10px]"></i> Under ₱20k (No Salvage)
                                     </span>
                                 @elseif($asset->salvage_value !== null && $asset->salvage_value > 0)
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
@@ -186,12 +186,12 @@
                             <td class="px-4 py-3 font-bold whitespace-nowrap {{ $asset->is_capitalized_ppe ? 'text-emerald-700' : 'text-gray-400' }}">
                                 ₱{{ number_format($asset->calculated_salvage_value, 2) }}
                                 @if(!$asset->is_capitalized_ppe)
-                                    <div class="text-[10px] text-amber-700 font-normal">Under ₱50k</div>
+                                    <div class="text-[10px] text-amber-700 font-normal">Under ₱20k</div>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-gray-600 max-w-xs truncate">
                                 @if(!$asset->is_capitalized_ppe)
-                                    <span class="italic text-gray-400">Semi-expendable item (< ₱50k); does not carry salvage value.</span>
+                                    <span class="italic text-gray-400">Semi-expendable item (< ₱20k); does not carry salvage value.</span>
                                 @else
                                     {{ $asset->salvage_notes ?: 'Standard 10% residual value under COA rules.' }}
                                 @endif
@@ -218,7 +218,7 @@
                                         <i class="fas fa-pen-to-square mr-1"></i> Edit Salvage Value
                                     </button>
                                 @else
-                                    <span class="px-2 py-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg inline-flex items-center gap-1 font-medium" title="Under COA rules, items below ₱50,000 do not have a salvage value">
+                                    <span class="px-2 py-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg inline-flex items-center gap-1 font-medium" title="Under accounting rules, items below ₱20,000 do not have a salvage value">
                                         <i class="fas fa-ban text-[10px]"></i> No Salvage
                                     </span>
                                 @endif

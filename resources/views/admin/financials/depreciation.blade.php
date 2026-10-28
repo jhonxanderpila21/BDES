@@ -36,9 +36,9 @@
             <i class="fas fa-scale-balanced text-sm"></i>
         </div>
         <div class="space-y-1">
-            <h4 class="text-xs font-bold text-blue-950 uppercase tracking-wider">Accounting Standard (COA Circular No. 2022-004)</h4>
+            <h4 class="text-xs font-bold text-blue-950 uppercase tracking-wider">Accounting Standard & Capitalization Threshold</h4>
             <p class="text-xs text-blue-900 leading-relaxed">
-                Equipment with purchase costs <span class="font-bold underline">₱50,000.00 and above</span> is capitalized as <strong>Property, Plant, and Equipment (PPE)</strong> and depreciates yearly using the straight-line method with a standard <strong>10% salvage value</strong>. Items below ₱50,000.00 are classified as semi-expendable and do not depreciate.
+                Equipment with purchase costs <span class="font-bold underline">₱20,000.00 and above</span> is capitalized as <strong>Property, Plant, and Equipment (PPE)</strong> and depreciates yearly using the straight-line method with a standard <strong>10% salvage value</strong>. Items below ₱20,000.00 are classified as semi-expendable and do not depreciate.
             </p>
         </div>
     </div>
@@ -160,7 +160,7 @@
                                     @if($asset->is_capitalized_ppe)
                                         <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">PPE</span>
                                     @else
-                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Semi-Expendable (< ₱50,000) - Does not depreciate under COA rules">Semi-Expendable</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200" title="Semi-Expendable (< ₱20,000) - Does not depreciate under accounting rules">Semi-Expendable</span>
                                     @endif
                                 </div>
                                 <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
@@ -190,7 +190,7 @@
                                     </div>
                                 @else
                                     <span class="text-gray-400">₱0.00</span>
-                                    <div class="text-[10px] text-amber-700 font-medium">Under ₱50k</div>
+                                    <div class="text-[10px] text-amber-700 font-medium">Under ₱20k</div>
                                 @endif
                             </td>
                             <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
@@ -240,7 +240,7 @@
                                         <i class="fas fa-pen-to-square mr-1"></i> Edit Details
                                     </button>
                                 @else
-                                    <span class="px-2 py-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg inline-flex items-center gap-1 font-medium" title="Under COA Circular No. 2022-004, semi-expendable equipment (< ₱50,000) does not depreciate">
+                                    <span class="px-2 py-1 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg inline-flex items-center gap-1 font-medium" title="Semi-expendable equipment (< ₱20,000) does not depreciate">
                                         <i class="fas fa-ban text-[10px]"></i> No Depreciation
                                     </span>
                                 @endif
