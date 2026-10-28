@@ -24,6 +24,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AssetDepreciationController;
 use App\Http\Controllers\AssetSalvageController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -118,6 +119,11 @@ Route::middleware(['auth'])->group(function () {
     // Proof-of-cost receipts (shared by every costed module)
     Route::get('/receipts/{receipt}', [\App\Http\Controllers\ReceiptController::class, 'show'])->name('receipts.show');
     Route::delete('/receipts/{receipt}', [\App\Http\Controllers\ReceiptController::class, 'destroy'])->name('receipts.destroy');
+
+    // Notifications Actions
+    Route::get('/notifications/{id}/view', [NotificationController::class, 'viewRecord'])->name('notifications.view-record');
+    Route::post('/notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 
     // Profile (from Breeze)
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
