@@ -29,7 +29,11 @@
                         };
                     @endphp
                     <span class="px-3 py-1 text-xs font-bold uppercase rounded-full border {{ $statusStyles }}">
-                        {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                        @if($asset->status === 'available')
+                            <i class="fas fa-check-circle mr-1 text-[11px]"></i> 1 Available (Ready)
+                        @else
+                            {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                        @endif
                     </span>
                 </div>
                 <x-breadcrumb :items="[
@@ -130,7 +134,11 @@
                         {{ ucfirst($asset->condition) }}
                     </span>
                     <span class="text-xs text-gray-600 font-medium">
-                        {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                        @if($asset->status === 'available')
+                            1 Available (In Stock)
+                        @else
+                            {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                        @endif
                     </span>
                 </div>
             </div>

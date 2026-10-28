@@ -71,11 +71,11 @@
         <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white p-4 rounded-xl border border-[#2E7D32]/30 bg-[#2E7D32]/5 shadow-sm hover:border-[#2E7D32] hover:shadow-md transition-all group block">
             <div class="flex items-center justify-between">
                 <div>
-                    <span class="text-[11px] font-semibold text-[#2E7D32] uppercase tracking-wider block">Available</span>
+                    <span class="text-[11px] font-semibold text-[#2E7D32] uppercase tracking-wider block">Available Quantity</span>
                     <span class="text-2xl font-bold text-[#2E7D32] mt-1 block">
-                        {{ number_format($stats['available']) }}
+                        {{ number_format($stats['available']) }} Available
                     </span>
-                    <span class="text-[10px] text-[#2E7D32]/90 block mt-0.5 font-medium">Ready for dispatch</span>
+                    <span class="text-[10px] text-[#2E7D32]/90 block mt-0.5 font-medium">Ready for immediate dispatch</span>
                 </div>
                 <div class="w-10 h-10 rounded-lg bg-[#2E7D32]/10 text-[#2E7D32] flex items-center justify-center text-lg group-hover:bg-[#2E7D32] group-hover:text-white transition-colors">
                     <i class="fas fa-circle-check"></i>

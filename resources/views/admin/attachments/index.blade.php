@@ -74,8 +74,8 @@
         {{-- Available Accessories --}}
         <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Available Units</p>
-                <p class="text-2xl font-bold text-emerald-700">{{ $metrics['available_accessories'] ?? 0 }}</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Available Quantity</p>
+                <p class="text-2xl font-bold text-emerald-700">{{ $metrics['available_accessories'] ?? 0 }} Available</p>
             </div>
             <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
                 <i class="fas fa-check-circle"></i>
@@ -195,8 +195,10 @@
                                         <span class="text-xs text-gray-400 italic">Unassigned</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center font-semibold text-sm text-gray-900">
-                                    {{ $attachment->quantity }}
+                                <td class="px-6 py-4 whitespace-nowrap text-center font-semibold text-sm">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        {{ $attachment->quantity }} Available
+                                    </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @php
@@ -320,9 +322,13 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @if($acc->status === 'Available')
-                                        <x-badge variant="success" size="sm">{{ $acc->status }}</x-badge>
+                                        <x-badge variant="success" size="sm">
+                                            <i class="fas fa-check-circle mr-1"></i> {{ $acc->quantity }} Available
+                                        </x-badge>
                                     @else
-                                        <x-badge variant="danger" size="sm">{{ $acc->status }}</x-badge>
+                                        <x-badge variant="danger" size="sm">
+                                            <i class="fas fa-circle-xmark mr-1"></i> 0 Available ({{ $acc->status }})
+                                        </x-badge>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">

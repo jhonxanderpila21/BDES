@@ -63,9 +63,13 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($requirement->isLowStock())
-                                    <x-badge variant="danger" size="sm">Low Stock</x-badge>
+                                    <x-badge variant="danger" size="sm">
+                                        <i class="fas fa-triangle-exclamation mr-1"></i> Low Stock ({{ (float)$requirement->current_level }} {{ $requirement->unit }} Available)
+                                    </x-badge>
                                 @else
-                                    <x-badge variant="success" size="sm">In Stock</x-badge>
+                                    <x-badge variant="success" size="sm">
+                                        <i class="fas fa-check-circle mr-1"></i> In Stock ({{ (float)$requirement->current_level }} {{ $requirement->unit }} Available)
+                                    </x-badge>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

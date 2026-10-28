@@ -85,7 +85,12 @@ class AssetController extends Controller
         $assets = $assetsQuery->orderBy($sortBy, $sortDir)->paginate(10, ['*'], 'assets_page')->withQueryString();
 
         // 2. Asset Categories Tab Data
-        $categoriesQuery = AssetCategory::withCount('assets');
+        $categoriesQuery = AssetCategory::withCount([
+            'assets',
+            'assets as available_assets_count' => function ($q) {
+                $q->where('status', 'available');
+            }
+        ]);
         if ($request->filled('search') && $activeTab === 'categories') {
             $search = $request->search;
             $categoriesQuery->where(function ($q) use ($search) {
@@ -99,7 +104,12 @@ class AssetController extends Controller
         $categoriesList = $categoriesQuery->orderBy('name')->paginate(10, ['*'], 'categories_page')->withQueryString();
 
         // 3. Asset Types Tab Data
-        $typesQuery = AssetType::with('category')->withCount('assets');
+        $typesQuery = AssetType::with('category')->withCount([
+            'assets',
+            'assets as available_assets_count' => function ($q) {
+                $q->where('status', 'available');
+            }
+        ]);
         if ($request->filled('search') && $activeTab === 'types') {
             $search = $request->search;
             $typesQuery->where(function ($q) use ($search) {

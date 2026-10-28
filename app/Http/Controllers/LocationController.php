@@ -12,7 +12,12 @@ class LocationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Location::withCount('assets');
+        $query = Location::withCount([
+            'assets',
+            'assets as available_assets_count' => function ($q) {
+                $q->where('status', 'available');
+            }
+        ]);
 
         if ($request->filled('search')) {
             $search = $request->search;

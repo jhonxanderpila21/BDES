@@ -321,7 +321,7 @@
         <form action="{{ route('deployment.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4" x-data="{ borrowerType: 'personnel' }">
             @csrf
 
-            <x-form-group label="Select Available Asset" required>
+            <x-form-group label="Select Available Asset ({{ $availableAssets->count() }} Available)" required>
                 @if($availableAssets->isEmpty())
                     <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm">
                         <i class="fas fa-exclamation-triangle mr-1"></i> No assets are currently available for deployment.

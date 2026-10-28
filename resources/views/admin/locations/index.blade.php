@@ -63,7 +63,12 @@
                                 <x-badge variant="info" size="sm">{{ ucfirst($location->type) }}</x-badge>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $location->address ?? 'N/A' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $location->assets_count }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                    <i class="fas fa-check-circle text-[10px]"></i> {{ $location->available_assets_count ?? 0 }} Available
+                                </span>
+                                <span class="text-xs text-gray-400 block mt-0.5">({{ $location->assets_count }} total)</span>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2">
                                     <div class="flex-1 bg-gray-200 rounded-full h-2">

@@ -108,11 +108,11 @@
                             {{-- Status Badge --}}
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @if($need->status === 'Monitoring Only')
-                                    <x-badge variant="success" size="sm">{{ $need->status }}</x-badge>
+                                    <x-badge variant="success" size="sm">{{ $need->status }} ({{ (float)$need->current_level }} {{ $need->unit }} Available)</x-badge>
                                 @elseif($need->status === 'Requires Maintenance')
-                                    <x-badge variant="warning" size="sm">{{ $need->status }}</x-badge>
+                                    <x-badge variant="warning" size="sm">{{ $need->status }} ({{ (float)$need->current_level }} {{ $need->unit }} Available)</x-badge>
                                 @else
-                                    <x-badge variant="danger" size="sm">{{ $need->status }}</x-badge>
+                                    <x-badge variant="danger" size="sm">{{ $need->status }} ({{ (float)$need->current_level }} {{ $need->unit }} Available)</x-badge>
                                 @endif
                             </td>
                             {{-- Actions --}}

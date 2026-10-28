@@ -63,9 +63,9 @@
         <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-300 transition-colors block">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">Available</p>
-                    <p class="text-xl font-bold text-emerald-700 mt-0.5">{{ $metrics['available_assets'] }}</p>
-                    <p class="text-[10px] text-emerald-600 mt-0.5">Ready for dispatch</p>
+                    <p class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">Available Quantity</p>
+                    <p class="text-xl font-bold text-emerald-700 mt-0.5">{{ $metrics['available_assets'] }} Available</p>
+                    <p class="text-[10px] text-emerald-600 mt-0.5">Ready for immediate dispatch</p>
                 </div>
                 <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
                     <i class="fas fa-circle-check"></i>
@@ -292,7 +292,11 @@
                                         };
                                     @endphp
                                     <x-badge variant="{{ $statusColor }}" size="sm">
-                                        {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                                        @if($asset->status === 'available')
+                                            <i class="fas fa-check mr-1 text-[10px]"></i> 1 Available
+                                        @else
+                                            {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                                        @endif
                                     </x-badge>
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-600">
@@ -403,9 +407,10 @@
                                     {{ $category->description ?: 'No description provided' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        {{ $category->assets_count }} assets
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                        <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> {{ $category->available_assets_count ?? 0 }} Available
                                     </span>
+                                    <span class="text-[11px] text-gray-500 block mt-0.5">({{ $category->assets_count }} total)</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <x-badge variant="{{ $category->status === 'active' ? 'success' : 'secondary' }}" size="sm">
@@ -502,7 +507,12 @@
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <p class="font-semibold text-gray-900">{{ $type->name }}</p>
-                                    <p class="text-xs text-gray-500">{{ $type->assets_count }} assets registered</p>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <span class="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-xs border border-emerald-200">
+                                            <i class="fas fa-check-circle text-[9px]"></i> {{ $type->available_assets_count ?? 0 }} Available
+                                        </span>
+                                        <span class="text-xs text-gray-400">({{ $type->assets_count }} registered)</span>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
                                     {{ $type->category->name ?? 'N/A' }}
@@ -1049,7 +1059,8 @@
                 else if (asset.status === 'lost') statusClasses = 'bg-purple-100 text-purple-800';
                 else if (asset.status === 'retired') statusClasses = 'bg-gray-200 text-gray-800';
 
-                statusBadge.innerHTML = `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusClasses}">${statusText}</span>`;
+                const displayStatus = asset.status === 'available' ? '1 AVAILABLE (IN STOCK)' : statusText;
+                statusBadge.innerHTML = `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusClasses}">${displayStatus}</span>`;
                 window.openModal('view-asset-modal');
             }
 
