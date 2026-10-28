@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Depreciation Tracking - BDES')
+@section('title', 'Depreciation Value - BDES')
 
 @section('content')
 <div class="space-y-6" x-data="{ editModal: false, selectedAsset: {} }">
@@ -9,12 +9,13 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
                 <span class="p-2 bg-blue-100 text-blue-700 rounded-lg"><i class="fas fa-arrow-trend-down"></i></span>
-                Asset Depreciation Schedule
+                Asset Depreciation Value
             </h1>
+            <p class="text-xs text-gray-500 mt-0.5">Asset Depreciation Schedule & straight-line book value tracking.</p>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
                 ['label' => 'Asset Financials'],
-                ['label' => 'Depreciation Schedule']
+                ['label' => 'Depreciation Value']
             ]" />
         </div>
         <div class="flex items-center gap-3">

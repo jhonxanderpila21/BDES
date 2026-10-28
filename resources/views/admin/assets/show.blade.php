@@ -111,49 +111,78 @@
         </div>
     @endif
 
-    {{-- 360° Summary KPI Strip --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Acquisition</span>
-            <span class="text-lg font-bold text-gray-900 mt-1 block">
-                ₱{{ number_format($asset->acquisition_cost ?? 0, 2) }}
-            </span>
-            <span class="text-xs text-gray-400">{{ $asset->purchase_date ? $asset->purchase_date->format('Y-m-d') : 'No date' }}</span>
+    {{-- Key Metrics Summary Strip --}}
+    @php
+        $condBadge = match($asset->condition) {
+            'excellent', 'good' => 'text-emerald-700 bg-emerald-50 border border-emerald-200',
+            'fair'              => 'text-amber-700 bg-amber-50 border border-amber-200',
+            'poor'              => 'text-rose-700 bg-rose-50 border border-rose-200',
+            default             => 'text-gray-700 bg-gray-50 border border-gray-200',
+        };
+    @endphp
+    <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {{-- Status & Condition --}}
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Condition & Status</span>
+                <div class="flex items-center gap-1.5 mt-1">
+                    <span class="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase {{ $condBadge }}">
+                        {{ ucfirst($asset->condition) }}
+                    </span>
+                    <span class="text-xs text-gray-600 font-medium">
+                        {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
+                    </span>
+                </div>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                <i class="fas fa-heart-pulse"></i>
+            </div>
         </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Condition</span>
-            @php
-                $condBadge = match($asset->condition) {
-                    'excellent', 'good' => 'text-emerald-700 bg-emerald-50',
-                    'fair'              => 'text-amber-700 bg-amber-50',
-                    'poor'              => 'text-rose-700 bg-rose-50',
-                    default             => 'text-gray-700 bg-gray-50',
-                };
-            @endphp
-            <span class="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase mt-1 {{ $condBadge }}">
-                {{ ucfirst($asset->condition) }}
-            </span>
-            <span class="text-xs text-gray-400 block mt-1">Operational state</span>
+
+        {{-- Primary Station / Location --}}
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Station / Location</span>
+                <p class="text-sm font-bold text-gray-900 mt-1 truncate max-w-[170px]" title="{{ $asset->location->name ?? 'Not assigned' }}">
+                    {{ $asset->location->name ?? 'Not assigned' }}
+                </p>
+                <p class="text-[11px] text-gray-400">{{ $asset->category->name ?? 'Equipment' }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                <i class="fas fa-location-dot"></i>
+            </div>
         </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Deployments</span>
-            <span class="text-lg font-bold text-gray-900 mt-1 block">{{ $stats['total_deployments'] }}</span>
-            <span class="text-xs text-gray-400">Total missions</span>
+
+        {{-- Acquisition Cost --}}
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Acquisition Cost</span>
+                <p class="text-base font-bold text-gray-900 mt-1">
+                    ₱{{ number_format($asset->acquisition_cost ?? 0, 2) }}
+                </p>
+                <p class="text-[11px] text-gray-400">
+                    {{ $asset->purchase_date ? $asset->purchase_date->format('M d, Y') : 'No purchase date' }}
+                </p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                <i class="fas fa-receipt"></i>
+            </div>
         </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Maintenance</span>
-            <span class="text-lg font-bold text-gray-900 mt-1 block">{{ $stats['total_maintenances'] }}</span>
-            <span class="text-xs text-gray-400">Work orders</span>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Maint. Cost</span>
-            <span class="text-lg font-bold text-gray-900 mt-1 block">₱{{ number_format($stats['total_maintenance_cost'], 2) }}</span>
-            <span class="text-xs text-gray-400">Cumulative repairs</span>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Documents</span>
-            <span class="text-lg font-bold text-gray-900 mt-1 block">{{ $stats['total_documents'] }}</span>
-            <span class="text-xs text-gray-400">Digital records</span>
+
+        {{-- Activity Records --}}
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
+            <div>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Operational Records</span>
+                <p class="text-sm font-bold text-gray-900 mt-1">
+                    {{ $stats['total_deployments'] }} <span class="text-xs font-normal text-gray-500">Missions</span> · {{ $stats['total_maintenances'] }} <span class="text-xs font-normal text-gray-500">Repairs</span>
+                </p>
+                <p class="text-[11px] text-gray-400">
+                    ₱{{ number_format($stats['total_maintenance_cost'], 2) }} upkeep
+                </p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
         </div>
     </div>
 
@@ -162,106 +191,111 @@
         <div class="border-b border-gray-200 px-4 bg-gray-50/50 flex flex-wrap gap-1 print:hidden">
             <button @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-circle-info"></i>
-                <span>1. Overview</span>
+                <span>Overview</span>
             </button>
             <button @click="activeTab = 'financials'" :class="activeTab === 'financials' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-coins"></i>
-                <span>2. Acquisition & Financials</span>
+                <span>Financials</span>
             </button>
             <button @click="activeTab = 'deployments'" :class="activeTab === 'deployments' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-truck"></i>
-                <span>3. Deployments ({{ $stats['total_deployments'] }})</span>
+                <span>Deployments</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $stats['total_deployments'] }}</span>
             </button>
             <button @click="activeTab = 'maintenance'" :class="activeTab === 'maintenance' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-screwdriver-wrench"></i>
-                <span>4. Work Orders ({{ $stats['total_maintenances'] }})</span>
+                <span>Maintenance</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $stats['total_maintenances'] }}</span>
             </button>
             <button @click="activeTab = 'inspections'" :class="activeTab === 'inspections' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-shield-check"></i>
-                <span>5. Inspections ({{ $stats['total_inspections'] }})</span>
+                <span>Inspections</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $stats['total_inspections'] }}</span>
             </button>
             <button @click="activeTab = 'accessories'" :class="activeTab === 'accessories' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-paperclip"></i>
-                <span>6. Accessories & Attachments</span>
+                <span>Accessories</span>
             </button>
             <button @click="activeTab = 'documents'" :class="activeTab === 'documents' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-file-lines"></i>
-                <span>7. Digital Documents ({{ $stats['total_documents'] }})</span>
+                <span>Documents</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $stats['total_documents'] }}</span>
             </button>
             <button @click="activeTab = 'audit'" :class="activeTab === 'audit' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-clock-rotate-left"></i>
-                <span>8. Audit Trail ({{ $asset->auditLogs->count() }})</span>
+                <span>Audit Trail</span>
+                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $asset->auditLogs->count() }}</span>
             </button>
         </div>
 
         <div class="p-6">
-            {{-- TAB 1: OVERVIEW & TECHNICAL SPECS --}}
+            {{-- TAB 1: OVERVIEW & ESSENTIAL DETAILS --}}
             <div x-show="activeTab === 'overview'" class="space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {{-- Specs Table --}}
+                    {{-- Key Technical & Operational Details --}}
                     <div class="lg:col-span-2 space-y-4">
-                        <h3 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
-                            <i class="fas fa-microchip text-blue-600"></i> Technical Specifications & Inventory Profile
-                        </h3>
+                        <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                            <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                <i class="fas fa-id-card text-blue-600"></i> Essential Asset Profile
+                            </h3>
+                            <span class="text-xs text-gray-400">Registered: {{ $asset->created_at->format('M d, Y') }}</span>
+                        </div>
 
-                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                            <div class="bg-gray-50 p-3 rounded-xl">
-                                <dt class="text-xs font-semibold text-gray-500 uppercase">Category</dt>
-                                <dd class="text-gray-900 font-bold mt-0.5">{{ $asset->category->name ?? 'Uncategorized' }}</dd>
+                        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Category & Type</dt>
+                                <dd class="text-gray-900 font-bold mt-0.5 flex items-center gap-2">
+                                    <span>{{ $asset->category->name ?? 'Uncategorized' }}</span>
+                                    @if($asset->type)
+                                        <span class="text-xs text-gray-500 font-medium">({{ $asset->type->name }})</span>
+                                    @endif
+                                </dd>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded-xl">
-                                <dt class="text-xs font-semibold text-gray-500 uppercase">Asset Type</dt>
-                                <dd class="text-gray-900 font-bold mt-0.5">{{ $asset->type->name ?? 'None' }}</dd>
+                            <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Brand / Manufacturer</dt>
+                                <dd class="text-gray-900 font-bold mt-0.5">{{ $asset->manufacturer ?: 'Standard Specification' }}</dd>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded-xl">
-                                <dt class="text-xs font-semibold text-gray-500 uppercase">Serial Number</dt>
-                                <dd class="font-mono text-gray-900 font-bold mt-0.5">{{ $asset->serial_number ?: 'Not specified' }}</dd>
+                            <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Serial Number</dt>
+                                <dd class="font-mono text-gray-900 font-bold mt-0.5">{{ $asset->serial_number ?: 'None / Unserialized' }}</dd>
                             </div>
-                            <div class="bg-gray-50 p-3 rounded-xl">
-                                <dt class="text-xs font-semibold text-gray-500 uppercase">Manufacturer / Brand</dt>
-                                <dd class="text-gray-900 font-bold mt-0.5">{{ $asset->manufacturer ?: 'Not specified' }}</dd>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded-xl">
-                                <dt class="text-xs font-semibold text-gray-500 uppercase">Primary Station / Location</dt>
-                                <dd class="text-gray-900 font-bold mt-0.5">{{ $asset->location->name ?? 'Not assigned' }}</dd>
-                            </div>
-                            <div class="bg-gray-50 p-3 rounded-xl">
-                                <dt class="text-xs font-semibold text-gray-500 uppercase">Created Timestamp</dt>
-                                <dd class="text-gray-900 font-medium mt-0.5">{{ $asset->created_at->format('M d, Y - h:i A') }}</dd>
+                            <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Assigned Station / Location</dt>
+                                <dd class="text-gray-900 font-bold mt-0.5 flex items-center gap-1.5">
+                                    <i class="fas fa-location-dot text-blue-600 text-xs"></i>
+                                    {{ $asset->location->name ?? 'Not assigned' }}
+                                </dd>
                             </div>
                         </dl>
 
                         @if($asset->notes)
-                            <div class="mt-4 bg-blue-50/40 border border-blue-100 p-4 rounded-xl">
-                                <h4 class="text-xs font-bold text-blue-900 uppercase mb-1">Operational Notes & Usage Directives</h4>
-                                <p class="text-sm text-gray-700 leading-relaxed">{{ $asset->notes }}</p>
+                            <div class="bg-blue-50/40 border border-blue-100 p-3.5 rounded-xl">
+                                <h4 class="text-xs font-bold text-blue-900 uppercase mb-1">Operational Notes</h4>
+                                <p class="text-xs text-gray-700 leading-relaxed">{{ $asset->notes }}</p>
                             </div>
                         @endif
                     </div>
 
-                    {{-- Barcode / QR Identification Simulation Card --}}
-                    <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-between text-center">
-                        <div class="w-full">
-                            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-3">LGU Barangay Disaster Asset Tag</span>
-                            
-                            {{-- Simulated Barcode Display --}}
-                            <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm inline-block w-full">
-                                <div class="text-4xl tracking-widest text-gray-900 font-mono select-none py-2" style="letter-spacing: 0.25em;">
-                                    ||||| | |||| || ||| |
-                                </div>
-                                <div class="font-mono font-bold text-gray-800 text-sm tracking-widest">
+                    {{-- Identification & Quick Tag Card --}}
+                    <div class="bg-gray-50/70 border border-gray-200 rounded-2xl p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Asset Tag & Barcode</span>
+                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
                                     {{ $asset->code }}
-                                </div>
+                                </span>
                             </div>
 
-                            <p class="text-xs text-gray-500 mt-4 leading-relaxed">
-                                Affix barcode tag to physical equipment chassis. Scan during field deployments, returns, and periodic audits.
-                            </p>
+                            <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm my-2">
+                                <i class="fas fa-barcode text-4xl text-gray-800 mb-2 block"></i>
+                                <p class="font-mono text-xs font-bold text-gray-900 tracking-wider">{{ $asset->code }}</p>
+                                <p class="text-[10px] text-gray-400 mt-1">Official LGU Disaster Asset Identifier</p>
+                            </div>
                         </div>
 
-                        <div class="w-full mt-6 pt-4 border-t border-gray-200 space-y-2">
+                        <div class="pt-4 border-t border-gray-200 space-y-2">
                             <button onclick="window.print()" class="w-full py-2 px-3 bg-white border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-2">
-                                <i class="fas fa-barcode"></i> Print Barcode Label
+                                <i class="fas fa-print"></i> Print Asset Tag Label
                             </button>
                         </div>
                     </div>

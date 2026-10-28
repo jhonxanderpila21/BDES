@@ -238,14 +238,16 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($assets as $asset)
-                            <tr class="hover:bg-gray-50 transition-colors">
+                            <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors group"
+                                onclick="if(!event.target.closest('button, a, form, input')) window.location.href='{{ route('assets.show', $asset) }}';"
+                                title="Click to view {{ $asset->name }} details">
                                 <td class="px-5 py-3.5 whitespace-nowrap">
-                                    <a href="{{ route('assets.show', $asset) }}" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors">
+                                    <a href="{{ route('assets.show', $asset) }}" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 group-hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors">
                                         {{ $asset->code }}
                                     </a>
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap">
-                                    <a href="{{ route('assets.show', $asset) }}" class="text-sm font-bold text-gray-900 hover:text-blue-600 transition-colors block">
+                                    <a href="{{ route('assets.show', $asset) }}" class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors block">
                                         {{ $asset->name }}
                                     </a>
                                     @if($asset->manufacturer)
@@ -257,7 +259,10 @@
                                 <td class="px-5 py-3.5 whitespace-nowrap text-sm text-gray-600">
                                     <p class="font-medium text-gray-800 text-xs">{{ $asset->category->name ?? 'Uncategorized' }}</p>
                                     @if($asset->type)
-                                        <p class="text-[11px] text-gray-400">{{ $asset->type->name }}</p>
+                                        <p class="text-[11px] text-gray-500 flex items-center gap-1 mt-0.5">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+                                            {{ $asset->type->name }}
+                                        </p>
                                     @endif
                                 </td>
                                 <td class="px-5 py-3.5 whitespace-nowrap text-xs font-mono text-gray-700">
@@ -488,13 +493,7 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type Name</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Category</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Serialized</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Borrowable</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Maintenance</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Inspection</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Accessories</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Attachments</th>
-                            <th class="px-3 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Op. Reqs</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Features & Rules</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -508,54 +507,47 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
                                     {{ $type->category->name ?? 'N/A' }}
                                 </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                    @if($type->serialized)
-                                        <span class="text-emerald-600 font-bold"><i class="fas fa-check"></i></span>
-                                    @else
-                                        <span class="text-gray-300"><i class="fas fa-minus"></i></span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                    @if($type->borrowable)
-                                        <span class="text-emerald-600 font-bold"><i class="fas fa-check"></i></span>
-                                    @else
-                                        <span class="text-gray-300"><i class="fas fa-minus"></i></span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                    @if($type->requires_maintenance)
-                                        <span class="text-emerald-600 font-bold"><i class="fas fa-check"></i></span>
-                                    @else
-                                        <span class="text-gray-300"><i class="fas fa-minus"></i></span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                    @if($type->requires_inspection)
-                                        <span class="text-emerald-600 font-bold"><i class="fas fa-check"></i></span>
-                                    @else
-                                        <span class="text-gray-300"><i class="fas fa-minus"></i></span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                    @if($type->has_accessories)
-                                        <span class="text-emerald-600 font-bold"><i class="fas fa-check"></i></span>
-                                    @else
-                                        <span class="text-gray-300"><i class="fas fa-minus"></i></span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                    @if($type->has_attachments)
-                                        <span class="text-emerald-600 font-bold"><i class="fas fa-check"></i></span>
-                                    @else
-                                        <span class="text-gray-300"><i class="fas fa-minus"></i></span>
-                                    @endif
-                                </td>
-                                <td class="px-3 py-4 whitespace-nowrap text-center">
-                                    @if($type->requires_operational_requirements)
-                                        <span class="text-emerald-600 font-bold"><i class="fas fa-check"></i></span>
-                                    @else
-                                        <span class="text-gray-300"><i class="fas fa-minus"></i></span>
-                                    @endif
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-wrap gap-1.5 max-w-lg">
+                                        @if($type->serialized)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200" title="Serialized asset">
+                                                <i class="fas fa-barcode text-[10px]"></i> Serialized
+                                            </span>
+                                        @endif
+                                        @if($type->borrowable)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200" title="Borrowable / Field Deployable">
+                                                <i class="fas fa-hand-holding text-[10px]"></i> Borrowable
+                                            </span>
+                                        @endif
+                                        @if($type->requires_maintenance)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="Maintenance tracking required">
+                                                <i class="fas fa-wrench text-[10px]"></i> Maintenance
+                                            </span>
+                                        @endif
+                                        @if($type->requires_inspection)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200" title="Safety inspection required">
+                                                <i class="fas fa-clipboard-check text-[10px]"></i> Inspection
+                                            </span>
+                                        @endif
+                                        @if($type->has_accessories)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200" title="Supports accessories">
+                                                <i class="fas fa-puzzle-piece text-[10px]"></i> Accessories
+                                            </span>
+                                        @endif
+                                        @if($type->has_attachments)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-cyan-50 text-cyan-700 border border-cyan-200" title="Supports attachments">
+                                                <i class="fas fa-paperclip text-[10px]"></i> Attachments
+                                            </span>
+                                        @endif
+                                        @if($type->requires_operational_requirements)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200" title="Operational consumables tracking">
+                                                <i class="fas fa-gas-pump text-[10px]"></i> Consumables
+                                            </span>
+                                        @endif
+                                        @if(!$type->serialized && !$type->borrowable && !$type->requires_maintenance && !$type->requires_inspection && !$type->has_accessories && !$type->has_attachments && !$type->requires_operational_requirements)
+                                            <span class="text-xs text-gray-400 italic">Standard (No special rules)</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">

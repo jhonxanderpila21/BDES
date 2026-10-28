@@ -1,19 +1,20 @@
 @extends('layouts.admin')
 
-@section('title', 'Expenses Ledger - BDES')
+@section('title', 'Asset Expenses - BDES')
 
 @section('content')
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
+            <h1 class="text-3xl font-bold text-gray-900 mb-1 flex items-center gap-3">
                 <i class="fas fa-file-invoice-dollar text-emerald-600"></i>
-                Expenses Ledger
+                Asset Expenses
             </h1>
+            <p class="text-xs text-gray-500 mb-2">Unified procurement, maintenance servicing, and parts Expenses Ledger.</p>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
                 ['label' => 'Asset Financials'],
-                ['label' => 'Expenses Ledger']
+                ['label' => 'Asset Expenses']
             ]" />
         </div>
         <div class="flex items-center gap-3">

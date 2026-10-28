@@ -236,22 +236,22 @@
                         x-transition:leave-end="opacity-0 -translate-y-1"
                         class="pl-3 pr-1 space-y-1 border-l-2 {{ $treeBorderClass }} ml-3.5 my-1"
                     >
-                        {{-- Expenses Ledger --}}
+                        {{-- Asset Expenses --}}
                         <a
                             href="{{ route('financials.expenses') }}"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('financials.expenses*')) }}"
                         >
                             <i class="fas fa-file-invoice-dollar w-4 text-center {{ $iconClass($isActive('financials.expenses*')) }}"></i>
-                            <span>Expenses Ledger</span>
+                            <span>Asset Expenses</span>
                         </a>
 
-                        {{-- Depreciation Schedule --}}
+                        {{-- Depreciation Value --}}
                         <a
                             href="{{ route('financials.depreciation') }}"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('financials.depreciation*')) }}"
                         >
                             <i class="fas fa-arrow-trend-down w-4 text-center {{ $iconClass($isActive('financials.depreciation*')) }}"></i>
-                            <span>Depreciation Schedule</span>
+                            <span>Depreciation Value</span>
                         </a>
 
                         {{-- Salvage Value Records --}}
