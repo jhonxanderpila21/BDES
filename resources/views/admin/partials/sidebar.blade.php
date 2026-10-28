@@ -70,9 +70,9 @@
         || $isActive('profile.*');
 @endphp
 <aside 
-    :style="sidebarOpen ? 'width: ' + sidebarWidth + 'px;' : 'width: 0px;'"
+    :style="sidebarOpen ? 'width: ' + (window.innerWidth < 1024 ? Math.min(sidebarWidth, window.innerWidth - 48) : sidebarWidth) + 'px;' : 'width: 0px;'"
     :class="{'transition-all duration-300 ease-in-out': !isResizing}"
-    class="flex-shrink-0 bg-[#003366] text-white border-r border-[#002244] overflow-hidden relative shadow-md select-none"
+    class="fixed inset-y-0 left-0 z-40 lg:static lg:z-auto flex-shrink-0 bg-[#003366] text-white border-r border-[#002244] overflow-hidden shadow-2xl lg:shadow-md select-none"
 >
     <nav class="h-screen overflow-y-auto">
         {{-- Sidebar Content --}}
@@ -391,23 +391,28 @@
         </div>
     </nav>
 
-    {{-- Draggable Width Resizer Handle on Right Edge --}}
+    {{-- Draggable Width Resizer Handle on Right Edge (Desktop only) --}}
     <div 
         @mousedown="startResize($event)"
         @dblclick="resetSidebarWidth()"
         title="Click and drag to adjust sidebar width (double-click to reset to default)"
-        class="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-[#2563EB] transition-colors z-20 group"
+        class="hidden lg:block absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-[#2563EB] transition-colors z-20 group"
         :class="isResizing ? 'bg-[#2563EB] w-2' : 'bg-transparent hover:bg-blue-400'"
     >
         <div class="h-full w-full opacity-0 group-hover:opacity-100 bg-[#2563EB] transition-opacity"></div>
     </div>
 </aside>
 
-{{-- Sidebar Overlay for mobile --}}
+{{-- Sidebar Overlay for mobile / tablet drawer --}}
 <div 
     x-show="sidebarOpen"
     x-cloak
     @click="sidebarOpen = false"
-    class="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-30"
-    x-transition
+    class="fixed inset-0 bg-black/60 backdrop-blur-xs lg:hidden z-30 transition-opacity"
+    x-transition:enter="ease-out duration-200"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="ease-in duration-150"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
 ></div>

@@ -65,7 +65,7 @@
                     x-transition:leave="transition ease-in duration-100"
                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                     x-transition:leave-end="opacity-0 scale-95 translate-y-1"
-                    class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-xl border border-gray-200/90 z-50 overflow-hidden text-[#1F2937]"
+                    class="absolute right-0 mt-2 w-80 sm:w-96 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-xl border border-gray-200/90 z-50 overflow-hidden text-[#1F2937]"
                 >
                     {{-- Header with Filter Tabs & Mark All As Read --}}
                     <div class="p-3 sm:p-4 bg-gray-50/90 border-b border-gray-100">
@@ -181,8 +181,6 @@
                         <span>Real-time operational alerts</span>
                     </div>
                 </div>
-                    </div>
-                </div>
             </div>
 
             {{-- User Profile Dropdown --}}
@@ -205,7 +203,7 @@
                 <div
                     x-show="open"
                     x-cloak
-                    class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-[#E5E7EB] z-50 divide-y divide-[#E5E7EB] text-[#1F2937]"
+                    class="absolute right-0 mt-2 w-48 sm:w-56 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-[#E5E7EB] z-50 divide-y divide-[#E5E7EB] text-[#1F2937]"
                     x-transition
                 >
                     <div class="p-4">

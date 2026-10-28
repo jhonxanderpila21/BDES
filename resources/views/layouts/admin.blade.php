@@ -37,6 +37,13 @@
         resetSidebarWidth() {
             this.sidebarWidth = 256;
             localStorage.setItem('bdes_sidebar_width', 256);
+        },
+        init() {
+            window.addEventListener('resize', () => {
+                if (window.innerWidth < 1024 && this.sidebarOpen && !this.isResizing) {
+                    this.sidebarOpen = false;
+                }
+            });
         }
     }"
     :class="{'cursor-col-resize select-none': isResizing}"
@@ -46,14 +53,14 @@
         @include('admin.partials.sidebar')
 
         {{-- Main Content --}}
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden min-w-0">
             {{-- Top Navigation Bar --}}
             @include('admin.partials.navbar')
 
 
             {{-- Page Content --}}
             <main class="flex-1 overflow-y-auto">
-                <div class="px-4 sm:px-6 lg:px-8 py-8">
+                <div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 w-full max-w-full">
                     <x-flash-messages />
 
                     @yield('content')
