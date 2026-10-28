@@ -407,15 +407,20 @@
                                     {{ $category->description ?: 'No description provided' }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                        <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> {{ $category->available_assets_count ?? 0 }} Available
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ $category->assets_count }} assets
                                     </span>
-                                    <span class="text-[11px] text-gray-500 block mt-0.5">({{ $category->assets_count }} total)</span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <x-badge variant="{{ $category->status === 'active' ? 'success' : 'secondary' }}" size="sm">
-                                        {{ ucfirst($category->status ?? 'active') }}
-                                    </x-badge>
+                                    @if(($category->available_assets_count ?? 0) > 0)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                            <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> {{ $category->available_assets_count }} Available for Deployment
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                            <i class="fas fa-ban text-[10px] text-gray-400"></i> 0 Available for Deployment
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
@@ -498,7 +503,8 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type Name</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Category</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Features & Rules</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Assets Registered</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -507,57 +513,25 @@
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <p class="font-semibold text-gray-900">{{ $type->name }}</p>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <span class="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-xs border border-emerald-200">
-                                            <i class="fas fa-check-circle text-[9px]"></i> {{ $type->available_assets_count ?? 0 }} Available
-                                        </span>
-                                        <span class="text-xs text-gray-400">({{ $type->assets_count }} registered)</span>
-                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
                                     {{ $type->category->name ?? 'N/A' }}
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-wrap gap-1.5 max-w-lg">
-                                        @if($type->serialized)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200" title="Serialized asset">
-                                                <i class="fas fa-barcode text-[10px]"></i> Serialized
-                                            </span>
-                                        @endif
-                                        @if($type->borrowable)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200" title="Borrowable / Field Deployable">
-                                                <i class="fas fa-hand-holding text-[10px]"></i> Borrowable
-                                            </span>
-                                        @endif
-                                        @if($type->requires_maintenance)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200" title="Maintenance tracking required">
-                                                <i class="fas fa-wrench text-[10px]"></i> Maintenance
-                                            </span>
-                                        @endif
-                                        @if($type->requires_inspection)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-purple-50 text-purple-700 border border-purple-200" title="Safety inspection required">
-                                                <i class="fas fa-clipboard-check text-[10px]"></i> Inspection
-                                            </span>
-                                        @endif
-                                        @if($type->has_accessories)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200" title="Supports accessories">
-                                                <i class="fas fa-puzzle-piece text-[10px]"></i> Accessories
-                                            </span>
-                                        @endif
-                                        @if($type->has_attachments)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-cyan-50 text-cyan-700 border border-cyan-200" title="Supports attachments">
-                                                <i class="fas fa-paperclip text-[10px]"></i> Attachments
-                                            </span>
-                                        @endif
-                                        @if($type->requires_operational_requirements)
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-rose-50 text-rose-700 border border-rose-200" title="Operational consumables tracking">
-                                                <i class="fas fa-gas-pump text-[10px]"></i> Consumables
-                                            </span>
-                                        @endif
-                                        @if(!$type->serialized && !$type->borrowable && !$type->requires_maintenance && !$type->requires_inspection && !$type->has_accessories && !$type->has_attachments && !$type->requires_operational_requirements)
-                                            <span class="text-xs text-gray-400 italic">Standard (No special rules)</span>
-                                        @endif
-                                    </div>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ $type->assets_count }} assets
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    @if(($type->available_assets_count ?? 0) > 0)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                            <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> {{ $type->available_assets_count }} Available for Deployment
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600 border border-gray-200">
+                                            <i class="fas fa-ban text-[10px] text-gray-400"></i> 0 Available for Deployment
+                                        </span>
+                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
@@ -580,7 +554,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="px-6 py-12 text-center">
+                                <td colspan="5" class="px-6 py-12 text-center">
                                     <x-empty-state icon="fas fa-tags" title="No asset types found" description="Create your first asset type using the Add Asset Type button above." />
                                 </td>
                             </tr>

@@ -170,7 +170,7 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Linked Asset</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Quantity</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -299,7 +299,6 @@
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Accessory Name</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Linked Asset</th>
-                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Quantity</th>
                             <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
                             <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
@@ -307,28 +306,29 @@
                     <tbody class="divide-y divide-gray-200">
                         @forelse($accessories as $acc)
                             <tr class="hover:bg-gray-50 transition-colors {{ $acc->status === 'Not Available' ? 'opacity-75' : '' }}">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                                    {{ $acc->accessory_name }}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <p class="text-sm font-medium text-gray-900">{{ $acc->accessory_name }}</p>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {{ $acc->asset_type }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <x-badge variant="info" size="sm">{{ $acc->asset_type }}</x-badge>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <p class="text-sm font-medium text-gray-800">{{ $acc->asset->name ?? 'Unknown Asset' }}</p>
-                                    <p class="text-xs font-mono text-gray-500">{{ $acc->asset->code ?? '' }}</p>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-bold {{ $acc->quantity > 0 ? 'text-gray-900' : 'text-red-600' }}">
-                                    {{ $acc->quantity }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    @if($acc->status === 'Available')
-                                        <x-badge variant="success" size="sm">
-                                            <i class="fas fa-check-circle mr-1"></i> {{ $acc->quantity }} Available
-                                        </x-badge>
+                                    @if($acc->asset)
+                                        <p class="text-sm font-medium text-gray-800">{{ $acc->asset->name }}</p>
+                                        <p class="text-xs font-mono text-gray-500">{{ $acc->asset->code }}</p>
                                     @else
-                                        <x-badge variant="danger" size="sm">
-                                            <i class="fas fa-circle-xmark mr-1"></i> 0 Available ({{ $acc->status }})
-                                        </x-badge>
+                                        <span class="text-xs text-gray-400 italic">Unassigned</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center font-semibold text-sm">
+                                    @if($acc->quantity > 0)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                            <i class="fas fa-check-circle text-[10px]"></i> {{ $acc->quantity }} Available
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                            <i class="fas fa-circle-xmark text-[10px]"></i> 0 Available (Not Available)
+                                        </span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
@@ -354,7 +354,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-6 py-12 text-center">
+                                <td colspan="5" class="px-6 py-12 text-center">
                                     <x-empty-state icon="fas fa-tools" title="No accessories found" description="Click Add Accessory above to register auxiliary parts and components." />
                                 </td>
                             </tr>

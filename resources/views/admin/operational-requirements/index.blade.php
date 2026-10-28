@@ -39,11 +39,10 @@
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Unit</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Count</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement / Supply</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Available Stock</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -52,28 +51,27 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <p class="text-sm font-bold text-gray-900">{{ $requirement->requirement_type }}</p>
                                 @if($requirement->description)
-                                    <p class="text-xs text-gray-400 truncate max-w-xs">{{ $requirement->description }}</p>
+                                    <p class="text-xs text-gray-400 truncate max-w-xs mt-0.5">{{ $requirement->description }}</p>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-700">{{ $requirement->unit }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 <span class="font-bold font-mono text-gray-900">{{ (float)$requirement->current_level }}</span>
-                                <span class="text-xs text-gray-400">/ {{ (float)$requirement->maximum_capacity }}</span>
-                                <span class="text-xs text-gray-500 font-medium ml-1">{{ $requirement->unit }}</span>
+                                <span class="text-xs text-gray-500 font-medium ml-0.5">{{ $requirement->unit }}</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">Capacity: {{ (float)$requirement->maximum_capacity }} {{ $requirement->unit }} (Min: {{ (float)$requirement->minimum_level }})</span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @if($requirement->isLowStock())
                                     <x-badge variant="danger" size="sm">
-                                        <i class="fas fa-triangle-exclamation mr-1"></i> Low Stock ({{ (float)$requirement->current_level }} {{ $requirement->unit }} Available)
+                                        <i class="fas fa-triangle-exclamation mr-1"></i> Low Stock
                                     </x-badge>
                                 @else
                                     <x-badge variant="success" size="sm">
-                                        <i class="fas fa-check-circle mr-1"></i> In Stock ({{ (float)$requirement->current_level }} {{ $requirement->unit }} Available)
+                                        <i class="fas fa-check-circle mr-1"></i> In Stock
                                     </x-badge>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                <div class="flex items-center gap-2">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <div class="flex items-center justify-end gap-2">
                                     <button onclick='openAddQuantityModal(@json($requirement))' class="p-2 rounded hover:bg-emerald-50 transition-colors text-emerald-600 hover:text-emerald-800" title="Add Quantity / Restock">
                                         <i class="fas fa-plus-circle"></i>
                                     </button>
@@ -92,7 +90,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-8">
+                            <td colspan="4" class="px-6 py-8">
                                 <x-empty-state icon="fas fa-list-check" title="No requirements found" />
                             </td>
                         </tr>

@@ -81,43 +81,48 @@
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Unit</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Target Asset</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Supply / Requirement</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Current Stock</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assetNeeds as $need)
                         <tr class="hover:bg-gray-50 transition-colors">
-                            {{-- Asset --}}
+                            {{-- Asset & Type --}}
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm font-medium text-gray-900">{{ $need->asset->name ?? 'Unknown' }}</p>
-                                <p class="text-xs text-gray-500">{{ $need->asset->code ?? '' }}</p>
-                            </td>
-                            {{-- Asset Type --}}
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <x-badge variant="info" size="sm">{{ $need->asset_type }}</x-badge>
+                                <p class="text-sm font-semibold text-gray-900">{{ $need->asset->name ?? 'Unknown Asset' }}</p>
+                                <div class="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
+                                    <span class="font-mono text-gray-600">{{ $need->asset->code ?? '' }}</span>
+                                    <span class="text-gray-300">•</span>
+                                    <span class="text-blue-600 font-medium">{{ $need->asset_type }}</span>
+                                </div>
                             </td>
                             {{-- Requirement --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $need->requirement }}</td>
-                            {{-- Unit --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $need->unit }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
+                                {{ $need->requirement }}
+                            </td>
+                            {{-- Current Stock --}}
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <span class="font-bold font-mono text-gray-900">{{ (float)$need->current_level }}</span>
+                                <span class="text-xs text-gray-500 font-medium ml-0.5">{{ $need->unit }}</span>
+                                <span class="text-xs text-gray-400 block mt-0.5">Capacity: {{ (float)$need->maximum_capacity }} {{ $need->unit }} (Min: {{ (float)$need->minimum_level }})</span>
+                            </td>
                             {{-- Status Badge --}}
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @if($need->status === 'Monitoring Only')
-                                    <x-badge variant="success" size="sm">{{ $need->status }} ({{ (float)$need->current_level }} {{ $need->unit }} Available)</x-badge>
+                                    <x-badge variant="success" size="sm">{{ $need->status }}</x-badge>
                                 @elseif($need->status === 'Requires Maintenance')
-                                    <x-badge variant="warning" size="sm">{{ $need->status }} ({{ (float)$need->current_level }} {{ $need->unit }} Available)</x-badge>
+                                    <x-badge variant="warning" size="sm">{{ $need->status }}</x-badge>
                                 @else
-                                    <x-badge variant="danger" size="sm">{{ $need->status }} ({{ (float)$need->current_level }} {{ $need->unit }} Available)</x-badge>
+                                    <x-badge variant="danger" size="sm">{{ $need->status }}</x-badge>
                                 @endif
                             </td>
                             {{-- Actions --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <div class="flex items-center gap-2">
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <div class="flex items-center justify-end gap-2">
                                     {{-- Edit --}}
                                     <button onclick="openEditModal({{ json_encode($need) }})"
                                             class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit">
@@ -136,7 +141,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8">
+                            <td colspan="5" class="px-6 py-8">
                                 <x-empty-state icon="fas fa-box-open" title="No asset needs found" />
                             </td>
                         </tr>
