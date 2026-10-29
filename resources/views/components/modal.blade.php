@@ -3,11 +3,23 @@
     'id' => null,
     'show' => false,
     'title' => null,
+    'maxWidth' => 'lg',
 ])
 
 @php
     // Backward compatible: support both `name` and `id` props
     $modalName = $name ?? $id;
+    $maxWidthClass = match($maxWidth) {
+        'sm' => 'sm:max-w-sm',
+        'md' => 'sm:max-w-md',
+        'lg' => 'sm:max-w-lg',
+        'xl' => 'sm:max-w-xl',
+        '2xl' => 'sm:max-w-2xl',
+        '3xl' => 'sm:max-w-3xl',
+        '4xl' => 'sm:max-w-4xl',
+        '5xl' => 'sm:max-w-5xl',
+        default => 'sm:max-w-lg',
+    };
 @endphp
 
 <div id="{{ $modalName }}"
@@ -23,7 +35,7 @@
     </div>
 
     <div
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl transform transition-all sm:w-full sm:max-w-lg max-h-[90vh] flex flex-col overflow-hidden"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl transform transition-all sm:w-full {{ $maxWidthClass }} max-h-[90vh] flex flex-col overflow-hidden"
     >
         @if($title)
             <div class="flex-shrink-0 border-b border-gray-200 px-6 py-4">

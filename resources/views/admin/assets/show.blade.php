@@ -30,7 +30,7 @@
                     @endphp
                     <span class="px-3 py-1 text-xs font-bold uppercase rounded-full border {{ $statusStyles }}">
                         @if($asset->status === 'available')
-                            <i class="fas fa-check-circle mr-1 text-[11px]"></i> 1 Available (Ready)
+                            <i class="fas fa-check-circle mr-1 text-[11px]"></i> Available (Ready)
                         @else
                             {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
                         @endif
@@ -135,7 +135,7 @@
                     </span>
                     <span class="text-xs text-gray-600 font-medium">
                         @if($asset->status === 'available')
-                            1 Available (Ready)
+                            Available (Ready)
                         @else
                             {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
                         @endif
@@ -297,6 +297,56 @@
                                 <p class="text-xs text-gray-400 italic">No receipts or invoices attached.</p>
                             @endif
                         </div>
+
+                        {{-- Operational Requirements & Consumables (Merged with Assets Using It) --}}
+                        @if(($operationalRequirements && $operationalRequirements->count() > 0) || ($asset->assetNeeds && $asset->assetNeeds->count() > 0))
+                            <div class="bg-white rounded-xl p-4 border border-gray-200 mt-4 space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                                        <i class="fas fa-gas-pump text-blue-600"></i>
+                                        <span>Operational Requirements & Consumables</span>
+                                    </h4>
+                                    <a href="{{ route('operational-requirements.index') }}" class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                                        Warehouse Inventory &rarr;
+                                    </a>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach($operationalRequirements as $req)
+                                        @php
+                                            $current = (float)$req->current_level;
+                                            $max = (float)$req->maximum_capacity;
+                                            $pct = $max > 0 ? min(100, round(($current / $max) * 100)) : 0;
+                                            $isLow = $req->isLowStock();
+                                            $usingAssetsCount = $req->using_assets ? $req->using_assets->count() : 0;
+                                        @endphp
+                                        <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 hover:border-blue-300 hover:bg-blue-50/20 transition-all cursor-pointer group" onclick="openAssetRequirementModal(@js($req))">
+                                            <div class="flex items-center justify-between mb-1">
+                                                <span class="text-xs font-bold text-gray-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                                                    <i class="fas fa-oil-can text-blue-500 text-[10px]"></i>
+                                                    {{ $req->requirement_type }}
+                                                </span>
+                                                @if($isLow)
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">Low Stock</span>
+                                                @else
+                                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">In Stock</span>
+                                                @endif
+                                            </div>
+                                            <div class="flex items-center justify-between text-[11px] text-gray-500 font-mono mb-1">
+                                                <span>{{ $current }} / {{ $max }} {{ $req->unit }}</span>
+                                                <span>{{ $pct }}%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden mb-2">
+                                                <div class="h-1.5 rounded-full {{ $isLow ? 'bg-rose-500' : 'bg-emerald-500' }}" style="width: {{ $pct }}%"></div>
+                                            </div>
+                                            <div class="flex items-center justify-between text-[10px] text-blue-600 pt-1 border-t border-gray-200/60 font-medium">
+                                                <span><i class="fas fa-boxes-stacked mr-1"></i> {{ $usingAssetsCount }} assets using this</span>
+                                                <span class="group-hover:translate-x-0.5 transition-transform">Click to view &rarr;</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Identification & Tag Card --}}
@@ -716,5 +766,143 @@
             </div>
         </div>
     @endif
+
+    {{-- MODAL: OPERATIONAL REQUIREMENT ALLOCATION (MERGED) --}}
+    <x-modal id="asset-requirement-modal" title="Operational Requirement & Equipment Allocation" maxWidth="3xl">
+        <div class="space-y-5">
+            {{-- Header card --}}
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-1">
+                        <i class="fas fa-gas-pump text-[10px]"></i>
+                        <span id="ar_modal_type">Requirement</span>
+                    </span>
+                    <h3 id="ar_modal_name" class="text-lg font-bold text-gray-900">Diesel Fuel</h3>
+                    <p id="ar_modal_desc" class="text-xs text-gray-600 mt-1 italic">Notes</p>
+                </div>
+                <div id="ar_modal_status_badge"></div>
+            </div>
+
+            {{-- Stock metrics --}}
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Warehouse Stock</span>
+                    <span id="ar_modal_current" class="text-base font-bold text-gray-900">0</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Minimum Level</span>
+                    <span id="ar_modal_min" class="text-base font-bold text-rose-600">0</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Max Capacity</span>
+                    <span id="ar_modal_max" class="text-base font-bold text-blue-600">0</span>
+                </div>
+            </div>
+
+            {{-- Assets Table --}}
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                        <i class="fas fa-boxes-stacked text-blue-600"></i>
+                        <span>All Equipment Utilizing This Supply</span>
+                    </h4>
+                    <span id="ar_modal_assets_count" class="text-xs text-gray-400 font-medium">0 assets</span>
+                </div>
+                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-64 overflow-y-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Asset</th>
+                                <th class="px-4 py-2 text-left text-xs font-bold text-gray-700 uppercase">Location</th>
+                                <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 uppercase">Condition</th>
+                                <th class="px-4 py-2 text-center text-xs font-bold text-gray-700 uppercase">Status</th>
+                                <th class="px-4 py-2 text-right text-xs font-bold text-gray-700 uppercase">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ar_modal_assets_tbody" class="divide-y divide-gray-100 bg-white">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Footer actions --}}
+            <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                <a href="{{ route('operational-requirements.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-semibold border border-blue-200 transition-colors">
+                    <i class="fas fa-external-link-alt text-[10px]"></i>
+                    <span>Manage All Supplies in Warehouse</span>
+                </a>
+                <button type="button" onclick="window.closeModal('asset-requirement-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </x-modal>
 </div>
+
+@push('scripts')
+<script>
+    function openAssetRequirementModal(req) {
+        document.getElementById('ar_modal_name').textContent = req.requirement_type;
+        document.getElementById('ar_modal_type').textContent = req.asset_type ? req.asset_type.name : (req.assetType ? req.assetType.name : 'General Consumable');
+        document.getElementById('ar_modal_desc').textContent = req.description || 'Standard operational supply.';
+
+        const current = parseFloat(req.current_level || 0);
+        const max = parseFloat(req.maximum_capacity || 0);
+        const min = parseFloat(req.minimum_level || 0);
+        const unit = req.unit || 'units';
+
+        document.getElementById('ar_modal_current').textContent = `${current} ${unit}`;
+        document.getElementById('ar_modal_min').textContent = `${min} ${unit}`;
+        document.getElementById('ar_modal_max').textContent = `${max} ${unit}`;
+
+        const isLow = current <= min;
+        document.getElementById('ar_modal_status_badge').innerHTML = isLow 
+            ? '<span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200"><i class="fas fa-triangle-exclamation mr-1"></i> Low Stock</span>'
+            : '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle mr-1"></i> In Stock</span>';
+
+        const assets = req.using_assets || [];
+        document.getElementById('ar_modal_assets_count').textContent = `${assets.length} equipment unit${assets.length === 1 ? '' : 's'}`;
+
+        const tbody = document.getElementById('ar_modal_assets_tbody');
+        if (assets.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="5" class="px-4 py-6 text-center text-gray-400 italic text-xs">
+                        No equipment currently registered as utilizing this requirement.
+                    </td>
+                </tr>
+            `;
+        } else {
+            tbody.innerHTML = assets.map(asset => {
+                const isCurrent = asset.id == {{ $asset->id }};
+                return `
+                    <tr class="hover:bg-blue-50/30 transition-colors ${isCurrent ? 'bg-blue-50/50 font-semibold' : ''}">
+                        <td class="px-4 py-2.5 align-middle">
+                            <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1 py-0.5 rounded">${asset.code}</span>
+                            <span class="ml-1 text-xs text-gray-900">${asset.name}</span>
+                            ${isCurrent ? '<span class="ml-1 text-[10px] text-blue-600 font-bold">(Current Asset)</span>' : ''}
+                        </td>
+                        <td class="px-4 py-2.5 align-middle text-xs text-gray-600">
+                            ${asset.location ? asset.location.name : 'Unassigned'}
+                        </td>
+                        <td class="px-4 py-2.5 align-middle text-center text-xs font-bold uppercase text-gray-700">
+                            ${asset.condition}
+                        </td>
+                        <td class="px-4 py-2.5 align-middle text-center text-xs">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${asset.status === 'available' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-700'}">
+                                ${asset.status}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2.5 align-middle text-right">
+                            ${!isCurrent ? `<a href="/assets/${asset.id}" class="text-xs text-blue-600 hover:underline font-semibold">View</a>` : '<span class="text-xs text-gray-400">—</span>'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.openModal('asset-requirement-modal');
+    }
+</script>
+@endpush
 @endsection

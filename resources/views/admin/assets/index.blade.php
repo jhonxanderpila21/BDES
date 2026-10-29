@@ -293,7 +293,7 @@
                                     @endphp
                                     <x-badge variant="{{ $statusColor }}" size="sm">
                                         @if($asset->status === 'available')
-                                            <i class="fas fa-check mr-1 text-[10px]"></i> 1 Available
+                                            <i class="fas fa-check mr-1 text-[10px]"></i> Available
                                         @else
                                             {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
                                         @endif
@@ -399,9 +399,12 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($categoriesList as $category)
-                            <tr class="hover:bg-gray-50 transition-colors">
+                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openCategoryAssetsModal(@js($category))">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <p class="text-sm font-semibold text-gray-900">{{ $category->name }}</p>
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-folder text-blue-500 text-sm group-hover:scale-110 transition-transform"></i>
+                                        <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $category->name }}</p>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
                                     {{ $category->description ?: 'No description provided' }}
@@ -423,18 +426,26 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
                                         <button
-                                            onclick="openEditCategoryModal({{ $category->id }}, @js($category->name), @js($category->description), @js($category->status))"
+                                             type="button"
+                                            onclick="event.stopPropagation(); openCategoryAssetsModal(@js($category))"
+                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors"
+                                            title="View Category Assets"
+                                        >
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                        <button
+                                            onclick="event.stopPropagation(); openEditCategoryModal({{ $category->id }}, @js($category->name), @js($category->description), @js($category->status))"
                                             class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
                                             title="Edit Category"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('asset-categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Archive/Delete this category?');">
+                                        <form action="{{ route('asset-categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Archive/Delete this category?');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Category">
+                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Category" onclick="event.stopPropagation()">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -510,9 +521,12 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($typesList as $type)
-                            <tr class="hover:bg-gray-50 transition-colors">
+                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openTypeAssetsModal(@js($type))">
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <p class="font-semibold text-gray-900">{{ $type->name }}</p>
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-tag text-indigo-500 text-sm group-hover:scale-110 transition-transform"></i>
+                                        <p class="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $type->name }}</p>
+                                    </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-gray-600 font-medium">
                                     {{ $type->category->name ?? 'N/A' }}
@@ -534,18 +548,26 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
+                                    <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
                                         <button
-                                            onclick="openEditTypeModal({{ $type->id }}, @js($type->name), {{ $type->category_id ?? 'null' }}, {{ $type->serialized ? 'true' : 'false' }}, {{ $type->borrowable ? 'true' : 'false' }}, {{ $type->requires_maintenance ? 'true' : 'false' }}, {{ $type->requires_inspection ? 'true' : 'false' }}, {{ $type->has_accessories ? 'true' : 'false' }}, {{ $type->has_attachments ? 'true' : 'false' }}, {{ $type->requires_operational_requirements ? 'true' : 'false' }})"
+                                            type="button"
+                                            onclick="event.stopPropagation(); openTypeAssetsModal(@js($type))"
+                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors"
+                                            title="View Type Assets"
+                                        >
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                        <button
+                                            onclick="event.stopPropagation(); openEditTypeModal({{ $type->id }}, @js($type->name), {{ $type->category_id ?? 'null' }}, {{ $type->serialized ? 'true' : 'false' }}, {{ $type->borrowable ? 'true' : 'false' }}, {{ $type->requires_maintenance ? 'true' : 'false' }}, {{ $type->requires_inspection ? 'true' : 'false' }}, {{ $type->has_accessories ? 'true' : 'false' }}, {{ $type->has_attachments ? 'true' : 'false' }}, {{ $type->requires_operational_requirements ? 'true' : 'false' }})"
                                             class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
                                             title="Edit Type"
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('asset-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset type?');">
+                                        <form action="{{ route('asset-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset type?');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Type">
+                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Type" onclick="event.stopPropagation()">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
@@ -999,6 +1021,152 @@
         </form>
     </x-modal>
 
+    {{-- Category Assets Modal --}}
+    <x-modal id="category-assets-modal" title="Category Asset Inventory" maxWidth="4xl">
+        <div class="space-y-5">
+            {{-- Category Header Card --}}
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-blue-700 font-bold text-sm">
+                                <i class="fas fa-folder-open"></i>
+                            </span>
+                            <h3 id="modal_category_name" class="text-base font-bold text-gray-900">Category Name</h3>
+                        </div>
+                        <p id="modal_category_description" class="text-xs text-gray-500 mt-1 pl-10">No description provided</p>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white px-3.5 py-2 rounded-lg border border-gray-200 shadow-xs">
+                        <div class="text-center">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block">Total Registered</span>
+                            <span id="modal_category_total" class="text-sm font-bold text-gray-900">0</span>
+                        </div>
+                        <div class="w-px h-6 bg-gray-200"></div>
+                        <div class="text-center">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block">Available</span>
+                            <span id="modal_category_available" class="text-sm font-bold text-emerald-600">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Assets Table --}}
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-boxes-stacked text-blue-600"></i>
+                        <span>Assets in this Category</span>
+                    </h4>
+                    <span id="modal_category_count_badge" class="text-xs text-gray-400 font-medium">0 assets</span>
+                </div>
+
+                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset Code & Name</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Condition</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal_category_assets_tbody" class="divide-y divide-gray-100 bg-white">
+                            {{-- Dynamically populated --}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Modal Actions --}}
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                <a id="modal_category_filter_btn" href="#" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl font-medium text-xs border border-blue-200 transition-colors">
+                    <i class="fas fa-filter"></i>
+                    <span>Filter Asset Registry by this Category</span>
+                </a>
+                <button type="button" onclick="window.closeModal('category-assets-modal')" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-xs transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </x-modal>
+
+    {{-- Type Assets Modal --}}
+    <x-modal id="type-assets-modal" title="Asset Type Inventory" maxWidth="4xl">
+        <div class="space-y-5">
+            {{-- Type Header Card --}}
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-bold text-sm">
+                                <i class="fas fa-tag"></i>
+                            </span>
+                            <div>
+                                <h3 id="modal_type_name" class="text-base font-bold text-gray-900">Type Name</h3>
+                                <div class="flex items-center gap-2 mt-0.5">
+                                    <span class="text-[11px] text-gray-500">Category:</span>
+                                    <span id="modal_type_category" class="text-[11px] text-blue-700 font-semibold bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">Category</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white px-3.5 py-2 rounded-lg border border-gray-200 shadow-xs">
+                        <div class="text-center">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block">Total Registered</span>
+                            <span id="modal_type_total" class="text-sm font-bold text-gray-900">0</span>
+                        </div>
+                        <div class="w-px h-6 bg-gray-200"></div>
+                        <div class="text-center">
+                            <span class="text-[10px] uppercase font-bold text-gray-400 block">Available</span>
+                            <span id="modal_type_available" class="text-sm font-bold text-emerald-600">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Assets Table --}}
+            <div>
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-2">
+                        <i class="fas fa-boxes-stacked text-indigo-600"></i>
+                        <span>Assets Under this Type</span>
+                    </h4>
+                    <span id="modal_type_count_badge" class="text-xs text-gray-400 font-medium">0 assets</span>
+                </div>
+
+                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
+                            <tr>
+                                <th class="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset Code & Name</th>
+                                <th class="px-4 py-2.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Condition</th>
+                                <th class="px-4 py-2.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                                <th class="px-4 py-2.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal_type_assets_tbody" class="divide-y divide-gray-100 bg-white">
+                            {{-- Dynamically populated --}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {{-- Modal Actions --}}
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                <a id="modal_type_filter_btn" href="#" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-xl font-medium text-xs border border-indigo-200 transition-colors">
+                    <i class="fas fa-filter"></i>
+                    <span>Filter Asset Registry by this Type</span>
+                </a>
+                <button type="button" onclick="window.closeModal('type-assets-modal')" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-xs transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </x-modal>
+
     @push('scripts')
         <script>
             // Asset Modals
@@ -1074,7 +1242,7 @@
                 let displayStatus = (asset.status || '').replace(/_/g, ' ').toUpperCase();
                 if (asset.status === 'available') {
                     statusClasses = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-                    displayStatus = '1 AVAILABLE (READY)';
+                    displayStatus = 'AVAILABLE (READY)';
                 } else if (asset.status === 'deployed') {
                     statusClasses = 'bg-blue-100 text-blue-800 border border-blue-200';
                 } else if (asset.status === 'under_maintenance') {
@@ -1136,6 +1304,184 @@
                 document.getElementById('edit-type-has_attachments').checked = Boolean(hasAttachments);
                 document.getElementById('edit-type-requires_operational_requirements').checked = Boolean(requiresOperationalRequirements);
                 window.openModal('edit-type-modal');
+            }
+
+            // Category Assets Interactive Modal
+            function openCategoryAssetsModal(category) {
+                document.getElementById('modal_category_name').textContent = category.name;
+                document.getElementById('modal_category_description').textContent = category.description || 'No description provided';
+
+                const assets = category.assets || [];
+                const totalCount = category.assets_count !== undefined ? category.assets_count : assets.length;
+                const availableCount = category.available_assets_count !== undefined 
+                    ? category.available_assets_count 
+                    : assets.filter(a => a.status === 'available').length;
+
+                document.getElementById('modal_category_total').textContent = totalCount;
+                document.getElementById('modal_category_available').textContent = availableCount;
+                document.getElementById('modal_category_count_badge').textContent = `${totalCount} asset${totalCount === 1 ? '' : 's'}`;
+
+                // Link to filtered registry
+                const filterBtn = document.getElementById('modal_category_filter_btn');
+                if (filterBtn) {
+                    filterBtn.href = `/assets?category_id=${category.id}&tab=assets`;
+                }
+
+                const tbody = document.getElementById('modal_category_assets_tbody');
+                if (assets.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-400 italic text-xs">
+                                <i class="fas fa-folder-open text-2xl text-gray-300 mb-2 block"></i>
+                                No equipment is currently registered under this category.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tbody.innerHTML = assets.map(asset => {
+                        let statusBadge = '';
+                        if (asset.status === 'available') {
+                            statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> Available</span>';
+                        } else if (asset.status === 'deployed') {
+                            statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Deployed</span>';
+                        } else if (asset.status === 'under_maintenance') {
+                            statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Maintenance</span>';
+                        } else if (asset.status === 'out_of_service' || asset.status === 'lost') {
+                            statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">${asset.status.replace('_', ' ')}</span>`;
+                        } else {
+                            statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-700 border border-gray-200">${asset.status}</span>`;
+                        }
+
+                        const condBadge = asset.condition === 'excellent' || asset.condition === 'good'
+                            ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">' + (asset.condition.toUpperCase()) + '</span>'
+                            : (asset.condition === 'fair'
+                                ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">FAIR</span>'
+                                : '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">POOR</span>');
+
+                        const typeName = asset.type ? asset.type.name : '—';
+                        const locationName = asset.location ? asset.location.name : 'Unassigned';
+
+                        return `
+                            <tr class="hover:bg-blue-50/30 transition-colors">
+                                <td class="px-4 py-3 align-middle">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">${asset.code}</span>
+                                        <div>
+                                            <a href="/assets/${asset.id}" class="font-semibold text-gray-900 hover:text-blue-600 hover:underline block">${asset.name}</a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 align-middle text-xs text-gray-600 font-medium">
+                                    ${typeName}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-xs text-gray-600">
+                                    <i class="fas fa-location-dot text-gray-400 mr-1 text-[10px]"></i> ${locationName}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-center">
+                                    ${condBadge}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-center">
+                                    ${statusBadge}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-right">
+                                    <a href="/assets/${asset.id}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold border border-blue-200 transition-colors">
+                                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                                        <span>Dossier</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                window.openModal('category-assets-modal');
+            }
+
+            // Type Assets Interactive Modal
+            function openTypeAssetsModal(type) {
+                document.getElementById('modal_type_name').textContent = type.name;
+                document.getElementById('modal_type_category').textContent = type.category ? type.category.name : 'Uncategorized';
+
+                const assets = type.assets || [];
+                const totalCount = type.assets_count !== undefined ? type.assets_count : assets.length;
+                const availableCount = type.available_assets_count !== undefined 
+                    ? type.available_assets_count 
+                    : assets.filter(a => a.status === 'available').length;
+
+                document.getElementById('modal_type_total').textContent = totalCount;
+                document.getElementById('modal_type_available').textContent = availableCount;
+                document.getElementById('modal_type_count_badge').textContent = `${totalCount} asset${totalCount === 1 ? '' : 's'}`;
+
+                // Link to filtered registry
+                const filterBtn = document.getElementById('modal_type_filter_btn');
+                if (filterBtn) {
+                    filterBtn.href = `/assets?type_id=${type.id}&tab=assets`;
+                }
+
+                const tbody = document.getElementById('modal_type_assets_tbody');
+                if (assets.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-gray-400 italic text-xs">
+                                <i class="fas fa-tag text-2xl text-gray-300 mb-2 block"></i>
+                                No equipment is currently registered under this asset type.
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    tbody.innerHTML = assets.map(asset => {
+                        let statusBadge = '';
+                        if (asset.status === 'available') {
+                            statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> Available</span>';
+                        } else if (asset.status === 'deployed') {
+                            statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Deployed</span>';
+                        } else if (asset.status === 'under_maintenance') {
+                            statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Maintenance</span>';
+                        } else if (asset.status === 'out_of_service' || asset.status === 'lost') {
+                            statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">${asset.status.replace('_', ' ')}</span>`;
+                        } else {
+                            statusBadge = `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-gray-100 text-gray-700 border border-gray-200">${asset.status}</span>`;
+                        }
+
+                        const condBadge = asset.condition === 'excellent' || asset.condition === 'good'
+                            ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">' + (asset.condition.toUpperCase()) + '</span>'
+                            : (asset.condition === 'fair'
+                                ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">FAIR</span>'
+                                : '<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">POOR</span>');
+
+                        const locationName = asset.location ? asset.location.name : 'Unassigned';
+
+                        return `
+                            <tr class="hover:bg-blue-50/30 transition-colors">
+                                <td class="px-4 py-3 align-middle">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded">${asset.code}</span>
+                                        <div>
+                                            <a href="/assets/${asset.id}" class="font-semibold text-gray-900 hover:text-blue-600 hover:underline block">${asset.name}</a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 align-middle text-xs text-gray-600">
+                                    <i class="fas fa-location-dot text-gray-400 mr-1 text-[10px]"></i> ${locationName}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-center">
+                                    ${condBadge}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-center">
+                                    ${statusBadge}
+                                </td>
+                                <td class="px-4 py-3 align-middle text-right">
+                                    <a href="/assets/${asset.id}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200 transition-colors">
+                                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                                        <span>Dossier</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                }
+
+                window.openModal('type-assets-modal');
             }
         </script>
     @endpush

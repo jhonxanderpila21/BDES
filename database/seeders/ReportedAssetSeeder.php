@@ -136,14 +136,14 @@ class ReportedAssetSeeder extends Seeder
                 ],
             ],
 
-            // 8. First Aid Kit Consumables Depleted — Pending
+            // 8. Stretcher Maintenance — Pending
             [
-                'asset'         => $findAsset('FAK-001'),
+                'asset'         => $findAsset('STR-001'),
                 'reported_type' => 'Maintenance',
                 'target_status' => 'Pending',
                 'location'      => 'Health Sub-Center',
-                'description'   => 'Trauma dressings, tourniquets, and sterile gauze packs depleted following emergency response.',
-                'action'        => 'Restock request initiated',
+                'description'   => 'Folding stretcher locking hinge stiff; needs inspection and lubrication.',
+                'action'        => 'Maintenance check initiated',
                 'reported_date' => Carbon::now()->format('Y-m-d'),
                 'transitions'   => [],
             ],

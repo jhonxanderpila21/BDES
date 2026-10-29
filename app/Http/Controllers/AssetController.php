@@ -85,7 +85,12 @@ class AssetController extends Controller
         $assets = $assetsQuery->orderBy($sortBy, $sortDir)->paginate(10, ['*'], 'assets_page')->withQueryString();
 
         // 2. Asset Categories Tab Data
-        $categoriesQuery = AssetCategory::withCount([
+        $categoriesQuery = AssetCategory::with([
+            'assets' => function ($q) {
+                $q->select('id', 'name', 'code', 'category_id', 'type_id', 'location_id', 'status', 'condition', 'acquisition_cost')
+                  ->with(['type:id,name', 'location:id,name']);
+            }
+        ])->withCount([
             'assets',
             'assets as available_assets_count' => function ($q) {
                 $q->where('status', 'available');
@@ -104,7 +109,13 @@ class AssetController extends Controller
         $categoriesList = $categoriesQuery->orderBy('name')->paginate(10, ['*'], 'categories_page')->withQueryString();
 
         // 3. Asset Types Tab Data
-        $typesQuery = AssetType::with('category')->withCount([
+        $typesQuery = AssetType::with([
+            'category',
+            'assets' => function ($q) {
+                $q->select('id', 'name', 'code', 'category_id', 'type_id', 'location_id', 'status', 'condition', 'acquisition_cost')
+                  ->with(['category:id,name', 'location:id,name']);
+            }
+        ])->withCount([
             'assets',
             'assets as available_assets_count' => function ($q) {
                 $q->where('status', 'available');
@@ -280,6 +291,7 @@ class AssetController extends Controller
             'returns.receivedByUser',
             'attachments',
             'accessories',
+            'assetNeeds',
             'documents.uploader',
             'auditLogs' => function ($q) use ($isAdmin) {
                 if (!$isAdmin) {
@@ -289,6 +301,20 @@ class AssetController extends Controller
             'auditLogs.user',
             'reportedAssets'
         ]);
+
+        $operationalRequirements = collect();
+        if ($asset->type_id) {
+            $operationalRequirements = \App\Models\OperationalRequirement::where('asset_type_id', $asset->type_id)
+                ->with(['assetType.assets.location'])
+                ->get();
+        }
+        if ($asset->assetNeeds && $asset->assetNeeds->isNotEmpty()) {
+            $needNames = $asset->assetNeeds->pluck('requirement')->toArray();
+            $matchedReqs = \App\Models\OperationalRequirement::whereIn('requirement_type', $needNames)
+                ->with(['assetType.assets.location'])
+                ->get();
+            $operationalRequirements = $operationalRequirements->concat($matchedReqs)->unique('id')->values();
+        }
 
         $stats = [
             'total_maintenance_cost' => $asset->maintenance->sum('cost') ?? 0,
@@ -302,6 +328,7 @@ class AssetController extends Controller
         return view('admin.assets.show', [
             'asset' => $asset,
             'stats' => $stats,
+            'operationalRequirements' => $operationalRequirements,
         ]);
     }
 

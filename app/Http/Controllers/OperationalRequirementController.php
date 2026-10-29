@@ -10,21 +10,52 @@ class OperationalRequirementController extends Controller
 {
     public function index(Request $request)
     {
-        $query = OperationalRequirement::with('assetType');
+        $query = OperationalRequirement::with([
+            'assetType.assets' => function ($q) {
+                $q->select('id', 'name', 'code', 'type_id', 'location_id', 'status', 'condition')
+                  ->with('location:id,name');
+            },
+            'restocks',
+        ]);
 
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where('requirement_type', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('requirement_type', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('assetType', function ($tq) use ($search) {
+                      $tq->where('name', 'like', "%{$search}%");
+                  });
+            });
         }
 
-        if ($request->boolean('low')) {
+        if ($request->filled('asset_type_id')) {
+            $query->where('asset_type_id', $request->asset_type_id);
+        }
+
+        if ($request->filled('status')) {
+            if ($request->status === 'low') {
+                $query->whereColumn('current_level', '<=', 'minimum_level');
+            } elseif ($request->status === 'adequate') {
+                $query->whereColumn('current_level', '>', 'minimum_level');
+            }
+        } elseif ($request->boolean('low')) {
             $query->whereColumn('current_level', '<=', 'minimum_level');
         }
 
-        $requirements = $query->latest()->paginate(10)->withQueryString();
+        $requirements = $query->latest('id')->paginate(10)->withQueryString();
         $assetTypes = AssetType::orderBy('name')->get();
 
-        return view('admin.operational-requirements.index', compact('requirements', 'assetTypes'));
+        // Calculate KPI summary metrics matching Asset Registry structure
+        $allRequirements = OperationalRequirement::all();
+        $metrics = [
+            'total_requirements' => $allRequirements->count(),
+            'adequate_stock'     => $allRequirements->filter(fn($r) => !$r->isLowStock())->count(),
+            'low_stock'          => $allRequirements->filter(fn($r) => $r->isLowStock())->count(),
+            'monitored_types'    => $allRequirements->pluck('asset_type_id')->filter()->unique()->count(),
+        ];
+
+        return view('admin.operational-requirements.index', compact('requirements', 'assetTypes', 'metrics'));
     }
 
     protected function authorizeEditor(Request $request): void

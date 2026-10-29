@@ -78,8 +78,8 @@ class DeploymentSeeder extends Seeder
                 ],
             ],
             [
-                'asset_code'           => 'FAK-002',
-                'fallback_id'          => 15,
+                'asset_code'           => 'RAD-002',
+                'fallback_id'          => 10,
                 'destination'          => 'Purok 1 Day Care Center',
                 'assigned_team'        => 'Resident Borrower',
                 'responsible_person'   => 'Juan Carlos Dela Cruz',
@@ -91,7 +91,7 @@ class DeploymentSeeder extends Seeder
                 'borrower_id_number'   => 'N02-18-987654',
                 'deployment_date'      => now()->subDays(5),
                 'expected_return_date' => now()->subDays(3),
-                'purpose'              => 'Neighborhood basic first aid training and demonstration.',
+                'purpose'              => 'Community disaster drill communications liaison.',
                 'status'               => 'returned',
                 'return_data'          => [
                     'returned_by'         => 'Juan Carlos Dela Cruz',

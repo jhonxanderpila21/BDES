@@ -29,12 +29,37 @@ class OperationalRequirement extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $appends = ['using_assets'];
+
     /**
      * Get the asset type this requirement applies to
      */
     public function assetType(): BelongsTo
     {
         return $this->belongsTo(AssetType::class, 'asset_type_id');
+    }
+
+    /**
+     * Get all assets using or requiring this operational supply
+     */
+    public function getUsingAssetsAttribute()
+    {
+        $assetsFromType = collect();
+        if ($this->relationLoaded('assetType') && $this->assetType) {
+            $assetsFromType = $this->assetType->relationLoaded('assets')
+                ? $this->assetType->assets
+                : $this->assetType->assets()->with('location:id,name')->get();
+        } elseif ($this->asset_type_id) {
+            $assetsFromType = Asset::where('type_id', $this->asset_type_id)->with('location:id,name')->get();
+        }
+
+        $assetsFromNeeds = AssetNeed::where('requirement', 'like', '%' . $this->requirement_type . '%')
+            ->with(['asset.location:id,name'])
+            ->get()
+            ->pluck('asset')
+            ->filter();
+
+        return $assetsFromType->concat($assetsFromNeeds)->unique('id')->values();
     }
 
     public function restocks(): \Illuminate\Database\Eloquent\Relations\HasMany

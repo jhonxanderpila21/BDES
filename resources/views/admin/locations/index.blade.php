@@ -458,7 +458,7 @@
             tbody.innerHTML = assets.map(asset => {
                 let statusBadge = '';
                 if (asset.status === 'available') {
-                    statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> 1 Available</span>';
+                    statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> Available</span>';
                 } else if (asset.status === 'deployed') {
                     statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Deployed</span>';
                 } else if (asset.status === 'under_maintenance') {

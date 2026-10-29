@@ -20,6 +20,28 @@
     </div>
 
 
+    {{-- Module Navigation Tabs (Connecting Operational Requirements & Asset Needs) --}}
+    <div class="flex border-b border-gray-200 mb-6 space-x-1">
+        <a 
+            href="{{ route('operational-requirements.index') }}"
+            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"
+        >
+            <i class="fas fa-list-check"></i>
+            <span>Operational Consumables (Warehouse Stock)</span>
+        </a>
+
+        <a 
+            href="{{ route('asset-needs.index') }}"
+            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg transition-colors"
+        >
+            <i class="fas fa-gas-pump"></i>
+            <span>Equipment Supply Needs (Asset Allocations)</span>
+            <span class="ml-1 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800">
+                {{ $assetNeeds->total() }}
+            </span>
+        </a>
+    </div>
+
     {{-- Filters --}}
     <div class="flex flex-col sm:flex-row gap-4 mb-6">
         <div class="flex-1">
@@ -90,19 +112,22 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assetNeeds as $need)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openAssetNeedModal(@js($need))">
                             {{-- Asset & Type --}}
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm font-semibold text-gray-900">{{ $need->asset->name ?? 'Unknown Asset' }}</p>
+                                <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $need->asset->name ?? 'Unknown Asset' }}</p>
                                 <div class="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
-                                    <span class="font-mono text-gray-600">{{ $need->asset->code ?? '' }}</span>
+                                    <span class="font-mono text-gray-600 bg-gray-100 px-1 py-0.5 rounded">{{ $need->asset->code ?? '' }}</span>
                                     <span class="text-gray-300">•</span>
                                     <span class="text-blue-600 font-medium">{{ $need->asset_type }}</span>
                                 </div>
                             </td>
                             {{-- Requirement --}}
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
-                                {{ $need->requirement }}
+                                <div class="flex items-center gap-1.5">
+                                    <i class="fas fa-oil-can text-blue-500 text-xs"></i>
+                                    <span>{{ $need->requirement }}</span>
+                                </div>
                             </td>
                             {{-- Current Stock --}}
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
@@ -122,17 +147,28 @@
                             </td>
                             {{-- Actions --}}
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <div class="flex items-center justify-end gap-2">
+                                <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
+                                    {{-- View Details --}}
+                                    <button 
+                                        type="button"
+                                        onclick="event.stopPropagation(); openAssetNeedModal(@js($need))"
+                                        class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors"
+                                        title="View Details"
+                                    >
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                     {{-- Edit --}}
-                                    <button onclick="openEditModal({{ json_encode($need) }})"
-                                            class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit">
+                                    <button 
+                                        type="button"
+                                        onclick="event.stopPropagation(); openEditModal({{ json_encode($need) }})"
+                                        class="p-1.5 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </button>
                                     {{-- Delete --}}
-                                    <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset need?');">
+                                    <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset need?');" onclick="event.stopPropagation()">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600" title="Delete">
+                                        <button type="submit" class="p-1.5 rounded hover:bg-gray-100 transition-colors text-red-600" title="Delete" onclick="event.stopPropagation()">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -288,8 +324,109 @@
         </form>
     </x-modal>
 
+    {{-- Asset Need Detail Modal --}}
+    <x-modal id="asset-need-modal" title="Equipment Supply Requirement" maxWidth="2xl">
+        <div class="space-y-5">
+            {{-- Header card --}}
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-1">
+                        <i class="fas fa-gas-pump text-[10px]"></i>
+                        <span id="and_type">Consumable</span>
+                    </span>
+                    <h3 id="and_requirement" class="text-lg font-bold text-gray-900">Diesel Fuel</h3>
+                </div>
+                <div id="and_status_badge"></div>
+            </div>
+
+            {{-- Target Asset Card --}}
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
+                    <i class="fas fa-cube text-blue-600"></i>
+                    <span>Target Equipment Assignment</span>
+                </h4>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                            <i class="fas fa-box"></i>
+                        </span>
+                        <div>
+                            <span id="and_asset_code" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">CODE</span>
+                            <span id="and_asset_name" class="font-semibold text-gray-900 text-sm ml-1">Asset Name</span>
+                        </div>
+                    </div>
+                    <a id="and_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
+                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                        <span>View Asset Dossier</span>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Stock gauges --}}
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Current Level</span>
+                    <span id="and_current" class="text-base font-bold text-gray-900">0</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Min Threshold</span>
+                    <span id="and_min" class="text-base font-bold text-rose-600">0</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Max Capacity</span>
+                    <span id="and_max" class="text-base font-bold text-blue-600">0</span>
+                </div>
+            </div>
+
+            {{-- Footer actions --}}
+            <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                <a href="{{ route('operational-requirements.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-semibold border border-blue-200 transition-colors">
+                    <i class="fas fa-list-check text-[10px]"></i>
+                    <span>Warehouse Supplies Hub</span>
+                </a>
+                <button type="button" onclick="window.closeModal('asset-need-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </x-modal>
+
     @push('scripts')
         <script>
+            function openAssetNeedModal(need) {
+                document.getElementById('and_requirement').textContent = need.requirement;
+                document.getElementById('and_type').textContent = need.asset_type || 'Consumable Supply';
+                
+                const current = parseFloat(need.current_level || 0);
+                const max = parseFloat(need.maximum_capacity || 0);
+                const min = parseFloat(need.minimum_level || 0);
+                const unit = need.unit || 'units';
+
+                document.getElementById('and_current').textContent = `${current} ${unit}`;
+                document.getElementById('and_min').textContent = `${min} ${unit}`;
+                document.getElementById('and_max').textContent = `${max} ${unit}`;
+
+                if (need.status === 'Monitoring Only') {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Monitoring Only (Adequate)</span>';
+                } else if (need.status === 'Requires Maintenance') {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Requires Maintenance</span>';
+                } else {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Critical / Low</span>';
+                }
+
+                if (need.asset) {
+                    document.getElementById('and_asset_code').textContent = need.asset.code;
+                    document.getElementById('and_asset_name').textContent = need.asset.name;
+                    document.getElementById('and_asset_link').href = `/assets/${need.asset.id}`;
+                    document.getElementById('and_asset_link').classList.remove('hidden');
+                } else {
+                    document.getElementById('and_asset_code').textContent = '—';
+                    document.getElementById('and_asset_name').textContent = 'Unknown Equipment';
+                    document.getElementById('and_asset_link').classList.add('hidden');
+                }
+
+                window.openModal('asset-need-modal');
+            }
             function openAddModal() {
                 window.openModal('add-asset-need-modal');
             }

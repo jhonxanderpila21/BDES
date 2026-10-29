@@ -105,17 +105,6 @@ class AssetHistorySeeder extends Seeder
                 'created_at'  => $now->copy()->subDays(5),
             ],
 
-            // Trauma Bag events
-            [
-                'code'        => 'FAK-001',
-                'user_id'     => $member?->id,
-                'event'       => 'updated',
-                'description' => 'First Aid Kit replenishment: Replaced expired gauze rolls, bandages, and betadine bottles.',
-                'old_values'  => ['condition' => 'good'],
-                'new_values'  => ['condition' => 'excellent'],
-                'created_at'  => $now->copy()->subDays(2),
-            ],
-
             // Zoll AED events
             [
                 'code'        => 'AED-001',
