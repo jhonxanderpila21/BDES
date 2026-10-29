@@ -22,9 +22,14 @@ class MaintenanceController extends Controller
      */
     public function index(Request $request)
     {
-        $activeTab = $request->get('tab', 'schedules');
-        if (!in_array($activeTab, ['schedules', 'logs', 'inspections'], true)) {
-            $activeTab = 'schedules';
+        $requestedTab = $request->get('tab');
+        if ($requestedTab === 'schedules') {
+            $activeTab = 'inspections';
+        } else {
+            $activeTab = $request->get('tab', 'inspections');
+        }
+        if (!in_array($activeTab, ['logs', 'inspections'], true)) {
+            $activeTab = 'inspections';
         }
 
         // Dynamically refresh schedule statuses
@@ -50,10 +55,10 @@ class MaintenanceController extends Controller
         $assets = Asset::with(['type', 'category'])->orderBy('name')->get();
         $users = User::orderBy('name')->get();
 
-        // 1. Preventive Schedules Tab Data
+        // 1. Preventive Schedules Data (merged into inspections)
         $schedulesQuery = MaintenanceSchedule::with(['asset.type', 'asset.category']);
-        if ($request->filled('search') && $activeTab === 'schedules') {
-            $search = $request->search;
+        if ($request->filled('schedule_search') || ($request->filled('search') && $activeTab === 'inspections')) {
+            $search = $request->get('schedule_search', $request->search);
             $schedulesQuery->where(function ($q) use ($search) {
                 $q->where('maintenance_task', 'like', "%{$search}%")
                   ->orWhere('asset_type', 'like', "%{$search}%")
@@ -69,7 +74,9 @@ class MaintenanceController extends Controller
         if ($request->filled('interval_type')) {
             $schedulesQuery->where('interval_type', $request->interval_type);
         }
-        if ($request->filled('status') && $activeTab === 'schedules') {
+        if ($request->filled('schedule_status')) {
+            $schedulesQuery->where('status', $request->schedule_status);
+        } elseif ($request->filled('status') && in_array($request->status, ['due_overdue', 'due', 'overdue', 'Monitoring Only'], true)) {
             if ($request->status === 'due_overdue') {
                 $schedulesQuery->whereIn('status', [
                     MaintenanceScheduleService::STATUS_DUE,
@@ -119,8 +126,8 @@ class MaintenanceController extends Controller
 
         // 3. Inspections Tab Data
         $inspectionsQuery = Inspection::with(['asset.category']);
-        if ($request->filled('search') && $activeTab === 'inspections') {
-            $search = $request->search;
+        if ($request->filled('inspection_search') || ($request->filled('search') && $activeTab === 'inspections')) {
+            $search = $request->get('inspection_search', $request->search);
             $inspectionsQuery->where(function ($q) use ($search) {
                 $q->where('inspector', 'like', "%{$search}%")
                   ->orWhere('findings', 'like', "%{$search}%")
@@ -133,7 +140,9 @@ class MaintenanceController extends Controller
         if ($request->filled('result')) {
             $inspectionsQuery->where('result', $request->result);
         }
-        if ($request->filled('status') && $activeTab === 'inspections') {
+        if ($request->filled('inspection_status')) {
+            $inspectionsQuery->where('status', $request->inspection_status);
+        } elseif ($request->filled('status') && in_array($request->status, ['completed', 'scheduled', 'overdue'], true) && $request->status !== 'due_overdue') {
             $inspectionsQuery->where('status', $request->status);
         }
         $inspections = $inspectionsQuery->latest('id')->paginate(10, ['*'], 'inspections_page')->withQueryString();
