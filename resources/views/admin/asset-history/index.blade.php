@@ -140,27 +140,27 @@
     <x-card>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
-                <thead class="bg-gray-50 border-b border-gray-200 text-xs uppercase font-semibold text-gray-600">
+                <thead class="bg-gray-50 border-b border-gray-200 text-xs uppercase font-bold text-gray-700">
                     <tr>
-                        <th class="px-5 py-3">Timestamp</th>
-                        <th class="px-5 py-3">Actor / User</th>
-                        <th class="px-5 py-3">Action Event</th>
-                        <th class="px-5 py-3">Target Entity</th>
-                        <th class="px-5 py-3">Description</th>
+                        <th class="px-5 py-3.5 text-left tracking-wider">Timestamp</th>
+                        <th class="px-5 py-3.5 text-left tracking-wider">Actor / User</th>
+                        <th class="px-5 py-3.5 text-center tracking-wider">Action Event</th>
+                        <th class="px-5 py-3.5 text-left tracking-wider">Target Entity</th>
+                        <th class="px-5 py-3.5 text-left tracking-wider">Description</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($logs as $log)
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-600 font-mono">
+                            <td class="px-5 py-3.5 align-middle whitespace-nowrap text-xs text-gray-600 font-mono text-left">
                                 {{ $log->created_at->format('Y-m-d H:i:s') }}
                                 <span class="text-gray-400 block text-[11px] font-sans">{{ $log->created_at->diffForHumans() }}</span>
                             </td>
-                            <td class="px-5 py-3.5 whitespace-nowrap">
+                            <td class="px-5 py-3.5 align-middle whitespace-nowrap text-left">
                                 <p class="font-bold text-gray-900 text-xs">{{ $log->user?->name ?? 'System Process' }}</p>
                                 <p class="text-[11px] text-gray-400">{{ $log->user?->role ?? 'automated' }}</p>
                             </td>
-                            <td class="px-5 py-3.5 whitespace-nowrap">
+                            <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
                                 @php
                                     $badgeStyle = match($log->event) {
                                         'created'        => 'bg-emerald-100 text-emerald-800 border-emerald-300',
@@ -173,7 +173,7 @@
                                     {{ strtoupper(str_replace('_', ' ', $log->event)) }}
                                 </span>
                             </td>
-                            <td class="px-5 py-3.5 whitespace-nowrap">
+                            <td class="px-5 py-3.5 align-middle whitespace-nowrap text-left">
                                 <span class="font-mono text-xs font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded">
                                     {{ class_basename($log->auditable_type) }}
                                     @if($log->auditable)
@@ -183,7 +183,7 @@
                                     @endif
                                 </span>
                             </td>
-                            <td class="px-5 py-3.5 text-xs text-gray-800 max-w-md">
+                            <td class="px-5 py-3.5 align-middle text-xs text-gray-800 max-w-md text-left">
                                 {{ $log->description }}
                             </td>
                         </tr>

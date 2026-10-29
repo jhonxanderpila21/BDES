@@ -223,6 +223,38 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseMissing('locations', ['id' => $location->id]);
     }
 
+    public function test_cannot_delete_location_with_assigned_assets(): void
+    {
+        $location = Location::create([
+            'name'             => 'Primary Storage Vault',
+            'type'             => 'storage',
+            'address'          => 'Main Depot Block',
+            'storage_capacity' => 100,
+        ]);
+
+        $category = \App\Models\AssetCategory::firstOrCreate(
+            ['name' => 'General Equipment'],
+            ['description' => 'General assets for testing']
+        );
+
+        $asset = \App\Models\Asset::create([
+            'name'             => 'Heavy Duty Generator',
+            'code'             => 'GEN-LOC-TEST',
+            'category_id'      => $category->id,
+            'location_id'      => $location->id,
+            'status'           => 'available',
+            'condition'        => 'good',
+            'acquisition_cost' => 50000,
+            'purchase_date'    => now()->format('Y-m-d'),
+        ]);
+
+        $response = $this->actingAs($this->admin)->delete(route('locations.destroy', $location));
+        $response->assertRedirect(route('locations.index'));
+        $response->assertSessionHas('error');
+
+        $this->assertDatabaseHas('locations', ['id' => $location->id]);
+    }
+
     public function test_roles_page_renders_system_roles_cleanly(): void
     {
         $response = $this->actingAs($this->admin)->get(route('roles.index'));

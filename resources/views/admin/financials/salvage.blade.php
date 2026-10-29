@@ -138,19 +138,19 @@
             <table class="w-full text-left text-sm">
                 <thead class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <tr>
-                        <th class="px-4 py-3">Asset Name & Code</th>
-                        <th class="px-4 py-3">Purchase Cost</th>
-                        <th class="px-4 py-3">Calculation Type</th>
-                        <th class="px-4 py-3">Salvage Value</th>
-                        <th class="px-4 py-3">Notes & Details</th>
-                        <th class="px-4 py-3">Current Value</th>
+                        <th class="px-4 py-3 text-left">Asset Name & Code</th>
+                        <th class="px-4 py-3 text-right">Purchase Cost</th>
+                        <th class="px-4 py-3 text-center">Calculation Type</th>
+                        <th class="px-4 py-3 text-right">Salvage Value</th>
+                        <th class="px-4 py-3 text-left">Notes & Details</th>
+                        <th class="px-4 py-3 text-right">Current Value</th>
                         <th class="px-4 py-3 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assets as $asset)
                         <tr class="hover:bg-gray-50/80 transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}">
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 align-middle text-left">
                                 <div class="flex items-center gap-2">
                                     <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
                                     @if($asset->is_capitalized_ppe)
@@ -165,10 +165,10 @@
                                     <span>{{ $asset->category?->name ?? 'Uncategorized' }}</span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right font-medium text-gray-900 whitespace-nowrap">
                                 ₱{{ number_format($asset->acquisition_cost, 2) }}
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-center whitespace-nowrap">
                                 @if(!$asset->is_capitalized_ppe)
                                     <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                                         <i class="fas fa-ban text-[10px]"></i> Under ₱20k (No Salvage)
@@ -183,26 +183,26 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 font-bold whitespace-nowrap {{ $asset->is_capitalized_ppe ? 'text-emerald-700' : 'text-gray-400' }}">
+                            <td class="px-4 py-3 align-middle text-right font-bold whitespace-nowrap {{ $asset->is_capitalized_ppe ? 'text-emerald-700' : 'text-gray-400' }}">
                                 ₱{{ number_format($asset->calculated_salvage_value, 2) }}
                                 @if(!$asset->is_capitalized_ppe)
                                     <div class="text-[10px] text-amber-700 font-normal">Under ₱20k</div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-gray-600 max-w-xs truncate">
+                            <td class="px-4 py-3 align-middle text-left text-gray-600 max-w-xs truncate">
                                 @if(!$asset->is_capitalized_ppe)
                                     <span class="italic text-gray-400">Semi-expendable item (< ₱20k); does not carry salvage value.</span>
                                 @else
                                     {{ $asset->salvage_notes ?: 'Standard 10% residual value under COA rules.' }}
                                 @endif
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                 <div class="font-bold text-gray-900">₱{{ number_format($asset->current_book_value, 2) }}</div>
                                 @if($asset->is_capitalized_ppe && $asset->current_book_value <= $asset->calculated_salvage_value)
                                     <span class="text-[10px] text-amber-600 font-semibold uppercase tracking-wider">Fully Depreciated</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                 @if($asset->is_capitalized_ppe)
                                     <button
                                         type="button"

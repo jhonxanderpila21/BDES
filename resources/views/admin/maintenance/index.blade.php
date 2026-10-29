@@ -219,22 +219,22 @@
         {{-- Schedules Table --}}
         <x-card>
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Maintenance Task</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Interval</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Last Done</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Next Due Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Maintenance Task</th>
+                            <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Interval</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Last Done</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Next Due Date</th>
+                            <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($schedules as $schedule)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 align-middle text-left">
                                     <div class="flex items-start gap-2">
                                         <div class="mt-0.5 text-blue-600">
                                             <i class="fas fa-box"></i>
@@ -248,24 +248,24 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                                <td class="px-6 py-4 align-middle text-left text-sm font-medium text-gray-900">
                                     {{ $schedule->maintenance_task }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-center text-sm text-gray-600">
                                     <span class="inline-flex items-center gap-1">
                                         <i class="fas fa-repeat text-xs text-gray-400"></i>
                                         {{ $schedule->interval_type }} ({{ $schedule->interval_days }}d)
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-left text-sm text-gray-600">
                                     {{ $schedule->last_maintenance_date ? \Carbon\Carbon::parse($schedule->last_maintenance_date)->format('M d, Y') : 'N/A' }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-left text-sm">
                                     <span class="font-medium text-gray-800">
                                         {{ $schedule->next_due_date ? \Carbon\Carbon::parse($schedule->next_due_date)->format('M d, Y') : 'N/A' }}
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                     @php
                                         $schedColor = match($schedule->status) {
                                             'Monitoring Only' => 'success',
@@ -276,7 +276,7 @@
                                     @endphp
                                     <x-badge variant="{{ $schedColor }}" size="sm">{{ $schedule->status }}</x-badge>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
                                         <button 
                                             type="button"
@@ -359,22 +359,22 @@
         {{-- Maintenance Logs Table --}}
         <x-card>
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type & Priority</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Technician / Assigned</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Parts & Materials</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Service Dates</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type & Priority</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Technician / Assigned</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Parts & Materials</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Service Dates</th>
+                            <th class="px-5 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-5 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($maintenances as $item)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-5 py-3.5">
+                                <td class="px-5 py-3.5 align-middle text-left">
                                     <div class="flex items-center gap-2 mb-1">
                                         <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
                                             {{ $item->work_order_number ?? ('WO-' . str_pad($item->id, 5, '0', STR_PAD_LEFT)) }}
@@ -424,13 +424,13 @@
                                         </div>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-600">
+                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-xs text-gray-600 text-left">
                                     <div>Sched: {{ $item->scheduled_date ? \Carbon\Carbon::parse($item->scheduled_date)->format('M d, Y') : 'N/A' }}</div>
                                     @if($item->completed_at)
                                         <div class="text-emerald-700 font-medium">Done: {{ $item->completed_at->format('M d, Y') }}</div>
                                     @endif
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
                                     @php
                                         $mColor = match($item->status) {
                                             'completed'   => 'success',
@@ -442,7 +442,7 @@
                                     @endphp
                                     <x-badge variant="{{ $mColor }}" size="sm">{{ ucfirst(str_replace('_', ' ', $item->status)) }}</x-badge>
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
+                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
                                         <button 
                                             type="button" 
@@ -525,39 +525,39 @@
         {{-- Inspections Table --}}
         <x-card>
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Inspector</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Inspection Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Next Due</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Result</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Findings</th>
-                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Inspector</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Inspection Date</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Next Due</th>
+                            <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Result</th>
+                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Findings</th>
+                            <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($inspections as $insp)
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 align-middle text-left">
                                     <span class="inline-block px-2 py-0.5 text-xs font-mono font-semibold rounded bg-gray-100 text-gray-700 border border-gray-200 mb-0.5">
                                         {{ $insp->asset->code ?? 'N/A' }}
                                     </span>
                                     <p class="text-sm font-semibold text-gray-900">{{ $insp->asset->name ?? 'Unknown Asset' }}</p>
                                     <p class="text-xs text-gray-500">{{ $insp->asset->category->name ?? 'Uncategorized' }}</p>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-sm font-medium text-gray-800 text-left">
                                     {{ $insp->inspector ?? 'Unassigned' }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">
                                     {{ \Carbon\Carbon::parse($insp->inspection_date)->format('M d, Y') }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">
                                     {{ $insp->next_due_date ? \Carbon\Carbon::parse($insp->next_due_date)->format('M d, Y') : 'N/A' }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                     @php
                                         $rColor = match($insp->result) {
                                             'passed'           => 'success',
@@ -568,10 +568,10 @@
                                     @endphp
                                     <x-badge variant="{{ $rColor }}" size="sm">{{ ucfirst(str_replace('_', ' ', $insp->result)) }}</x-badge>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-600 max-w-xs">
+                                <td class="px-6 py-4 align-middle text-sm text-gray-600 max-w-xs text-left">
                                     <span class="truncate block" title="{{ $insp->findings }}">{{ Str::limit($insp->findings, 35) ?: 'None reported' }}</span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                     @php
                                         $iStatColor = match($insp->status) {
                                             'completed' => 'success',
@@ -582,7 +582,7 @@
                                     @endphp
                                     <x-badge variant="{{ $iStatColor }}" size="sm">{{ ucfirst($insp->status) }}</x-badge>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <td class="px-6 py-4 align-middle whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2">
                                         <button 
                                             type="button"

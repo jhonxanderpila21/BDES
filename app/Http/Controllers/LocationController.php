@@ -12,7 +12,11 @@ class LocationController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Location::withCount([
+        $query = Location::with([
+            'assets' => function ($q) {
+                $q->with(['category', 'type'])->orderBy('name');
+            }
+        ])->withCount([
             'assets',
             'assets as available_assets_count' => function ($q) {
                 $q->where('status', 'available');
@@ -33,7 +37,18 @@ class LocationController extends Controller
         }
 
         $locations = $query->orderBy('name')->paginate(10)->withQueryString();
-        return view('admin.locations.index', ['locations' => $locations]);
+
+        $stats = [
+            'total_locations'    => Location::count(),
+            'total_assets'       => \App\Models\Asset::whereNotNull('location_id')->count(),
+            'available_assets'   => \App\Models\Asset::whereNotNull('location_id')->where('status', 'available')->count(),
+            'total_capacity'     => Location::sum('storage_capacity'),
+        ];
+
+        return view('admin.locations.index', [
+            'locations' => $locations,
+            'stats'     => $stats,
+        ]);
     }
 
     /**
@@ -113,12 +128,41 @@ class LocationController extends Controller
     }
 
     /**
+     * Display the specified location with its assets.
+     */
+    public function show(Request $request, Location $location)
+    {
+        $location->load([
+            'assets' => function ($q) {
+                $q->with(['category', 'type'])->orderBy('name');
+            }
+        ])->loadCount([
+            'assets',
+            'assets as available_assets_count' => function ($q) {
+                $q->where('status', 'available');
+            }
+        ]);
+
+        if ($request->wantsJson()) {
+            return response()->json($location);
+        }
+
+        return redirect()->route('locations.index', ['view_location' => $location->id]);
+    }
+
+    /**
      * Remove the specified location from storage.
      */
     public function destroy(Request $request, Location $location)
     {
         if (!$request->user() || !$request->user()->isAdmin()) {
             abort(403, 'Unauthorized action.');
+        }
+
+        if ($location->assets()->exists()) {
+            $count = $location->assets()->count();
+            return redirect()->route('locations.index')
+                ->with('error', "Cannot delete location \"{$location->name}\" because {$count} asset(s) are currently kept in it. Please relocate or reassign the assets first.");
         }
 
         $location->delete();

@@ -223,17 +223,17 @@
         {{-- Assets Table --}}
         <x-card>
             <div class="overflow-x-auto">
-                <table class="w-full">
+                <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Code</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset Name</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Category / Type</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Serial Number</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-5 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Location</th>
-                            <th class="px-5 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset Code</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset Name</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Category / Type</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Serial Number</th>
+                            <th class="px-5 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Condition</th>
+                            <th class="px-5 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
+                            <th class="px-5 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -268,7 +268,7 @@
                                 <td class="px-5 py-3.5 whitespace-nowrap text-xs font-mono text-gray-700">
                                     {{ $asset->serial_number ?: '—' }}
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
                                     @php
                                         $conditionColor = match($asset->condition) {
                                             'excellent', 'good' => 'success',
@@ -279,7 +279,7 @@
                                     @endphp
                                     <x-badge variant="{{ $conditionColor }}" size="sm">{{ ucfirst($asset->condition) }}</x-badge>
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap">
+                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
                                     @php
                                         $statusColor = match($asset->status) {
                                             'available'         => 'success',
@@ -299,10 +299,10 @@
                                         @endif
                                     </x-badge>
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap text-xs text-gray-600">
+                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-xs text-gray-600 text-left">
                                     {{ $asset->location->name ?? 'N/A' }}
                                 </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap text-right text-sm">
+                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
                                         {{-- Quick View Modal --}}
                                         <button 

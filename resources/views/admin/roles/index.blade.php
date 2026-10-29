@@ -115,15 +115,15 @@
     {{-- Roles Table --}}
     <x-card>
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Role Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Functional Scope</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Description</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Assigned Users</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Enforcement</th>
-                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Action</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Role Name</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Functional Scope</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Assigned Users</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Enforcement</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -132,28 +132,28 @@
                             $userCount = \App\Models\User::where('role', $role['key'])->count();
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-left">
                                 <div class="flex items-center gap-2.5">
                                     <div class="w-2.5 h-2.5 rounded-full {{ $role['badge'] === 'danger' ? 'bg-red-500' : ($role['badge'] === 'primary' ? 'bg-blue-600' : ($role['badge'] === 'warning' ? 'bg-amber-500' : ($role['badge'] === 'success' ? 'bg-emerald-500' : 'bg-gray-400'))) }}"></div>
                                     <p class="text-sm font-bold text-gray-900">{{ $role['name'] }}</p>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 <x-badge variant="{{ $role['badge'] }}" size="sm">{{ $role['scope'] }}</x-badge>
                             </td>
-                            <td class="px-6 py-4 text-xs text-gray-600 max-w-xs">{{ $role['description'] }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle text-xs text-gray-600 max-w-xs text-left">{{ $role['description'] }}</td>
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
                                     <i class="fas fa-users text-gray-500 text-[10px]"></i>
                                     {{ $userCount }} {{ Str::plural('account', $userCount) }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 <span class="inline-flex items-center gap-1 text-xs text-emerald-700 font-medium">
                                     <i class="fas fa-check-circle text-emerald-500"></i> Active Policy
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-right text-sm">
                                 <button
                                     type="button"
                                     onclick="viewRoleDetails(@js($role['name']), @js($role['scope']), @js($role['description']), @js($role['permissions']), {{ $userCount }})"

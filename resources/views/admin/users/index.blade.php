@@ -57,21 +57,21 @@
     {{-- Users Table --}}
     <x-card>
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Username</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Username</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($users as $user)
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-left">
                                 <div class="flex items-center gap-3">
                                     <div class="flex-shrink-0">
                                         <div class="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600 text-sm font-semibold">
@@ -81,12 +81,12 @@
                                     <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $user->username }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $user->email }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">{{ $user->username }}</td>
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">{{ $user->email }}</td>
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 <x-badge variant="primary" size="sm">{{ $roleLabels[$user->role] ?? ucfirst($user->role) }}</x-badge>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 @if($user->trashed())
                                     <x-badge variant="danger" size="sm">Archived</x-badge>
                                 @else
@@ -95,8 +95,8 @@
                                     </x-badge>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                <div class="flex items-center gap-2">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-right">
+                                <div class="flex items-center justify-end gap-2">
                                     @if($user->trashed())
                                         <form action="{{ route('users.restore', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Restore this user account?');">
                                             @csrf

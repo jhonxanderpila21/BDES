@@ -142,20 +142,20 @@
             <table class="w-full text-left text-sm">
                 <thead class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
                     <tr>
-                        <th class="px-4 py-3">Asset Name & Code</th>
-                        <th class="px-4 py-3">Purchase Cost</th>
-                        <th class="px-4 py-3">Lifespan / Age</th>
-                        <th class="px-4 py-3">Salvage Value</th>
-                        <th class="px-4 py-3">Yearly Dep.</th>
-                        <th class="px-4 py-3">Total Depreciated</th>
-                        <th class="px-4 py-3">Current Value</th>
+                        <th class="px-4 py-3 text-left">Asset Name & Code</th>
+                        <th class="px-4 py-3 text-right">Purchase Cost</th>
+                        <th class="px-4 py-3 text-center">Lifespan / Age</th>
+                        <th class="px-4 py-3 text-right">Salvage Value</th>
+                        <th class="px-4 py-3 text-right">Yearly Dep.</th>
+                        <th class="px-4 py-3 text-right">Total Depreciated</th>
+                        <th class="px-4 py-3 text-right">Current Value</th>
                         <th class="px-4 py-3 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assets as $asset)
                         <tr class="hover:bg-gray-50/80 transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}">
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-3 align-middle text-left">
                                 <div class="flex items-center gap-2">
                                     <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
                                     @if($asset->is_capitalized_ppe)
@@ -170,11 +170,11 @@
                                     <span>{{ $asset->category?->name ?? 'Uncategorized' }}</span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right font-medium text-gray-900 whitespace-nowrap">
                                 ₱{{ number_format($asset->acquisition_cost, 2) }}
                                 <div class="text-[11px] text-gray-500">{{ $asset->purchase_date?->format('M d, Y') ?? 'No date' }}</div>
                             </td>
-                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-center text-gray-700 whitespace-nowrap">
                                 @if($asset->is_capitalized_ppe)
                                     <div class="font-medium">{{ $asset->effective_useful_life }} yrs</div>
                                     <div class="text-xs text-gray-500">Age: {{ $asset->age_in_years }} yrs</div>
@@ -183,7 +183,7 @@
                                     <div class="text-[10px] text-amber-700 font-medium">No Depreciation</div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 font-medium text-gray-700 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right font-medium text-gray-700 whitespace-nowrap">
                                 @if($asset->is_capitalized_ppe)
                                     ₱{{ number_format($asset->calculated_salvage_value, 2) }}
                                     <div class="text-[10px] {{ $asset->salvage_value ? 'text-blue-600 font-semibold' : 'text-gray-400' }}">
@@ -194,7 +194,7 @@
                                     <div class="text-[10px] text-amber-700 font-medium">Under ₱20k</div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right text-gray-700 whitespace-nowrap">
                                 @if($asset->is_capitalized_ppe)
                                     ₱{{ number_format($asset->annual_depreciation, 2) }}
                                     <div class="text-[11px] text-gray-500">₱{{ number_format($asset->monthly_depreciation, 2) }}/mo</div>
@@ -203,7 +203,7 @@
                                     <div class="text-[10px] text-gray-400">₱0.00/mo</div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-rose-600 font-semibold whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right text-rose-600 font-semibold whitespace-nowrap">
                                 @if($asset->is_capitalized_ppe)
                                     ₱{{ number_format($asset->accumulated_depreciation, 2) }}
                                     <div class="text-[11px] text-gray-500 font-normal">{{ $asset->depreciation_percentage }}% depreciated</div>
@@ -212,10 +212,10 @@
                                     <div class="text-[10px] text-gray-400 font-normal">0.0%</div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                 <div class="font-bold text-emerald-700">₱{{ number_format($asset->current_book_value, 2) }}</div>
                                 @if($asset->is_capitalized_ppe)
-                                    <div class="w-24 bg-gray-200 rounded-full h-1.5 mt-1.5 overflow-hidden">
+                                    <div class="w-24 bg-gray-200 rounded-full h-1.5 mt-1.5 ml-auto overflow-hidden">
                                         @php
                                             $remainingPct = max(0, 100 - $asset->depreciation_percentage);
                                         @endphp
@@ -225,7 +225,7 @@
                                     <div class="text-[10px] text-amber-700 font-medium mt-1">Original Value</div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                            <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
                                 @if($asset->is_capitalized_ppe)
                                     <button
                                         type="button"

@@ -112,16 +112,16 @@
     {{-- Deployment Table --}}
     <x-card>
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Destination & Borrower</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Deployment Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Expected Return</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Inspection</th>
-                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Destination & Borrower</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Deployment Date</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Expected Return</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Inspection</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -130,7 +130,7 @@
                             onclick="if(!event.target.closest('button, a, form, input, select')) openDeploymentDetailsModal(@json($deployment));"
                             title="Click to view full details for {{ $deployment->asset->name ?? 'Equipment' }}">
                             {{-- Asset Info --}}
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 align-middle text-left">
                                 <div class="flex items-start gap-3">
                                     <div class="p-2 rounded-lg bg-blue-50 text-blue-600 mt-1">
                                         <i class="fas fa-box text-sm"></i>
@@ -146,7 +146,7 @@
                             </td>
 
                             {{-- Destination & Borrower --}}
-                            <td class="px-6 py-4 text-sm">
+                            <td class="px-6 py-4 align-middle text-sm text-left">
                                 <p class="font-medium text-gray-900 flex items-center gap-1.5">
                                     <i class="fas fa-location-dot text-red-500 text-xs"></i>
                                     {{ $deployment->destination }}
@@ -169,12 +169,12 @@
                             </td>
 
                             {{-- Deployment Date --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">
                                 {{ $deployment->deployment_date ? \Carbon\Carbon::parse($deployment->deployment_date)->format('M d, Y') : 'N/A' }}
                             </td>
 
                             {{-- Expected Return & Overdue Alert --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-left">
                                 @if($deployment->expected_return_date)
                                     <span class="text-gray-700">{{ \Carbon\Carbon::parse($deployment->expected_return_date)->format('M d, Y') }}</span>
                                     @if($deployment->isOverdue())
@@ -188,7 +188,7 @@
                             </td>
 
                             {{-- Deployment Status --}}
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 @php
                                     $statusVariant = match($deployment->status) {
                                         'active' => 'success',
@@ -203,7 +203,7 @@
                             </td>
 
                             {{-- Return Inspection Summary --}}
-                            <td class="px-6 py-4 text-sm">
+                            <td class="px-6 py-4 align-middle text-sm text-left">
                                 @if($deployment->status === 'returned')
                                     @if($deployment->returnRecord)
                                         <div class="space-y-1">

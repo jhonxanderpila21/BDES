@@ -35,36 +35,36 @@
     {{-- Returns Table --}}
     <x-card>
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Asset</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Returned By</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Return Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Returned By</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Return Date</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Condition</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($returns as $return)
                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-left">
                                 <p class="text-sm font-medium text-gray-900">{{ $return->asset->name ?? 'Unknown Asset' }}</p>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $return->returned_by ?? 'N/A' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ $return->return_date ? \Carbon\Carbon::parse($return->return_date)->format('M d, Y') : 'N/A' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">{{ $return->returned_by ?? 'N/A' }}</td>
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">{{ $return->return_date ? \Carbon\Carbon::parse($return->return_date)->format('M d, Y') : 'N/A' }}</td>
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 @php
                                     $condColor = strtolower($return->condition) === 'excellent' || strtolower($return->condition) === 'good' ? 'success' : 'warning';
                                 @endphp
                                 <x-badge variant="{{ $condColor }}" size="sm">{{ ucfirst($return->condition) }}</x-badge>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 <x-badge variant="info" size="sm">{{ ucfirst(str_replace('_', ' ', $return->status)) }}</x-badge>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                <div class="flex items-center gap-2">
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-right">
+                                <div class="flex items-center justify-end gap-2">
                                     <button onclick="window.openModal('return-modal')" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit Return">
                                         <i class="fas fa-edit"></i>
                                     </button>
