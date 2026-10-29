@@ -24,15 +24,6 @@ class InspectionSeeder extends Seeder
                 'status' => 'completed',
             ],
             [
-                'asset_id' => 2, // Purok A FE
-                'inspector' => 'BFP Officer Cruz',
-                'inspection_date' => now()->subMonths(13),
-                'result' => 'failed',
-                'findings' => 'Low pressure. Needs refill.',
-                'next_due_date' => now()->subMonths(1),
-                'status' => 'overdue',
-            ],
-            [
                 'asset_id' => 6, // Zoll AED
                 'inspector' => 'Dr. Fernandez',
                 'inspection_date' => now()->addDays(5),

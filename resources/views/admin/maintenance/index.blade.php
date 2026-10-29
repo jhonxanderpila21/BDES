@@ -39,63 +39,75 @@
 
 
     {{-- High-Level KPI Summary Cards --}}
+    @php
+        $isSchedTab = $activeTab === 'schedules';
+        $isLogsTab = $activeTab === 'logs';
+        $isInspTab = $activeTab === 'inspections';
+        $currStatus = request('status');
+
+        $allSchedActive = $isSchedTab && empty($currStatus);
+        $dueSchedActive = $isSchedTab && in_array($currStatus, ['due_overdue', 'due', 'overdue']);
+        $activeOrdersActive = $isLogsTab && in_array($currStatus, ['active', 'in_progress', 'scheduled']);
+        $allInspActive = $isInspTab;
+        $completedLogsActive = $isLogsTab && $currStatus === 'completed';
+    @endphp
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
         {{-- Total Schedules --}}
-        <a href="{{ route('maintenance.index', ['tab' => 'schedules']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
+        <a href="{{ route('maintenance.index', ['tab' => 'schedules']) }}" class="bg-white rounded-xl p-4 border {{ $allSchedActive ? 'border-blue-500 ring-2 ring-blue-500 shadow-md' : 'border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md' }} transition-all flex items-center justify-between group block">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5 group-hover:text-blue-600 transition-colors">Schedules</p>
                 <p class="text-xl font-bold text-gray-900">{{ $metrics['total_schedules'] }}</p>
                 <p class="text-[10px] text-gray-400">Preventive routines</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <div class="w-10 h-10 rounded-lg {{ $allSchedActive ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600' }} flex items-center justify-center text-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-calendar-check"></i>
             </div>
         </a>
 
         {{-- Attention Due --}}
-        <a href="{{ route('maintenance.index', ['tab' => 'schedules']) }}" class="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between group block" title="View due schedules">
+        <a href="{{ route('maintenance.index', ['tab' => 'schedules', 'status' => 'due_overdue']) }}" class="bg-white rounded-xl p-4 border {{ $dueSchedActive ? 'border-amber-500 ring-2 ring-amber-500 shadow-md' : 'border-amber-200 hover:border-amber-400 hover:shadow-md' }} bg-amber-50/20 shadow-sm transition-all flex items-center justify-between group block" title="View due/overdue schedules">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-0.5">Due / Overdue</p>
                 <p class="text-xl font-bold text-amber-700">{{ $metrics['schedules_due'] }}</p>
                 <p class="text-[10px] text-amber-600">Requires attention</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-lg group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <div class="w-10 h-10 rounded-lg {{ $dueSchedActive ? 'bg-amber-600 text-white' : 'bg-amber-100 text-amber-600' }} flex items-center justify-center text-lg group-hover:bg-amber-600 group-hover:text-white transition-colors">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
         </a>
 
         {{-- Active Maintenance --}}
-        <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="bg-white rounded-xl p-4 border border-indigo-200 bg-indigo-50/20 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all flex items-center justify-between group block" title="View active work orders">
+        <a href="{{ route('maintenance.index', ['tab' => 'logs', 'status' => 'active']) }}" class="bg-white rounded-xl p-4 border {{ $activeOrdersActive ? 'border-indigo-500 ring-2 ring-indigo-500 shadow-md' : 'border-indigo-200 hover:border-indigo-400 hover:shadow-md' }} bg-indigo-50/20 shadow-sm transition-all flex items-center justify-between group block" title="View active work orders">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-0.5">Active Orders</p>
                 <p class="text-xl font-bold text-indigo-700">{{ $metrics['active_maintenance'] }}</p>
                 <p class="text-[10px] text-indigo-600">In-progress repairs</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <div class="w-10 h-10 rounded-lg {{ $activeOrdersActive ? 'bg-indigo-600 text-white' : 'bg-indigo-100 text-indigo-600' }} flex items-center justify-center text-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 <i class="fas fa-wrench"></i>
             </div>
         </a>
 
         {{-- Inspections Count --}}
-        <a href="{{ route('maintenance.index', ['tab' => 'inspections']) }}" class="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="View asset inspections">
+        <a href="{{ route('maintenance.index', ['tab' => 'inspections']) }}" class="bg-white rounded-xl p-4 border {{ $allInspActive ? 'border-emerald-500 ring-2 ring-emerald-500 shadow-md' : 'border-emerald-200 hover:border-emerald-400 hover:shadow-md' }} bg-emerald-50/20 shadow-sm transition-all flex items-center justify-between group block" title="View asset inspections">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-0.5">Inspections</p>
                 <p class="text-xl font-bold text-emerald-700">{{ $metrics['total_inspections'] }}</p>
                 <p class="text-[10px] text-emerald-600">Quality audits</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+            <div class="w-10 h-10 rounded-lg {{ $allInspActive ? 'bg-emerald-600 text-white' : 'bg-emerald-100 text-emerald-600' }} flex items-center justify-center text-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 <i class="fas fa-clipboard-check"></i>
             </div>
         </a>
 
         {{-- Completed Tasks --}}
-        <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-gray-400 hover:shadow-md transition-all flex items-center justify-between group block">
+        <a href="{{ route('maintenance.index', ['tab' => 'logs', 'status' => 'completed']) }}" class="bg-white rounded-xl p-4 border {{ $completedLogsActive ? 'border-gray-500 ring-2 ring-gray-500 shadow-md' : 'border-gray-200 hover:border-gray-400 hover:shadow-md' }} shadow-sm transition-all flex items-center justify-between group block" title="View completed work orders">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5 group-hover:text-gray-900 transition-colors">Completed Tasks</p>
                 <p class="text-xl font-bold text-gray-900">{{ $metrics['completed_maintenance'] ?? 0 }}</p>
                 <p class="text-[10px] text-gray-400">Resolved work orders</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center text-lg group-hover:bg-gray-700 group-hover:text-white transition-colors">
+            <div class="w-10 h-10 rounded-lg {{ $completedLogsActive ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-700' }} flex items-center justify-center text-lg group-hover:bg-gray-700 group-hover:text-white transition-colors">
                 <i class="fas fa-check-double"></i>
             </div>
         </a>
@@ -724,12 +736,19 @@
                 </p>
             </div>
 
-            <x-form-group label="Completion Date" required>
-                <input type="date" name="completion_date" max="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-            </x-form-group>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <x-form-group label="Completion Date" required>
+                    <input type="date" name="completion_date" max="{{ date('Y-m-d') }}" value="{{ date('Y-m-d') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
 
-            <x-form-group label="Technician / Service Provider">
-                <input type="text" name="technician" placeholder="Who executed this task?" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                <x-form-group label="Technician / Service Provider">
+                    <input type="text" name="technician" placeholder="Who executed this task?" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                </x-form-group>
+            </div>
+
+            <x-form-group label="Service Cost (PHP) (Optional)">
+                <input type="number" step="0.01" min="0" name="cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                <p class="text-[11px] text-gray-500 mt-1">Optional. If entered, this cost will be tracked under Asset Expenses.</p>
             </x-form-group>
 
             <x-form-group label="Notes & Findings">
@@ -811,8 +830,9 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Cost (PHP)">
+                <x-form-group label="Cost (PHP) (Optional)">
                     <input type="number" step="0.01" min="0" name="cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <p class="text-[11px] text-gray-500 mt-1">Optional. If entered, this cost will be tracked under Asset Expenses.</p>
                 </x-form-group>
 
                 <x-form-group label="Scheduled / Service Date">
@@ -908,8 +928,9 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form-group label="Cost (PHP)">
+                <x-form-group label="Cost (PHP) (Optional)">
                     <input type="number" step="0.01" min="0" name="cost" id="edit_maint_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <p class="text-[11px] text-gray-500 mt-1">Optional (tracked in Asset Expenses)</p>
                 </x-form-group>
 
                 <x-form-group label="Service Date">
@@ -951,8 +972,9 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <x-form-group label="Final Service Cost (PHP)">
+                <x-form-group label="Final Service Cost (PHP) (Optional)">
                     <input type="number" step="0.01" min="0" name="cost" id="complete_wo_cost" placeholder="0.00" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm">
+                    <p class="text-[11px] text-gray-500 mt-1">Optional. Recorded in Asset Expenses ledger.</p>
                 </x-form-group>
 
                 <x-form-group label="Parts & Materials Used">

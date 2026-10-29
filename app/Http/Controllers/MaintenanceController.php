@@ -70,7 +70,14 @@ class MaintenanceController extends Controller
             $schedulesQuery->where('interval_type', $request->interval_type);
         }
         if ($request->filled('status') && $activeTab === 'schedules') {
-            $schedulesQuery->where('status', $request->status);
+            if ($request->status === 'due_overdue') {
+                $schedulesQuery->whereIn('status', [
+                    MaintenanceScheduleService::STATUS_DUE,
+                    MaintenanceScheduleService::STATUS_OVERDUE,
+                ]);
+            } else {
+                $schedulesQuery->where('status', $request->status);
+            }
         }
         $schedules = $schedulesQuery->latest('id')->paginate(10, ['*'], 'schedules_page')->withQueryString();
         $assetTypes = MaintenanceSchedule::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
@@ -99,7 +106,11 @@ class MaintenanceController extends Controller
             $maintenancesQuery->where('priority', $request->priority);
         }
         if ($request->filled('status') && $activeTab === 'logs') {
-            $maintenancesQuery->where('status', $request->status);
+            if ($request->status === 'active') {
+                $maintenancesQuery->whereIn('status', ['in_progress', 'scheduled']);
+            } else {
+                $maintenancesQuery->where('status', $request->status);
+            }
         }
         $maintenances = $maintenancesQuery->latest('id')->paginate(10, ['*'], 'logs_page')->withQueryString();
         $maintenanceTypes = ['routine', 'preventive', 'repair', 'inspection', 'overhaul', 'emergency'];

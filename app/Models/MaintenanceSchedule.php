@@ -70,7 +70,7 @@ class MaintenanceSchedule extends Model
     /**
      * Mark the maintenance as completed.
      */
-    public function markAsCompleted(Carbon $date, ?string $technician = null, ?string $notes = null): Maintenance
+    public function markAsCompleted(Carbon $date, ?string $technician = null, ?string $notes = null, ?float $cost = null): Maintenance
     {
         // 1. Update this schedule
         $this->last_maintenance_date = $date->copy();
@@ -84,6 +84,8 @@ class MaintenanceSchedule extends Model
             'scheduled_date' => $date->format('Y-m-d'),
             'notes' => trim("Completed preventive maintenance: {$this->maintenance_task}\n{$notes}"),
             'status' => 'completed',
+            'completed_at' => $date,
+            'cost' => $cost > 0 ? $cost : null,
         ]);
     }
 

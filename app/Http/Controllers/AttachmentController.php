@@ -80,7 +80,7 @@ class AttachmentController extends Controller
             $accessoriesQuery->where('asset_type', $request->asset_type);
         }
         if ($request->filled('status') && $activeTab === 'accessories') {
-            $accessoriesQuery->where('status', $request->status);
+            $accessoriesQuery->whereRaw('LOWER(status) = ?', [strtolower($request->status)]);
         }
         $accessories = $accessoriesQuery->latest('id')->paginate(10, ['*'], 'accessories_page')->withQueryString();
 

@@ -79,7 +79,11 @@ class OperationalRequirementController extends Controller
         }
 
         if ($request->filled('status') && $activeTab === 'needs') {
-            $needsQuery->where('status', $request->status);
+            if ($request->status === 'attention') {
+                $needsQuery->whereIn('status', ['Requires Maintenance', 'Under Maintenance']);
+            } else {
+                $needsQuery->where('status', $request->status);
+            }
         }
 
         $assetNeeds = $needsQuery->latest('id')->paginate(10, ['*'], 'needs_page')->withQueryString();

@@ -90,12 +90,19 @@ class MaintenanceScheduleController extends Controller
         if (isset($input['notes'])) {
             $input['notes'] = strip_tags(trim($input['notes']));
         }
+        if (isset($input['cost']) && is_string($input['cost'])) {
+            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            if ($input['cost'] === '') {
+                $input['cost'] = null;
+            }
+        }
         $request->merge($input);
 
         $validated = $request->validate([
             'completion_date' => 'required|date|before_or_equal:today',
-            'technician' => 'nullable|string|max:255',
-            'notes' => 'nullable|string',
+            'technician'      => 'nullable|string|max:255',
+            'cost'            => 'nullable|numeric|min:0',
+            'notes'           => 'nullable|string',
         ], [
             'completion_date.before_or_equal' => 'The completion date cannot be set in the future.',
         ]);
@@ -103,7 +110,8 @@ class MaintenanceScheduleController extends Controller
         $maintenanceSchedule->markAsCompleted(
             Carbon::parse($validated['completion_date']),
             $validated['technician'] ?? auth()->user()?->name,
-            $validated['notes'] ?? null
+            $validated['notes'] ?? null,
+            isset($validated['cost']) && $validated['cost'] !== null ? (float) $validated['cost'] : null
         );
 
         return redirect()->route('maintenance-schedules.index')

@@ -26,54 +26,57 @@
     </div>
 
     {{-- Financial KPI Metric Cards --}}
+    @php
+        $currCat = request('category', 'all');
+    @endphp
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {{-- Total Expenses --}}
-        <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('financials.expenses') }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'all' || empty(request('category')) ? 'border-emerald-500 ring-2 ring-emerald-500 shadow-md' : 'border-emerald-200 hover:border-emerald-400 hover:shadow-md' }} bg-emerald-50/20 shadow-sm transition-all flex items-center justify-between group block">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">Total Expenses</p>
                 <p class="text-2xl font-bold text-emerald-700">₱{{ number_format($kpis['total_expenses'], 2) }}</p>
                 <p class="text-xs text-emerald-600 mt-1">{{ $kpis['total_count'] }} recorded expenditures</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 <i class="fas fa-wallet"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Asset Purchases --}}
-        <div class="bg-white rounded-xl p-5 border border-blue-200 bg-blue-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('financials.expenses', ['category' => 'asset']) }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'asset' ? 'border-blue-500 ring-2 ring-blue-500 shadow-md' : 'border-blue-200 hover:border-blue-400 hover:shadow-md' }} bg-blue-50/20 shadow-sm transition-all flex items-center justify-between group block" title="Filter by Asset Purchases">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-blue-800 mb-1">Asset Purchases</p>
                 <p class="text-2xl font-bold text-blue-700">₱{{ number_format($kpis['assets_total'], 2) }}</p>
                 <p class="text-xs text-blue-600 mt-1">Equipment and vehicles</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-boxes-stacked"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Maintenance & Repairs --}}
-        <div class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('financials.expenses', ['category' => 'maintenance']) }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'maintenance' ? 'border-amber-500 ring-2 ring-amber-500 shadow-md' : 'border-amber-200 hover:border-amber-400 hover:shadow-md' }} bg-amber-50/20 shadow-sm transition-all flex items-center justify-between group block" title="Filter by Maintenance & Repairs">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-800 mb-1">Maintenance & Repairs</p>
                 <p class="text-2xl font-bold text-amber-700">₱{{ number_format($kpis['maintenance_total'], 2) }}</p>
                 <p class="text-xs text-amber-600 mt-1">Servicing, repairs & parts upkeep</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
                 <i class="fas fa-wrench"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Supplies & Parts --}}
-        <div class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('financials.expenses', ['category' => 'operational_requirement']) }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'operational_requirement' ? 'border-purple-500 ring-2 ring-purple-500 shadow-md' : 'border-purple-200 hover:border-purple-400 hover:shadow-md' }} bg-purple-50/20 shadow-sm transition-all flex items-center justify-between group block" title="Filter by Supplies & Consumables">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-purple-800 mb-1">Supplies & Parts</p>
                 <p class="text-2xl font-bold text-purple-700">₱{{ number_format($kpis['supplies_total'] + $kpis['accessories_total'], 2) }}</p>
                 <p class="text-xs text-purple-600 mt-1">Consumables and attachments</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
                 <i class="fas fa-gas-pump"></i>
             </div>
-        </div>
+        </a>
     </div>
 
     {{-- Filters Card --}}

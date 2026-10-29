@@ -58,7 +58,7 @@
             </a>
 
             {{-- Attention Needed --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'needs', 'status' => 'Requires Maintenance']) }}" class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Requires Maintenance">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'needs', 'status' => 'attention']) }}" class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between group block {{ request('status') === 'attention' ? 'ring-2 ring-amber-500 shadow-md' : '' }}" title="Filter by Attention Needed">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-1">Requires Refill / Maint.</p>
                     <p class="text-2xl font-bold text-amber-700">{{ $metrics['needs_attention'] ?? 0 }}</p>

@@ -96,12 +96,12 @@ class ReportedAssetSeeder extends Seeder
                 'reported_type' => 'Maintenance',
                 'target_status' => 'Done',
                 'location'      => 'Barangay Hall',
-                'description'   => 'Dry chemical pressure gauge dropped below optimal operating pressure.',
-                'action'        => 'Refilled and pressure-tested',
+                'description'   => 'Dry chemical pressure gauge dropped below optimal operating pressure. Dispatched for BFP station hydrostatic testing.',
+                'action'        => 'Certified and pressure-tested by BFP',
                 'reported_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
                 'transitions'   => [
-                    ['to' => 'Ongoing', 'notes' => 'Dispatched to accredited fire safety refilling vendor.'],
-                    ['to' => 'Done', 'notes' => 'Refilled, hydrostatic pressure tested, and safety inspection seal attached.'],
+                    ['to' => 'Ongoing', 'notes' => 'Dispatched to accredited BFP fire safety inspection station.'],
+                    ['to' => 'Done', 'notes' => 'Hydrostatic pressure tested, recertified, and official BFP safety inspection seal attached.'],
                 ],
             ],
 
