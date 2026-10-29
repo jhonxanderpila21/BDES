@@ -70,9 +70,9 @@
         || $isActive('profile.*');
 @endphp
 <aside 
-    :style="sidebarOpen ? 'width: ' + (window.innerWidth < 1024 ? Math.min(sidebarWidth, window.innerWidth - 48) : sidebarWidth) + 'px;' : 'width: 0px;'"
+    :style="sidebarOpen ? 'width: ' + (windowWidth < 1024 ? Math.min(sidebarWidth, windowWidth - 48) : sidebarWidth) + 'px;' : 'width: 0px;'"
     :class="{'transition-all duration-300 ease-in-out': !isResizing}"
-    class="fixed inset-y-0 left-0 z-40 lg:static lg:z-auto flex-shrink-0 bg-[#003366] text-white border-r border-[#002244] overflow-hidden shadow-2xl lg:shadow-md select-none"
+    class="fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-auto flex-shrink-0 h-screen bg-[#003366] text-white border-r border-[#002244] overflow-hidden shadow-2xl lg:shadow-md select-none"
 >
     <nav class="h-screen overflow-y-auto">
         {{-- Sidebar Content --}}
@@ -393,13 +393,13 @@
 
     {{-- Draggable Width Resizer Handle on Right Edge (Desktop only) --}}
     <div 
-        @mousedown="startResize($event)"
+        @mousedown.prevent="startResize($event)"
         @dblclick="resetSidebarWidth()"
-        title="Click and drag to adjust sidebar width (double-click to reset to default)"
-        class="hidden lg:block absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-[#2563EB] transition-colors z-20 group"
-        :class="isResizing ? 'bg-[#2563EB] w-2' : 'bg-transparent hover:bg-blue-400'"
+        title="Click and drag to adjust sidebar width (double-click to reset)"
+        class="hidden lg:block absolute right-0 top-0 bottom-0 w-2.5 cursor-col-resize hover:bg-[#2563EB]/40 transition-colors z-30 group"
+        :class="isResizing ? 'bg-[#2563EB] !w-3' : 'bg-transparent hover:bg-blue-400/50'"
     >
-        <div class="h-full w-full opacity-0 group-hover:opacity-100 bg-[#2563EB] transition-opacity"></div>
+        <div class="h-full w-1 ml-auto opacity-0 group-hover:opacity-100 bg-[#2563EB] transition-opacity" :class="{'opacity-100': isResizing}"></div>
     </div>
 </aside>
 

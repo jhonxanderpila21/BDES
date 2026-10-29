@@ -14,15 +14,17 @@
     class="bg-[#FAFAF9] text-[#1F2937] antialiased" 
     x-data="{ 
         sidebarOpen: window.innerWidth >= 1024,
-        sidebarWidth: parseInt(localStorage.getItem('bdes_sidebar_width')) || 256,
+        sidebarWidth: Math.min(Math.max(parseInt(localStorage.getItem('bdes_sidebar_width')) || 256, 200), 480),
+        windowWidth: window.innerWidth,
         isResizing: false,
         startResize(e) {
+            e.preventDefault();
             this.isResizing = true;
             const startX = e.clientX;
             const startWidth = this.sidebarWidth;
             const doResize = (moveEvent) => {
                 if (!this.isResizing) return;
-                const newWidth = Math.min(Math.max(startWidth + (moveEvent.clientX - startX), 200), 420);
+                const newWidth = Math.min(Math.max(startWidth + (moveEvent.clientX - startX), 200), 480);
                 this.sidebarWidth = newWidth;
                 localStorage.setItem('bdes_sidebar_width', newWidth);
             };
@@ -40,7 +42,8 @@
         },
         init() {
             window.addEventListener('resize', () => {
-                if (window.innerWidth < 1024 && this.sidebarOpen && !this.isResizing) {
+                this.windowWidth = window.innerWidth;
+                if (this.windowWidth < 1024 && this.sidebarOpen && !this.isResizing) {
                     this.sidebarOpen = false;
                 }
             });

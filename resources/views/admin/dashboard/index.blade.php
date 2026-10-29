@@ -35,11 +35,11 @@
             @if(auth()->check() && auth()->user()->isAdmin())
                 <a href="{{ route('financials.expenses') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 rounded-xl text-xs font-bold transition-colors">
                     <i class="fas fa-file-invoice-dollar"></i>
-                    <span>Expenses Ledger</span>
+                    <span>Asset expenses</span>
                 </a>
                 <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-green-50 hover:bg-green-100 text-[#2E7D32] border border-[#2E7D32]/30 rounded-xl text-xs font-bold transition-colors">
                     <i class="fas fa-file-invoice"></i>
-                    <span>Reports</span>
+                    <span>Reports Center</span>
                 </a>
             @endif
         </div>
