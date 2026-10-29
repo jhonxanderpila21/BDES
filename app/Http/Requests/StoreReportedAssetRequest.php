@@ -19,9 +19,10 @@ class StoreReportedAssetRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
-            'location'    => strip_tags(trim($this->location ?? '')),
-            'description' => strip_tags(trim($this->description ?? '')),
-            'action'      => strip_tags(trim($this->action ?? '')),
+            'location'      => strip_tags(trim($this->location ?? '')),
+            'description'   => strip_tags(trim($this->description ?? '')),
+            'action'        => strip_tags(trim($this->action ?? '')),
+            'reported_date' => $this->filled('reported_date') ? $this->reported_date : now()->format('Y-m-d'),
         ]);
     }
 
@@ -36,7 +37,7 @@ class StoreReportedAssetRequest extends FormRequest
             'location'      => ['required', 'string', 'max:255'],
             'description'   => ['nullable', 'string'],
             'action'        => ['nullable', 'string', 'max:255'],
-            'reported_date' => ['required', 'date', 'before_or_equal:today'],
+            'reported_date' => ['nullable', 'date', 'before_or_equal:today'],
         ], \App\Services\ReceiptService::rules());
     }
 

@@ -40,6 +40,23 @@ class ReportedAssetController extends Controller
             $query->where('status', $request->status);
         }
 
+        // Time / Timeframe Filter
+        if ($request->filled('timeframe')) {
+            match ($request->timeframe) {
+                'today'      => $query->whereDate('reported_date', \Carbon\Carbon::today()),
+                'this_week'  => $query->whereBetween('reported_date', [\Carbon\Carbon::now()->startOfWeek(), \Carbon\Carbon::now()->endOfWeek()]),
+                'this_month' => $query->whereMonth('reported_date', \Carbon\Carbon::now()->month)->whereYear('reported_date', \Carbon\Carbon::now()->year),
+                'this_year'  => $query->whereYear('reported_date', \Carbon\Carbon::now()->year),
+                default      => null,
+            };
+        }
+        if ($request->filled('date_from')) {
+            $query->whereDate('reported_date', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('reported_date', '<=', $request->date_to);
+        }
+
         $reports = $query->latest()->paginate(10)->withQueryString();
 
         // Dashboard summary — counts per status
@@ -71,7 +88,7 @@ class ReportedAssetController extends Controller
      */
     public function show(ReportedAsset $reportedAsset)
     {
-        $reportedAsset->load(['asset', 'reporter', 'statusHistories.changedByUser']);
+        $reportedAsset->load(['asset', 'reporter', 'statusHistories.changedByUser', 'receipts']);
 
         $allowedNext = ReportedAssetService::allowedNextStatuses($reportedAsset->status);
 
@@ -86,6 +103,7 @@ class ReportedAssetController extends Controller
         $validated = $request->validated();
         $validated['reported_by'] = auth()->id();
         $validated['status'] = ReportedAssetService::STATUS_PENDING;
+        $validated['reported_date'] = $validated['reported_date'] ?? now()->format('Y-m-d');
 
         unset($validated['receipts'], $validated['receipt_reference_number']);
         $report = ReportedAsset::create($validated);
