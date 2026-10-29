@@ -131,22 +131,13 @@
                             <span>Attachments & Accessories</span>
                         </a>
 
-                        {{-- Operational Requirements --}}
+                        {{-- Operational Requirements & Supplies --}}
                         <a
                             href="{{ route('operational-requirements.index') }}"
-                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('operational-requirements.*')) }}"
+                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('operational-requirements.*') || $isActive('asset-needs.*')) }}"
                         >
-                            <i class="fas fa-list-check w-4 text-center {{ $iconClass($isActive('operational-requirements.*')) }}"></i>
+                            <i class="fas fa-list-check w-4 text-center {{ $iconClass($isActive('operational-requirements.*') || $isActive('asset-needs.*')) }}"></i>
                             <span>Operational Requirements</span>
-                        </a>
-
-                        {{-- Asset Needs & Supplies --}}
-                        <a
-                            href="{{ route('asset-needs.index') }}"
-                            class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('asset-needs.*')) }}"
-                        >
-                            <i class="fas fa-gas-pump w-4 text-center {{ $iconClass($isActive('asset-needs.*')) }}"></i>
-                            <span>Asset Needs & Supplies</span>
                         </a>
                     @endif
                 </div>

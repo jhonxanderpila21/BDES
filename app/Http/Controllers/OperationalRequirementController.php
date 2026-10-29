@@ -10,7 +10,16 @@ class OperationalRequirementController extends Controller
 {
     public function index(Request $request)
     {
-        $query = OperationalRequirement::with([
+        $activeTab = $request->get('tab');
+        if (!$activeTab) {
+            $activeTab = $request->routeIs('asset-needs.*') ? 'needs' : 'requirements';
+        }
+        if (!in_array($activeTab, ['requirements', 'needs'], true)) {
+            $activeTab = 'requirements';
+        }
+
+        // 1. Warehouse Consumables & Operational Requirements Query
+        $reqQuery = OperationalRequirement::with([
             'assetType.assets' => function ($q) {
                 $q->select('id', 'name', 'code', 'type_id', 'location_id', 'status', 'condition')
                   ->with('location:id,name');
@@ -18,9 +27,9 @@ class OperationalRequirementController extends Controller
             'restocks',
         ]);
 
-        if ($request->filled('search')) {
+        if ($request->filled('search') && $activeTab === 'requirements') {
             $search = $request->search;
-            $query->where(function ($q) use ($search) {
+            $reqQuery->where(function ($q) use ($search) {
                 $q->where('requirement_type', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
                   ->orWhereHas('assetType', function ($tq) use ($search) {
@@ -29,33 +38,81 @@ class OperationalRequirementController extends Controller
             });
         }
 
-        if ($request->filled('asset_type_id')) {
-            $query->where('asset_type_id', $request->asset_type_id);
+        if ($request->filled('asset_type_id') && $activeTab === 'requirements') {
+            $reqQuery->where('asset_type_id', $request->asset_type_id);
         }
 
-        if ($request->filled('status')) {
+        if ($request->filled('status') && $activeTab === 'requirements') {
             if ($request->status === 'low') {
-                $query->whereColumn('current_level', '<=', 'minimum_level');
+                $reqQuery->whereColumn('current_level', '<=', 'minimum_level');
             } elseif ($request->status === 'adequate') {
-                $query->whereColumn('current_level', '>', 'minimum_level');
+                $reqQuery->whereColumn('current_level', '>', 'minimum_level');
             }
-        } elseif ($request->boolean('low')) {
-            $query->whereColumn('current_level', '<=', 'minimum_level');
+        } elseif ($request->boolean('low') && $activeTab === 'requirements') {
+            $reqQuery->whereColumn('current_level', '<=', 'minimum_level');
         }
 
-        $requirements = $query->latest('id')->paginate(10)->withQueryString();
+        $requirements = $reqQuery->latest('id')->paginate(10, ['*'], 'requirements_page')->withQueryString();
         $assetTypes = AssetType::orderBy('name')->get();
+
+        // 2. Equipment Supply Needs & Allocations Query
+        $needsQuery = \App\Models\AssetNeed::with(['asset.type', 'asset.location']);
+
+        if ($request->filled('search') && $activeTab === 'needs') {
+            $search = $request->search;
+            $needsQuery->where(function ($q) use ($search) {
+                $q->where('requirement', 'like', "%{$search}%")
+                  ->orWhere('asset_type', 'like', "%{$search}%")
+                  ->orWhereHas('asset', function ($aq) use ($search) {
+                      $aq->where('name', 'like', "%{$search}%")
+                         ->orWhere('code', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        if ($request->filled('asset_type') && $activeTab === 'needs') {
+            $needsQuery->where('asset_type', $request->asset_type);
+        }
+
+        if ($request->filled('unit') && $activeTab === 'needs') {
+            $needsQuery->where('unit', $request->unit);
+        }
+
+        if ($request->filled('status') && $activeTab === 'needs') {
+            $needsQuery->where('status', $request->status);
+        }
+
+        $assetNeeds = $needsQuery->latest('id')->paginate(10, ['*'], 'needs_page')->withQueryString();
+        $needAssetTypes = \App\Models\AssetNeed::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
+        $units = \App\Services\AssetNeedStatusService::units();
+        $statuses = \App\Services\AssetNeedStatusService::statuses();
+        $assets = \App\Models\Asset::with('type')->orderBy('name')->get();
 
         // Calculate KPI summary metrics matching Asset Registry structure
         $allRequirements = OperationalRequirement::all();
+        $allNeeds = \App\Models\AssetNeed::all();
+
         $metrics = [
             'total_requirements' => $allRequirements->count(),
             'adequate_stock'     => $allRequirements->filter(fn($r) => !$r->isLowStock())->count(),
             'low_stock'          => $allRequirements->filter(fn($r) => $r->isLowStock())->count(),
             'monitored_types'    => $allRequirements->pluck('asset_type_id')->filter()->unique()->count(),
+            'total_needs'        => $allNeeds->count(),
+            'needs_monitoring'   => $allNeeds->where('status', 'Monitoring Only')->count(),
+            'needs_attention'    => $allNeeds->whereIn('status', ['Requires Maintenance', 'Under Maintenance'])->count(),
         ];
 
-        return view('admin.operational-requirements.index', compact('requirements', 'assetTypes', 'metrics'));
+        return view('admin.operational-requirements.index', compact(
+            'activeTab',
+            'requirements',
+            'assetTypes',
+            'assetNeeds',
+            'needAssetTypes',
+            'units',
+            'statuses',
+            'assets',
+            'metrics'
+        ));
     }
 
     protected function authorizeEditor(Request $request): void

@@ -1,245 +1,504 @@
 @extends('layouts.admin')
 
-@section('title', 'Operational Requirements - BDES')
+@section('title', 'Operational Requirements & Supplies - BDES')
 
 @section('content')
     {{-- Page Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
             <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
                 <i class="fas fa-list-check text-blue-600"></i>
-                Operational Requirements
+                Operational Requirements & Supplies
             </h1>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
                 ['label' => 'Asset Management'],
-                ['label' => 'Operational Requirements']
+                ['label' => 'Operational Requirements & Supplies']
             ]" />
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            <button onclick="openAddRequirementModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                <i class="fas fa-plus"></i>
-                Add Requirement
-            </button>
+            @if($activeTab === 'needs')
+                <button onclick="openAddNeedModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    Add Equipment Need
+                </button>
+            @else
+                <button onclick="openAddRequirementModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    Add Requirement
+                </button>
+            @endif
         </div>
     </div>
 
     {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {{-- Total Requirements --}}
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Total Requirements</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_requirements'] ?? $requirements->total() }}</p>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        @if($activeTab === 'needs')
+            {{-- Total Needs --}}
+            <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Total Equipment Needs</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_needs'] ?? $assetNeeds->total() }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-gas-pump"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
-                <i class="fas fa-gas-pump"></i>
-            </div>
-        </div>
 
-        {{-- Adequate Reserves --}}
-        <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate Stock</p>
-                <p class="text-2xl font-bold text-emerald-700">{{ $metrics['adequate_stock'] ?? 0 }}</p>
+            {{-- Healthy Needs --}}
+            <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate (Monitoring)</p>
+                    <p class="text-2xl font-bold text-emerald-700">{{ $metrics['needs_monitoring'] ?? 0 }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-circle-check"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
-                <i class="fas fa-circle-check"></i>
-            </div>
-        </div>
 
-        {{-- Low Stock Alert --}}
-        <div class="bg-white rounded-xl p-5 border border-rose-200 bg-rose-50/20 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-rose-700 mb-1">Low Stock Alert</p>
-                <p class="text-2xl font-bold text-rose-700">{{ $metrics['low_stock'] ?? 0 }}</p>
+            {{-- Attention Needed --}}
+            <div class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-1">Requires Refill / Maint.</p>
+                    <p class="text-2xl font-bold text-amber-700">{{ $metrics['needs_attention'] ?? 0 }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl">
-                <i class="fas fa-triangle-exclamation"></i>
-            </div>
-        </div>
 
-        {{-- Covered Asset Types --}}
-        <div class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Equipment Types Covered</p>
-                <p class="text-2xl font-bold text-indigo-700">{{ $metrics['monitored_types'] ?? 0 }}</p>
+            {{-- Equipment Models --}}
+            <div class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Equipment Models</p>
+                    <p class="text-2xl font-bold text-purple-700">{{ $needAssetTypes->count() }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-boxes-stacked"></i>
+                </div>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">
-                <i class="fas fa-tags"></i>
+        @else
+            {{-- Total Requirements --}}
+            <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Warehouse Supplies</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_requirements'] ?? $requirements->total() }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-boxes-stacked"></i>
+                </div>
             </div>
-        </div>
+
+            {{-- Adequate Reserves --}}
+            <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate Reserves</p>
+                    <p class="text-2xl font-bold text-emerald-700">{{ $metrics['adequate_stock'] ?? 0 }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-circle-check"></i>
+                </div>
+            </div>
+
+            {{-- Low Stock Alert --}}
+            <div class="bg-white rounded-xl p-5 border border-rose-200 bg-rose-50/20 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-rose-700 mb-1">Low Stock Alert</p>
+                    <p class="text-2xl font-bold text-rose-700">{{ $metrics['low_stock'] ?? 0 }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-triangle-exclamation"></i>
+                </div>
+            </div>
+
+            {{-- Covered Asset Types --}}
+            <div class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Equipment Types Covered</p>
+                    <p class="text-2xl font-bold text-indigo-700">{{ $metrics['monitored_types'] ?? 0 }}</p>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-tags"></i>
+                </div>
+            </div>
+        @endif
     </div>
 
-    {{-- Filters & Search --}}
-    <form action="{{ route('operational-requirements.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
-        <div class="flex-1">
-            <input 
-                type="text" 
-                name="search" 
-                value="{{ request('search') }}" 
-                placeholder="Search requirement, supply, or equipment type..."
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-        </div>
+    {{-- Module Navigation Tabs --}}
+    <div class="flex border-b border-gray-200 mb-6 space-x-1">
+        <a 
+            href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}"
+            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'requirements' ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+        >
+            <i class="fas fa-boxes-stacked"></i>
+            <span>Warehouse Consumables & Supplies</span>
+            <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'requirements' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
+                {{ $requirements->total() }}
+            </span>
+        </a>
 
-        <select name="asset_type_id" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            <option value="">All Equipment Types</option>
-            @foreach($assetTypes as $t)
-                <option value="{{ $t->id }}" {{ request('asset_type_id') == $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
-            @endforeach
-        </select>
+        <a 
+            href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}"
+            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'needs' ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
+        >
+            <i class="fas fa-gas-pump"></i>
+            <span>Equipment Needs & Allocations</span>
+            <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'needs' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
+                {{ $assetNeeds->total() }}
+            </span>
+        </a>
+    </div>
 
-        <select name="status" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-            <option value="">All Stock Statuses</option>
-            <option value="adequate" {{ request('status') === 'adequate' ? 'selected' : '' }}>In Stock / Adequate</option>
-            <option value="low" {{ request('status') === 'low' || request('low') ? 'selected' : '' }}>Low Stock / Below Min</option>
-        </select>
+    {{-- ========================================================================= --}}
+    {{-- TAB 1: WAREHOUSE CONSUMABLES & OPERATIONAL REQUIREMENTS                   --}}
+    {{-- ========================================================================= --}}
+    @if($activeTab === 'requirements')
+        {{-- Filters & Search --}}
+        <form action="{{ route('operational-requirements.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
+            <input type="hidden" name="tab" value="requirements">
 
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-            Filter
-        </button>
+            <div class="flex-1">
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ request('search') }}" 
+                    placeholder="Search requirement, supply, or equipment type..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
 
-        @if(request()->hasAny(['search', 'asset_type_id', 'status', 'low']))
-            <a href="{{ route('operational-requirements.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
-                Reset
-            </a>
-        @endif
-    </form>
+            <select name="asset_type_id" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">All Equipment Types</option>
+                @foreach($assetTypes as $t)
+                    <option value="{{ $t->id }}" {{ request('asset_type_id') == $t->id ? 'selected' : '' }}>{{ $t->name }}</option>
+                @endforeach
+            </select>
 
-    {{-- Requirements Table --}}
-    <x-card>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50 border-b border-gray-200">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement / Supply</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Available Stock</th>
-                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Assets Using</th>
-                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @forelse($requirements as $requirement)
-                        @php
-                            $current = (float)$requirement->current_level;
-                            $max = (float)$requirement->maximum_capacity;
-                            $min = (float)$requirement->minimum_level;
-                            $pct = $max > 0 ? min(100, round(($current / $max) * 100)) : 0;
-                            $isLow = $requirement->isLowStock();
-                            $usingCount = $requirement->using_assets->count();
-                        @endphp
-                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openRequirementDetailsModal(@js($requirement))">
-                            {{-- Requirement Name & Description --}}
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <i class="fas fa-gas-pump text-blue-500 text-sm group-hover:scale-110 transition-transform"></i>
-                                    <div>
-                                        <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $requirement->requirement_type }}</p>
-                                        @if($requirement->description)
-                                            <p class="text-xs text-gray-400 truncate max-w-xs mt-0.5">{{ $requirement->description }}</p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </td>
+            <select name="status" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">All Stock Statuses</option>
+                <option value="adequate" {{ request('status') === 'adequate' ? 'selected' : '' }}>In Stock / Adequate</option>
+                <option value="low" {{ request('status') === 'low' || request('low') ? 'selected' : '' }}>Low Stock / Below Min</option>
+            </select>
 
-                            {{-- Asset Type --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                                {{ $requirement->assetType->name ?? 'General / Cross-Equipment' }}
-                            </td>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                Filter
+            </button>
 
-                            {{-- Available Stock with Mini Progress Bar --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <div class="space-y-1 max-w-[200px]">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="font-bold font-mono text-gray-900">{{ $current }} {{ $requirement->unit }}</span>
-                                        <span class="text-gray-400 text-[11px] font-mono">Max: {{ $max }}</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-1.5 rounded-full {{ $isLow ? 'bg-rose-500' : 'bg-emerald-500' }}" style="width: {{ $pct }}%"></div>
-                                    </div>
-                                    <span class="text-[10px] text-gray-400 block">Min Threshold: {{ $min }} {{ $requirement->unit }}</span>
-                                </div>
-                            </td>
+            @if(request()->hasAny(['search', 'asset_type_id', 'status', 'low']))
+                <a href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
+                    Reset
+                </a>
+            @endif
+        </form>
 
-                            {{-- Assets Using Counter --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $usingCount > 0 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-500' }}">
-                                    <i class="fas fa-boxes-stacked text-[10px]"></i>
-                                    {{ $usingCount }} {{ $usingCount === 1 ? 'asset' : 'assets' }}
-                                </span>
-                            </td>
-
-                            {{-- Status Badge --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if($isLow)
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
-                                        <i class="fas fa-triangle-exclamation text-[10px] text-rose-600"></i> Low Stock
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                        <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> In Stock
-                                    </span>
-                                @endif
-                            </td>
-
-                            {{-- Actions --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
-                                    <button 
-                                        type="button"
-                                        onclick="event.stopPropagation(); openRequirementDetailsModal(@js($requirement))" 
-                                        class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                        title="View Requirement & Assets"
-                                    >
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        onclick='event.stopPropagation(); openAddQuantityModal(@json($requirement))' 
-                                        class="p-1.5 rounded hover:bg-emerald-50 text-emerald-600 hover:text-emerald-800 transition-colors" 
-                                        title="Add Quantity / Restock"
-                                    >
-                                        <i class="fas fa-plus-circle"></i>
-                                    </button>
-                                    <button 
-                                        type="button"
-                                        onclick='event.stopPropagation(); editRequirement(@json($requirement))' 
-                                        class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
-                                        title="Edit Requirement"
-                                    >
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form action="{{ route('operational-requirements.destroy', $requirement) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this requirement?');" onclick="event.stopPropagation()">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Requirement" onclick="event.stopPropagation()">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+        {{-- Requirements Table --}}
+        <x-card>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
-                                <x-empty-state icon="fas fa-list-check" title="No operational requirements found" description="Click Add Requirement above to register consumable fuels, oils, and emergency supplies." />
-                            </td>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Requirement / Supply</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Available Stock</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Assets Using</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="px-6 py-4 border-t border-gray-200">
-            {{ $requirements->links() }}
-        </div>
-    </x-card>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @forelse($requirements as $requirement)
+                            @php
+                                $current = (float)$requirement->current_level;
+                                $max = (float)$requirement->maximum_capacity;
+                                $min = (float)$requirement->minimum_level;
+                                $pct = $max > 0 ? min(100, round(($current / $max) * 100)) : 0;
+                                $isLow = $requirement->isLowStock();
+                                $usingCount = $requirement->using_assets ? $requirement->using_assets->count() : 0;
+                            @endphp
+                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openRequirementDetailsModal(@js($requirement))">
+                                {{-- Requirement Name & Description --}}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-gas-pump text-blue-500 text-sm group-hover:scale-110 transition-transform"></i>
+                                        <div>
+                                            <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $requirement->requirement_type }}</p>
+                                            @if($requirement->description)
+                                                <p class="text-xs text-gray-400 truncate max-w-xs mt-0.5">{{ $requirement->description }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+
+                                {{-- Asset Type --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
+                                    {{ $requirement->assetType->name ?? 'General / Cross-Equipment' }}
+                                </td>
+
+                                {{-- Available Stock with Mini Progress Bar --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="space-y-1 max-w-[200px]">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="font-bold font-mono text-gray-900">{{ $current }} {{ $requirement->unit }}</span>
+                                            <span class="text-gray-400 text-[11px] font-mono">Max: {{ $max }}</span>
+                                        </div>
+                                        <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                            <div class="h-1.5 rounded-full {{ $isLow ? 'bg-rose-500' : 'bg-emerald-500' }}" style="width: {{ $pct }}%"></div>
+                                        </div>
+                                        <span class="text-[10px] text-gray-400 block">Min Threshold: {{ $min }} {{ $requirement->unit }}</span>
+                                    </div>
+                                </td>
+
+                                {{-- Assets Using Counter --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold {{ $usingCount > 0 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-gray-100 text-gray-500' }}">
+                                        <i class="fas fa-boxes-stacked text-[10px]"></i>
+                                        {{ $usingCount }} {{ $usingCount === 1 ? 'asset' : 'assets' }}
+                                    </span>
+                                </td>
+
+                                {{-- Status Badge --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    @if($isLow)
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
+                                            <i class="fas fa-triangle-exclamation text-[10px] text-rose-600"></i> Low Stock
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                            <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> In Stock
+                                        </span>
+                                    @endif
+                                </td>
+
+                                {{-- Actions --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                    <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
+                                        <button 
+                                            type="button"
+                                            onclick="event.stopPropagation(); openRequirementDetailsModal(@js($requirement))" 
+                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors" 
+                                            title="View Requirement & Assets"
+                                        >
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onclick='event.stopPropagation(); openAddQuantityModal(@json($requirement))' 
+                                            class="p-1.5 rounded hover:bg-emerald-50 text-emerald-600 hover:text-emerald-800 transition-colors" 
+                                            title="Add Quantity / Restock"
+                                        >
+                                            <i class="fas fa-plus-circle"></i>
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onclick='event.stopPropagation(); editRequirement(@json($requirement))' 
+                                            class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
+                                            title="Edit Requirement"
+                                        >
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <form action="{{ route('operational-requirements.destroy', $requirement) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this requirement?');" onclick="event.stopPropagation()">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Requirement" onclick="event.stopPropagation()">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-12 text-center">
+                                    <x-empty-state icon="fas fa-list-check" title="No operational requirements found" description="Click Add Requirement above to register consumable fuels, oils, and emergency supplies." />
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200">
+                {{ $requirements->links() }}
+            </div>
+        </x-card>
+    @endif
 
     {{-- ========================================================================= --}}
-    {{-- MODAL: REQUIREMENT DETAILS & ASSETS USING IT (MERGED VIEW)                --}}
+    {{-- TAB 2: EQUIPMENT NEEDS & ALLOCATIONS                                      --}}
     {{-- ========================================================================= --}}
+    @if($activeTab === 'needs')
+        {{-- Filters & Search --}}
+        <form action="{{ route('operational-requirements.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
+            <input type="hidden" name="tab" value="needs">
+
+            <div class="flex-1">
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ request('search') }}" 
+                    placeholder="Search by requirement, asset name, or SKU code..."
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+            </div>
+
+            <select name="asset_type" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">All Equipment Models</option>
+                @foreach($needAssetTypes as $type)
+                    <option value="{{ $type }}" {{ request('asset_type') === $type ? 'selected' : '' }}>{{ $type }}</option>
+                @endforeach
+            </select>
+
+            <select name="unit" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">All Units</option>
+                @foreach($units as $u)
+                    <option value="{{ $u }}" {{ request('unit') === $u ? 'selected' : '' }}>{{ $u }}</option>
+                @endforeach
+            </select>
+
+            <select name="status" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">All Statuses</option>
+                @foreach($statuses as $s)
+                    <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
+                @endforeach
+            </select>
+
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
+                Filter
+            </button>
+
+            @if(request()->hasAny(['search', 'asset_type', 'unit', 'status']))
+                <a href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
+                    Reset
+                </a>
+            @endif
+        </form>
+
+        {{-- Equipment Needs Table --}}
+        <x-card>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Target Equipment</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Supply / Requirement</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Current Stock</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @forelse($assetNeeds as $need)
+                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openAssetNeedModal(@js($need))">
+                                {{-- Target Asset --}}
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $need->asset->name ?? 'Unknown Asset' }}</p>
+                                    <div class="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
+                                        <span class="font-mono text-gray-600 bg-gray-100 px-1 py-0.5 rounded">{{ $need->asset->code ?? '' }}</span>
+                                        <span class="text-gray-300">•</span>
+                                        <span class="text-blue-600 font-medium">{{ $need->asset_type }}</span>
+                                    </div>
+                                </td>
+
+                                {{-- Requirement --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
+                                    <div class="flex items-center gap-1.5">
+                                        <i class="fas fa-oil-can text-blue-500 text-xs"></i>
+                                        <span>{{ $need->requirement }}</span>
+                                    </div>
+                                </td>
+
+                                {{-- Current Stock --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                    <div class="space-y-1 max-w-[200px]">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="font-bold font-mono text-gray-900">{{ (float)$need->current_level }} {{ $need->unit }}</span>
+                                            <span class="text-gray-400 text-[11px] font-mono">Max: {{ (float)$need->maximum_capacity }}</span>
+                                        </div>
+                                        @php
+                                            $nMax = (float)$need->maximum_capacity;
+                                            $nCur = (float)$need->current_level;
+                                            $nPct = $nMax > 0 ? min(100, round(($nCur / $nMax) * 100)) : 0;
+                                            $nIsCrit = $need->isCritical();
+                                        @endphp
+                                        <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                            <div class="h-1.5 rounded-full {{ $nIsCrit ? 'bg-rose-500' : 'bg-emerald-500' }}" style="width: {{ $nPct }}%"></div>
+                                        </div>
+                                        <span class="text-[10px] text-gray-400 block">Min Threshold: {{ (float)$need->minimum_level }} {{ $need->unit }}</span>
+                                    </div>
+                                </td>
+
+                                {{-- Status Badge --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
+                                    @if($need->status === 'Monitoring Only')
+                                        <x-badge variant="success" size="sm">{{ $need->status }}</x-badge>
+                                    @elseif($need->status === 'Requires Maintenance')
+                                        <x-badge variant="warning" size="sm">{{ $need->status }}</x-badge>
+                                    @else
+                                        <x-badge variant="danger" size="sm">{{ $need->status }}</x-badge>
+                                    @endif
+                                </td>
+
+                                {{-- Actions --}}
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                    <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
+                                        {{-- View Details --}}
+                                        <button 
+                                            type="button"
+                                            onclick="event.stopPropagation(); openAssetNeedModal(@js($need))"
+                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors"
+                                            title="View Details"
+                                        >
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {{-- Replenish --}}
+                                        <button 
+                                            type="button"
+                                            onclick="event.stopPropagation(); openReplenishModal({{ $need->id }}, @js($need->requirement), {{ (float)$need->current_level }}, {{ (float)$need->maximum_capacity }}, @js($need->unit))"
+                                            class="p-1.5 rounded hover:bg-emerald-50 text-emerald-600 hover:text-emerald-800 transition-colors" 
+                                            title="Replenish"
+                                        >
+                                            <i class="fas fa-plus-circle"></i>
+                                        </button>
+                                        {{-- Edit --}}
+                                        <button 
+                                            type="button"
+                                            onclick="event.stopPropagation(); openEditNeedModal({{ json_encode($need) }})"
+                                            class="p-1.5 rounded hover:bg-gray-100 transition-colors text-amber-600 hover:text-amber-800" 
+                                            title="Edit"
+                                        >
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {{-- Delete --}}
+                                        <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset need?');" onclick="event.stopPropagation()">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete" onclick="event.stopPropagation()">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-12 text-center">
+                                    <x-empty-state icon="fas fa-box-open" title="No equipment supply allocations found" description="Click Add Equipment Need above to record consumable requirements for individual equipment units." />
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200">
+                {{ $assetNeeds->links() }}
+            </div>
+        </x-card>
+    @endif
+
+    {{-- ========================================================================= --}}
+    {{-- MODALS: OPERATIONAL REQUIREMENTS (WAREHOUSE)                              --}}
+    {{-- ========================================================================= --}}
+
+    {{-- Requirement Details & Allocation Modal --}}
     <x-modal id="requirement-details-modal" title="Operational Requirement & Supply Allocation" maxWidth="4xl">
         <div class="space-y-6">
             {{-- Header Card --}}
@@ -258,7 +517,6 @@
                         <p id="dtl_req_desc" class="text-xs text-gray-600 mt-2 pl-10 italic">No notes provided</p>
                     </div>
                     <div id="dtl_req_status_container" class="flex items-center gap-2">
-                        <!-- Dynamic status badge injected -->
                     </div>
                 </div>
             </div>
@@ -310,7 +568,6 @@
                             </tr>
                         </thead>
                         <tbody id="dtl_req_assets_tbody" class="divide-y divide-gray-100 bg-white">
-                            {{-- Dynamically populated --}}
                         </tbody>
                     </table>
                 </div>
@@ -375,7 +632,6 @@
                 <textarea name="description" placeholder="Optional notes..." rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">{{ old('description') }}</textarea>
             </x-form-group>
 
-            {{-- Specification / Document / Initial Receipt Input --}}
             <x-receipt-input label="Specification Sheet, MSDS, or Initial Receipt" help="Upload safety data sheets, manuals, or purchase receipts (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
 
             <div class="flex gap-3 mt-6">
@@ -446,7 +702,6 @@
                 <input type="text" name="supplier" placeholder="e.g. Caltex / Shell Barangay Depot" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
             </x-form-group>
 
-            {{-- Proof of Cost / Receipt Upload --}}
             <x-receipt-input label="Proof of Cost / Official Receipt (OR) / Delivery Invoice (Optional)" help="Upload supplier official receipt, invoice, or delivery receipt as proof of cost (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
 
             <x-form-group label="Restock Notes">
@@ -460,8 +715,198 @@
         </form>
     </x-modal>
 
+    {{-- ========================================================================= --}}
+    {{-- MODALS: EQUIPMENT NEEDS & ALLOCATIONS                                     --}}
+    {{-- ========================================================================= --}}
+
+    {{-- Asset Need Detail Modal --}}
+    <x-modal id="asset-need-modal" title="Equipment Supply Allocation" maxWidth="2xl">
+        <div class="space-y-5">
+            {{-- Header card --}}
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-1">
+                        <i class="fas fa-gas-pump text-[10px]"></i>
+                        <span id="and_type">Consumable</span>
+                    </span>
+                    <h3 id="and_requirement" class="text-lg font-bold text-gray-900">Diesel Fuel</h3>
+                </div>
+                <div id="and_status_badge"></div>
+            </div>
+
+            {{-- Target Asset Card --}}
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
+                    <i class="fas fa-cube text-blue-600"></i>
+                    <span>Target Equipment Assignment</span>
+                </h4>
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                            <i class="fas fa-box"></i>
+                        </span>
+                        <div>
+                            <span id="and_asset_code" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">CODE</span>
+                            <span id="and_asset_name" class="font-semibold text-gray-900 text-sm ml-1">Asset Name</span>
+                        </div>
+                    </div>
+                    <a id="and_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
+                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                        <span>View Asset Dossier</span>
+                    </a>
+                </div>
+            </div>
+
+            {{-- Stock gauges --}}
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Current Level</span>
+                    <span id="and_current" class="text-base font-bold text-gray-900">0</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Min Threshold</span>
+                    <span id="and_min" class="text-base font-bold text-rose-600">0</span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <span class="text-[10px] uppercase font-bold text-gray-400 block">Max Capacity</span>
+                    <span id="and_max" class="text-base font-bold text-blue-600">0</span>
+                </div>
+            </div>
+
+            {{-- Footer actions --}}
+            <div class="flex justify-between items-center pt-3 border-t border-gray-100">
+                <button type="button" id="and_edit_btn" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl text-xs font-semibold border border-amber-200 transition-colors">
+                    <i class="fas fa-edit text-[10px]"></i>
+                    <span>Edit Need</span>
+                </button>
+                <button type="button" onclick="window.closeModal('asset-need-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
+                    Close
+                </button>
+            </div>
+        </div>
+    </x-modal>
+
+    {{-- Add Asset Need Modal --}}
+    <x-modal id="add-asset-need-modal" title="Add Equipment Need">
+        <form class="space-y-4" action="{{ route('asset-needs.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+
+            <x-form-group label="Target Equipment" required>
+                <select name="asset_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                    <option value="">Select Equipment...</option>
+                    @foreach($assets as $a)
+                        <option value="{{ $a->id }}" {{ old('asset_id') == $a->id ? 'selected' : '' }}>
+                            {{ $a->code }} — {{ $a->name }} ({{ $a->type->name ?? 'General' }})
+                        </option>
+                    @endforeach
+                </select>
+            </x-form-group>
+
+            <x-form-group label="Requirement Name" required>
+                <input type="text" name="requirement" placeholder="e.g., Diesel Fuel, Battery Pack" value="{{ old('requirement') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </x-form-group>
+
+            <x-form-group label="Unit of Measurement" required>
+                <select name="unit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                    <option value="">Select Unit...</option>
+                    @foreach($units as $u)
+                        <option value="{{ $u }}" {{ old('unit') == $u ? 'selected' : '' }}>{{ $u }}</option>
+                    @endforeach
+                </select>
+            </x-form-group>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <x-form-group label="Current Level" required>
+                    <input type="number" step="0.01" min="0" id="need_add_current" name="current_level" value="{{ old('current_level', 0) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+                <x-form-group label="Maximum Capacity" required>
+                    <input type="number" step="0.01" min="0.01" id="need_add_max" name="maximum_capacity" value="{{ old('maximum_capacity') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+                <x-form-group label="Minimum Level" required>
+                    <input type="number" step="0.01" min="0" id="need_add_min" name="minimum_level" value="{{ old('minimum_level', 0) }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+            </div>
+
+            <x-receipt-input label="Specification Sheet or Receipt (Optional)" help="Upload document proof (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." />
+
+            <div class="flex gap-3 mt-6">
+                <x-button variant="primary" type="submit" class="flex-1">Create Need</x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('add-asset-need-modal')" class="flex-1">Cancel</x-button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- Edit Asset Need Modal --}}
+    <x-modal id="edit-asset-need-modal" title="Edit Equipment Need">
+        <form class="space-y-4" id="edit-need-form" method="POST">
+            @csrf
+            @method('PUT')
+
+            <x-form-group label="Target Equipment" required>
+                <select name="asset_id" id="edit_need_asset_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                    @foreach($assets as $a)
+                        <option value="{{ $a->id }}">{{ $a->code }} — {{ $a->name }}</option>
+                    @endforeach
+                </select>
+            </x-form-group>
+
+            <x-form-group label="Requirement Name" required>
+                <input type="text" name="requirement" id="edit_need_requirement" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </x-form-group>
+
+            <x-form-group label="Unit of Measurement" required>
+                <select name="unit" id="edit_need_unit" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm">
+                    @foreach($units as $u)
+                        <option value="{{ $u }}">{{ $u }}</option>
+                    @endforeach
+                </select>
+            </x-form-group>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <x-form-group label="Current Level" required>
+                    <input type="number" step="0.01" min="0" id="edit_need_current_level" name="current_level" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+                <x-form-group label="Maximum Capacity" required>
+                    <input type="number" step="0.01" min="0.01" id="edit_need_maximum_capacity" name="maximum_capacity" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+                <x-form-group label="Minimum Level" required>
+                    <input type="number" step="0.01" min="0" id="edit_need_minimum_level" name="minimum_level" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                </x-form-group>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <x-button variant="primary" type="submit" class="flex-1">Save Changes</x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('edit-asset-need-modal')" class="flex-1">Cancel</x-button>
+            </div>
+        </form>
+    </x-modal>
+
+    {{-- Replenish Asset Need Modal --}}
+    <x-modal id="replenish-need-modal" title="Replenish Equipment Supply">
+        <form class="space-y-4" id="replenish-need-form" method="POST">
+            @csrf
+
+            <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
+                <span class="font-semibold" id="replenish_need_name">Requirement</span>
+                <span class="text-xs text-blue-700 block mt-0.5">Current Level: <strong id="replenish_need_current">0</strong> / <span id="replenish_need_max">0</span> <span id="replenish_need_unit">units</span> (Remaining: <span id="replenish_need_remaining">0</span>)</span>
+            </div>
+
+            <x-form-group label="Amount to Replenish" required>
+                <input type="number" step="0.01" min="0.01" name="amount" id="replenish_need_amount" placeholder="Enter amount..." required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+            </x-form-group>
+
+            <div class="flex gap-3 mt-6">
+                <x-button variant="primary" type="submit" class="flex-1">
+                    <i class="fas fa-fill-drip mr-2"></i> Replenish
+                </x-button>
+                <x-button variant="secondary" type="button" onclick="window.closeModal('replenish-need-modal')" class="flex-1">Cancel</x-button>
+            </div>
+        </form>
+    </x-modal>
+
     @push('scripts')
         <script>
+            // Requirement Handlers
             function openAddRequirementModal() {
                 window.openModal('add-requirement-modal');
             }
@@ -490,7 +935,6 @@
                 window.openModal('edit-requirement-modal');
             }
 
-            // Interactive Dossier Modal Showing Assets Using Requirement
             function openRequirementDetailsModal(req) {
                 document.getElementById('dtl_req_name').innerText = req.requirement_type;
                 document.getElementById('dtl_req_type_badge').innerText = req.asset_type && req.asset_type.name 
@@ -596,14 +1040,12 @@
                     }).join('');
                 }
 
-                // Connect restock action button
                 const restockBtn = document.getElementById('dtl_req_restock_btn');
                 restockBtn.onclick = function() {
                     window.closeModal('requirement-details-modal');
                     openAddQuantityModal(req);
                 };
 
-                // Connect registry shortcut button
                 const registryLink = document.getElementById('dtl_req_registry_link');
                 if (req.asset_type_id) {
                     registryLink.href = `/assets?type_id=${req.asset_type_id}&tab=assets`;
@@ -613,6 +1055,76 @@
                 }
 
                 window.openModal('requirement-details-modal');
+            }
+
+            // Asset Need Handlers
+            function openAddNeedModal() {
+                window.openModal('add-asset-need-modal');
+            }
+
+            function openEditNeedModal(need) {
+                document.getElementById('edit-need-form').action = '/asset-needs/' + need.id;
+                document.getElementById('edit_need_asset_id').value = need.asset_id;
+                document.getElementById('edit_need_requirement').value = need.requirement;
+                document.getElementById('edit_need_unit').value = need.unit;
+                document.getElementById('edit_need_maximum_capacity').value = need.maximum_capacity;
+                document.getElementById('edit_need_minimum_level').value = need.minimum_level;
+                document.getElementById('edit_need_current_level').value = need.current_level;
+                window.openModal('edit-asset-need-modal');
+            }
+
+            function openReplenishModal(id, requirement, current, max, unit) {
+                const remaining = Math.max(0, Math.round((max - current) * 100) / 100);
+                document.getElementById('replenish-need-form').action = '/asset-needs/' + id + '/replenish';
+                document.getElementById('replenish_need_name').textContent = requirement;
+                document.getElementById('replenish_need_current').textContent = current;
+                document.getElementById('replenish_need_max').textContent = max;
+                document.getElementById('replenish_need_unit').textContent = unit;
+                document.getElementById('replenish_need_remaining').textContent = `${remaining} ${unit}`;
+                document.getElementById('replenish_need_amount').value = '';
+                document.getElementById('replenish_need_amount').max = remaining;
+                window.openModal('replenish-need-modal');
+            }
+
+            function openAssetNeedModal(need) {
+                document.getElementById('and_requirement').textContent = need.requirement;
+                document.getElementById('and_type').textContent = need.asset_type || 'Consumable Supply';
+                
+                const current = parseFloat(need.current_level || 0);
+                const max = parseFloat(need.maximum_capacity || 0);
+                const min = parseFloat(need.minimum_level || 0);
+                const unit = need.unit || 'units';
+
+                document.getElementById('and_current').textContent = `${current} ${unit}`;
+                document.getElementById('and_min').textContent = `${min} ${unit}`;
+                document.getElementById('and_max').textContent = `${max} ${unit}`;
+
+                if (need.status === 'Monitoring Only') {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Monitoring Only (Adequate)</span>';
+                } else if (need.status === 'Requires Maintenance') {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Requires Maintenance</span>';
+                } else {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Critical / Low</span>';
+                }
+
+                if (need.asset) {
+                    document.getElementById('and_asset_code').textContent = need.asset.code;
+                    document.getElementById('and_asset_name').textContent = need.asset.name;
+                    document.getElementById('and_asset_link').href = `/assets/${need.asset.id}`;
+                    document.getElementById('and_asset_link').classList.remove('hidden');
+                } else {
+                    document.getElementById('and_asset_code').textContent = '—';
+                    document.getElementById('and_asset_name').textContent = 'Unknown Equipment';
+                    document.getElementById('and_asset_link').classList.add('hidden');
+                }
+
+                const editBtn = document.getElementById('and_edit_btn');
+                editBtn.onclick = function() {
+                    window.closeModal('asset-need-modal');
+                    openEditNeedModal(need);
+                };
+
+                window.openModal('asset-need-modal');
             }
         </script>
     @endpush
