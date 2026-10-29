@@ -12,7 +12,6 @@ class UserController extends Controller
 {
     public const ROLES = [
         'administrator',
-        'barangay_captain',
         'inventory_officer',
         'maintenance_officer',
         'viewer',

@@ -16,12 +16,12 @@ class UserSeeder extends Seeder
     {
         $users = [
             // ==========================================
-            // ADMINISTRATOR & EXECUTIVE ACCOUNTS (Admin)
+            // 1. ADMIN ROLE (Full Governance & Settings)
             // ==========================================
             [
                 'name'              => 'System Administrator',
-                'first_name'         => 'System',
-                'last_name'          => 'Administrator',
+                'first_name'        => 'System',
+                'last_name'         => 'Administrator',
                 'username'          => 'admin',
                 'email'             => 'admin@bdes.gov',
                 'role'              => 'administrator',
@@ -29,25 +29,14 @@ class UserSeeder extends Seeder
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ],
-            [
-                'name'              => 'Hon. Barangay Captain',
-                'first_name'         => 'Barangay',
-                'last_name'          => 'Captain',
-                'username'          => 'captain',
-                'email'             => 'captain@bdes.gov',
-                'role'              => 'barangay_captain',
-                'password'          => Hash::make('password'),
-                'is_active'         => true,
-                'email_verified_at' => now(),
-            ],
 
             // ==========================================
-            // OPERATIONAL STAFF & OFFICERS (Member Roles)
+            // 2. INVENTORY ROLE (Operations, Deployments)
             // ==========================================
             [
                 'name'              => 'BDRRMC Inventory Officer',
-                'first_name'         => 'Inventory',
-                'last_name'          => 'Officer',
+                'first_name'        => 'Inventory',
+                'last_name'         => 'Officer',
                 'username'          => 'inventory',
                 'email'             => 'inventory@bdes.gov',
                 'role'              => 'inventory_officer',
@@ -55,21 +44,14 @@ class UserSeeder extends Seeder
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ],
+
+            // ==========================================
+            // 3. MAINTENANCE ROLE (Repairs, Inspections)
+            // ==========================================
             [
-                'name'              => 'BDRRMC Operational Officer',
-                'first_name'         => 'Operational',
-                'last_name'          => 'Officer',
-                'username'          => 'member',
-                'email'             => 'member@bdes.gov',
-                'role'              => 'inventory_officer',
-                'password'          => Hash::make('password'),
-                'is_active'         => true,
-                'email_verified_at' => now(),
-            ],
-            [
-                'name'              => 'Maintenance Specialist Officer',
-                'first_name'         => 'Maintenance',
-                'last_name'          => 'Officer',
+                'name'              => 'Maintenance Officer',
+                'first_name'        => 'Maintenance',
+                'last_name'         => 'Officer',
                 'username'          => 'maintenance',
                 'email'             => 'maintenance@bdes.gov',
                 'role'              => 'maintenance_officer',
@@ -77,10 +59,14 @@ class UserSeeder extends Seeder
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ],
+
+            // ==========================================
+            // 4. STAFF FOR VIEWING ROLE (Read-Only)
+            // ==========================================
             [
                 'name'              => 'Barangay Staff Member',
-                'first_name'         => 'Barangay',
-                'last_name'          => 'Staff',
+                'first_name'        => 'Barangay',
+                'last_name'         => 'Staff',
                 'username'          => 'staff',
                 'email'             => 'staff@bdes.gov',
                 'role'              => 'viewer',
@@ -90,8 +76,9 @@ class UserSeeder extends Seeder
             ],
         ];
 
-        // Migrate any legacy bdrrmc_officer roles to inventory_officer
+        // Migrate any legacy roles to modern 4-tier roles
         User::where('role', 'bdrrmc_officer')->update(['role' => 'inventory_officer']);
+        User::where('role', 'barangay_captain')->update(['role' => 'administrator']);
 
         foreach ($users as $userData) {
             User::updateOrCreate(

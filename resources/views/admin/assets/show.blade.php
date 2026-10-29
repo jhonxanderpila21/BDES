@@ -63,7 +63,7 @@
                 </a>
             @endif
 
-            @if($asset->status !== 'retired')
+            @if($asset->status !== 'retired' && auth()->user()?->isAdmin())
                 <button @click="showRetireModal = true" class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl font-medium text-sm transition-colors" title="Decommission / Retire">
                     <i class="fas fa-ban"></i>
                     <span>Retire</span>
@@ -115,7 +115,7 @@
         </div>
     @endif
 
-    {{-- Key Metrics Summary Strip --}}
+    {{-- Key Facts Summary Cards --}}
     @php
         $condBadge = match($asset->condition) {
             'excellent', 'good' => 'text-emerald-700 bg-emerald-50 border border-emerald-200',
@@ -135,7 +135,7 @@
                     </span>
                     <span class="text-xs text-gray-600 font-medium">
                         @if($asset->status === 'available')
-                            1 Available (In Stock)
+                            1 Available (Ready)
                         @else
                             {{ \App\Services\AssetLifecycleService::statuses()[$asset->status] ?? ucfirst(str_replace('_', ' ', $asset->status)) }}
                         @endif
@@ -150,7 +150,7 @@
         {{-- Primary Station / Location --}}
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Station / Location</span>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Assigned Location</span>
                 <p class="text-sm font-bold text-gray-900 mt-1 truncate max-w-[170px]" title="{{ $asset->location->name ?? 'Not assigned' }}">
                     {{ $asset->location->name ?? 'Not assigned' }}
                 </p>
@@ -180,7 +180,7 @@
         {{-- Activity Records --}}
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
-                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Operational Records</span>
+                <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider block">Operational History</span>
                 <p class="text-sm font-bold text-gray-900 mt-1">
                     {{ $stats['total_deployments'] }} <span class="text-xs font-normal text-gray-500">Missions</span> · {{ $stats['total_maintenances'] }} <span class="text-xs font-normal text-gray-500">Repairs</span>
                 </p>
@@ -194,16 +194,12 @@
         </div>
     </div>
 
-    {{-- Dossier Tab Navigation --}}
+    {{-- Dossier Tab Navigation (Streamlined to 4 Focused Tabs) --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="border-b border-gray-200 px-4 bg-gray-50/50 flex flex-wrap gap-1 print:hidden">
             <button @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-circle-info"></i>
-                <span>Overview</span>
-            </button>
-            <button @click="activeTab = 'financials'" :class="activeTab === 'financials' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
-                <i class="fas fa-coins"></i>
-                <span>Financials</span>
+                <span>Equipment Overview</span>
             </button>
             <button @click="activeTab = 'deployments'" :class="activeTab === 'deployments' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-truck"></i>
@@ -212,39 +208,25 @@
             </button>
             <button @click="activeTab = 'maintenance'" :class="activeTab === 'maintenance' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-screwdriver-wrench"></i>
-                <span>Maintenance</span>
+                <span>Maintenance & Repairs</span>
                 <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $stats['total_maintenances'] }}</span>
             </button>
-            <button @click="activeTab = 'inspections'" :class="activeTab === 'inspections' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
-                <i class="fas fa-shield-check"></i>
-                <span>Inspections</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $stats['total_inspections'] }}</span>
-            </button>
-            <button @click="activeTab = 'accessories'" :class="activeTab === 'accessories' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
-                <i class="fas fa-paperclip"></i>
-                <span>Accessories</span>
-            </button>
-            <button @click="activeTab = 'documents'" :class="activeTab === 'documents' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
-                <i class="fas fa-file-lines"></i>
-                <span>Documents</span>
-                <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $stats['total_documents'] }}</span>
-            </button>
-            <button @click="activeTab = 'audit'" :class="activeTab === 'audit' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
-                <i class="fas fa-clock-rotate-left"></i>
-                <span>Audit Trail</span>
+            <button @click="activeTab = 'history'" :class="activeTab === 'history' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
+                <i class="fas fa-timeline"></i>
+                <span>Audit & History</span>
                 <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{{ $asset->auditLogs->count() }}</span>
             </button>
         </div>
 
         <div class="p-6">
-            {{-- TAB 1: OVERVIEW & ESSENTIAL DETAILS --}}
+            {{-- TAB 1: EQUIPMENT OVERVIEW & ESSENTIAL DETAILS --}}
             <div x-show="activeTab === 'overview'" class="space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {{-- Key Technical & Operational Details --}}
+                    {{-- Essential Asset Profile --}}
                     <div class="lg:col-span-2 space-y-4">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                             <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
-                                <i class="fas fa-id-card text-blue-600"></i> Essential Asset Profile
+                                <i class="fas fa-id-card text-blue-600"></i> Essential Specifications
                             </h3>
                             <span class="text-xs text-gray-400">Registered: {{ $asset->created_at->format('M d, Y') }}</span>
                         </div>
@@ -265,13 +247,36 @@
                             </div>
                             <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
                                 <dt class="text-[11px] font-semibold text-gray-500 uppercase">Serial Number</dt>
-                                <dd class="font-mono text-gray-900 font-bold mt-0.5">{{ $asset->serial_number ?: 'None / Unserialized' }}</dd>
+                                <dd class="font-mono text-gray-900 font-bold mt-0.5">{{ $asset->serial_number ?: 'Unserialized' }}</dd>
                             </div>
                             <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
-                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Assigned Station / Location</dt>
+                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Assigned Location</dt>
                                 <dd class="text-gray-900 font-bold mt-0.5 flex items-center gap-1.5">
                                     <i class="fas fa-location-dot text-blue-600 text-xs"></i>
                                     {{ $asset->location->name ?? 'Not assigned' }}
+                                </dd>
+                            </div>
+                            <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Purchase Cost & Date</dt>
+                                <dd class="text-gray-900 font-bold mt-0.5">
+                                    <span class="text-emerald-700">₱{{ number_format($asset->acquisition_cost ?? 0, 2) }}</span>
+                                    @if($asset->purchase_date)
+                                        <span class="text-xs text-gray-500 font-normal ml-1">({{ $asset->purchase_date->format('M d, Y') }})</span>
+                                    @endif
+                                </dd>
+                            </div>
+                            <div class="bg-gray-50/70 p-3 rounded-xl border border-gray-100">
+                                <dt class="text-[11px] font-semibold text-gray-500 uppercase">Warranty Status</dt>
+                                <dd class="text-gray-900 font-medium mt-0.5 text-xs">
+                                    @if($asset->warranty_expiry)
+                                        @if($asset->warranty_expiry->isPast())
+                                            <span class="text-rose-600 font-semibold"><i class="fas fa-circle-xmark mr-1"></i> Expired ({{ $asset->warranty_expiry->format('M d, Y') }})</span>
+                                        @else
+                                            <span class="text-emerald-700 font-semibold"><i class="fas fa-circle-check mr-1"></i> Valid until {{ $asset->warranty_expiry->format('M d, Y') }}</span>
+                                        @endif
+                                    @else
+                                        <span class="text-gray-400">No warranty on record</span>
+                                    @endif
                                 </dd>
                             </div>
                         </dl>
@@ -282,9 +287,19 @@
                                 <p class="text-xs text-gray-700 leading-relaxed">{{ $asset->notes }}</p>
                             </div>
                         @endif
+
+                        {{-- Official Receipts & Uploaded Documents --}}
+                        <div class="bg-white rounded-xl p-4 border border-gray-200 mt-4">
+                            <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Attached Documents & Proof of Purchase</h4>
+                            @if($asset->receipts && $asset->receipts->count() > 0)
+                                <x-receipt-list :receipts="$asset->receipts" />
+                            @else
+                                <p class="text-xs text-gray-400 italic">No receipts or invoices attached.</p>
+                            @endif
+                        </div>
                     </div>
 
-                    {{-- Identification & Quick Tag Card --}}
+                    {{-- Identification & Tag Card --}}
                     <div class="bg-gray-50/70 border border-gray-200 rounded-2xl p-5 flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-3">
@@ -297,7 +312,7 @@
                             <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm my-2">
                                 <i class="fas fa-barcode text-4xl text-gray-800 mb-2 block"></i>
                                 <p class="font-mono text-xs font-bold text-gray-900 tracking-wider">{{ $asset->code }}</p>
-                                <p class="text-[10px] text-gray-400 mt-1">Official LGU Disaster Asset Identifier</p>
+                                <p class="text-[10px] text-gray-400 mt-1">Barangay Disaster Equipment Identifier</p>
                             </div>
                         </div>
 
@@ -310,86 +325,11 @@
                 </div>
             </div>
 
-            {{-- TAB 2: ACQUISITION & FINANCIALS --}}
-            <div x-show="activeTab === 'financials'" class="space-y-6">
-                <h3 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
-                    <i class="fas fa-money-bill-wave text-emerald-600"></i> Financial Capitalization & Procurement Records
-                </h3>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="p-5 rounded-2xl bg-emerald-50/40 border border-emerald-200">
-                        <span class="text-xs font-bold uppercase text-emerald-800 tracking-wider block">Acquisition Cost</span>
-                        <div class="text-3xl font-extrabold text-emerald-700 mt-2">
-                            ₱{{ number_format($asset->acquisition_cost ?? 0, 2) }}
-                        </div>
-                        <p class="text-xs text-emerald-600 mt-1">Book capital procurement expense</p>
-                    </div>
-
-                    <div class="p-5 rounded-2xl bg-blue-50/40 border border-blue-200">
-                        <span class="text-xs font-bold uppercase text-blue-800 tracking-wider block">Procurement / Purchase Date</span>
-                        <div class="text-2xl font-bold text-blue-900 mt-2">
-                            {{ $asset->purchase_date ? $asset->purchase_date->format('F d, Y') : 'Not on record' }}
-                        </div>
-                        <p class="text-xs text-blue-600 mt-1">
-                            @if($asset->purchase_date)
-                                In service for {{ $asset->purchase_date->diffForHumans(null, true) }}
-                            @else
-                                Procurement date pending confirmation
-                            @endif
-                        </p>
-                    </div>
-
-                    <div class="p-5 rounded-2xl bg-amber-50/40 border border-amber-200">
-                        <span class="text-xs font-bold uppercase text-amber-800 tracking-wider block">Warranty Expiration</span>
-                        <div class="text-2xl font-bold text-amber-900 mt-2">
-                            {{ $asset->warranty_expiry ? $asset->warranty_expiry->format('F d, Y') : 'No warranty recorded' }}
-                        </div>
-                        <p class="text-xs text-amber-700 mt-1">
-                            @if($asset->warranty_expiry)
-                                @if($asset->warranty_expiry->isPast())
-                                    <span class="text-rose-600 font-semibold"><i class="fas fa-circle-xmark"></i> Warranty Expired</span>
-                                @else
-                                    <span class="text-emerald-700 font-semibold"><i class="fas fa-circle-check"></i> Active ({{ $asset->warranty_expiry->diffForHumans() }})</span>
-                                @endif
-                            @endif
-                        </p>
-                    </div>
-                </div>
-
-                <div class="bg-gray-50 rounded-2xl p-5 border border-gray-200">
-                    <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Total Cost of Ownership (TCO) Breakdown</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
-                        <div class="flex justify-between border-b border-gray-200 pb-2">
-                            <span class="text-gray-600">Initial Acquisition Cost:</span>
-                            <span class="font-bold text-gray-900">₱{{ number_format($asset->acquisition_cost ?? 0, 2) }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-200 pb-2">
-                            <span class="text-gray-600">Total Maintenance & Repairs:</span>
-                            <span class="font-bold text-gray-900">₱{{ number_format($stats['total_maintenance_cost'], 2) }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-200 pb-2">
-                            <span class="text-gray-600">Gross Asset Capitalization:</span>
-                            <span class="font-bold text-blue-700">₱{{ number_format(($asset->acquisition_cost ?? 0) + $stats['total_maintenance_cost'], 2) }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Official Proof of Purchase Receipts --}}
-                <div class="bg-white rounded-2xl p-5 border border-gray-200">
-                    <h4 class="text-xs font-bold text-gray-600 uppercase tracking-wider mb-3">Proof of Purchase / Official Receipts</h4>
-                    @if($asset->receipts && $asset->receipts->count() > 0)
-                        <x-receipt-list :receipts="$asset->receipts" />
-                    @else
-                        <p class="text-xs text-gray-400 italic">No receipts uploaded during acquisition.</p>
-                    @endif
-                </div>
-            </div>
-
-            {{-- TAB 3: OPERATIONAL DEPLOYMENTS --}}
+            {{-- TAB 2: FIELD DEPLOYMENTS & MISSIONS --}}
             <div x-show="activeTab === 'deployments'" class="space-y-4">
                 <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                     <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-truck text-blue-600"></i> Field Dispatch & Return Registry
+                        <i class="fas fa-truck text-blue-600"></i> Field Dispatch & Mission Records
                     </h3>
                     @if($asset->status === 'available')
                         <a href="{{ route('deployment.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
@@ -400,56 +340,53 @@
 
                 @if($asset->deployments->count() > 0)
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 text-gray-600 text-xs uppercase font-semibold">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead class="bg-gray-50 text-gray-600 text-xs uppercase font-semibold border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 py-3">Dispatch Date</th>
-                                    <th class="px-4 py-3">Destination / Operation</th>
-                                    <th class="px-4 py-3">Custodian</th>
-                                    <th class="px-4 py-3">Condition Out</th>
-                                    <th class="px-4 py-3">Return Status</th>
-                                    <th class="px-4 py-3">Condition Returned</th>
+                                    <th class="px-4 py-3 text-left">Dispatch Date</th>
+                                    <th class="px-4 py-3 text-left">Destination / Operation</th>
+                                    <th class="px-4 py-3 text-left">Borrower / Custodian</th>
+                                    <th class="px-4 py-3 text-center">Condition Out</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                    <th class="px-4 py-3 text-center">Return Condition</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 @foreach($asset->deployments->sortByDesc('deployment_date') as $dep)
                                     <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-medium whitespace-nowrap">
+                                        <td class="px-4 py-3 align-middle font-medium whitespace-nowrap text-left">
                                             {{ $dep->deployment_date ? $dep->deployment_date->format('M d, Y') : 'N/A' }}
                                             <span class="text-xs text-gray-400 block">Due: {{ $dep->expected_return_date ? $dep->expected_return_date->format('M d, Y') : 'Open' }}</span>
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-3 align-middle text-left">
                                             <p class="font-bold text-gray-900">{{ $dep->location }}</p>
                                             <p class="text-xs text-gray-500">{{ $dep->purpose }}</p>
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-3 align-middle text-left">
                                             <p class="text-gray-900 font-medium">{{ $dep->responsible_person ?? $dep->user?->name ?? 'Disaster Team' }}</p>
-                                            <p class="text-xs text-gray-400">Approved by: {{ $dep->approvedByUser?->name ?? 'Official' }}</p>
+                                            <p class="text-xs text-gray-400">Approved: {{ $dep->approvedByUser?->name ?? 'Official' }}</p>
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-3 align-middle text-center whitespace-nowrap">
                                             <span class="capitalize text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-800">
                                                 {{ $dep->condition_before ?? $asset->condition }}
                                             </span>
                                         </td>
-                                        <td class="px-4 py-3 whitespace-nowrap">
+                                        <td class="px-4 py-3 align-middle text-center whitespace-nowrap">
                                             @if($dep->status === 'deployed')
                                                 <span class="px-2 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
                                                     In Field
                                                 </span>
                                             @else
                                                 <span class="px-2 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">
-                                                    Returned ({{ $dep->returnRecord?->return_date ? $dep->returnRecord->return_date->format('M d') : 'Yes' }})
+                                                    Returned
                                                 </span>
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3">
+                                        <td class="px-4 py-3 align-middle text-center whitespace-nowrap">
                                             @if($dep->returnRecord)
                                                 <span class="capitalize text-xs font-bold px-2 py-0.5 rounded {{ $dep->returnRecord->condition === 'poor' ? 'bg-rose-100 text-rose-800' : 'bg-emerald-50 text-emerald-800' }}">
                                                     {{ $dep->returnRecord->condition }}
                                                 </span>
-                                                @if($dep->returnRecord->remarks)
-                                                    <p class="text-xs text-gray-500 italic mt-0.5">{{ $dep->returnRecord->remarks }}</p>
-                                                @endif
                                             @else
                                                 <span class="text-xs text-gray-400">Pending Return</span>
                                             @endif
@@ -467,389 +404,217 @@
                 @endif
             </div>
 
-            {{-- TAB 4: WORK ORDERS & MAINTENANCE --}}
-            <div x-show="activeTab === 'maintenance'" class="space-y-4">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-screwdriver-wrench text-amber-600"></i> Work Orders & Corrective Maintenance
-                    </h3>
-                    <a href="{{ route('maintenance.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
-                        <i class="fas fa-plus mr-1"></i> New Work Order
-                    </a>
-                </div>
-
-                @if($asset->maintenance->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 text-gray-600 text-xs uppercase font-semibold">
-                                <tr>
-                                    <th class="px-4 py-3">Work Order #</th>
-                                    <th class="px-4 py-3">Type & Description</th>
-                                    <th class="px-4 py-3">Priority</th>
-                                    <th class="px-4 py-3">Assigned Tech</th>
-                                    <th class="px-4 py-3">Cost (PHP)</th>
-                                    <th class="px-4 py-3">Status</th>
-                                    <th class="px-4 py-3">Dates</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach($asset->maintenance->sortByDesc('start_date') as $m)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-mono font-bold text-blue-700 whitespace-nowrap">
-                                            {{ $m->work_order_number ?? ('WO-' . str_pad($m->id, 5, '0', STR_PAD_LEFT)) }}
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <p class="font-bold text-gray-900 capitalize">{{ str_replace('_', ' ', $m->type) }}</p>
-                                            <p class="text-xs text-gray-600 line-clamp-1">{{ $m->description }}</p>
-                                            @if($m->parts_used)
-                                                <p class="text-xs text-gray-400 mt-0.5"><i class="fas fa-puzzle-piece"></i> Parts: {{ $m->parts_used }}</p>
-                                            @endif
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap">
-                                            @php
-                                                $priColor = match($m->priority ?? 'medium') {
-                                                    'urgent' => 'bg-rose-100 text-rose-800',
-                                                    'high'   => 'bg-amber-100 text-amber-800',
-                                                    'low'    => 'bg-blue-100 text-blue-800',
-                                                    default  => 'bg-gray-100 text-gray-800',
-                                                };
-                                            @endphp
-                                            <span class="px-2 py-0.5 text-xs font-bold uppercase rounded {{ $priColor }}">
-                                                {{ $m->priority ?? 'medium' }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-gray-700">
-                                            {{ $m->assignedUser?->name ?? 'Unassigned' }}
-                                        </td>
-                                        <td class="px-4 py-3 font-bold text-gray-900 whitespace-nowrap">
-                                            ₱{{ number_format($m->cost ?? 0, 2) }}
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap">
-                                            @php
-                                                $mStatus = match($m->status) {
-                                                    'completed'   => 'bg-emerald-100 text-emerald-800',
-                                                    'in_progress' => 'bg-blue-100 text-blue-800',
-                                                    'cancelled'   => 'bg-gray-200 text-gray-700',
-                                                    default       => 'bg-amber-100 text-amber-800',
-                                                };
-                                            @endphp
-                                            <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ $mStatus }}">
-                                                {{ ucfirst(str_replace('_', ' ', $m->status)) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
-                                            <div>Start: {{ $m->start_date ? $m->start_date->format('M d, Y') : 'N/A' }}</div>
-                                            <div>End: {{ $m->completed_at ? $m->completed_at->format('M d, Y') : ($m->end_date ? $m->end_date->format('M d, Y') : 'Pending') }}</div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="text-center py-10 text-gray-500 bg-gray-50 rounded-xl">
-                        <i class="fas fa-wrench text-3xl text-gray-400 mb-2"></i>
-                        <p class="text-sm font-medium">No maintenance work orders logged for this equipment.</p>
-                    </div>
-                @endif
-            </div>
-
-            {{-- TAB 5: INSPECTIONS LOG --}}
-            <div x-show="activeTab === 'inspections'" class="space-y-4">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-shield-check text-emerald-600"></i> Routine & Safety Inspection Records
-                    </h3>
-                    <a href="{{ route('inspection.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
-                        <i class="fas fa-plus mr-1"></i> Log Inspection
-                    </a>
-                </div>
-
-                @if($asset->inspections->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 text-gray-600 text-xs uppercase font-semibold">
-                                <tr>
-                                    <th class="px-4 py-3">Date</th>
-                                    <th class="px-4 py-3">Inspector</th>
-                                    <th class="px-4 py-3">Rating / Outcome</th>
-                                    <th class="px-4 py-3">Findings & Remarks</th>
-                                    <th class="px-4 py-3">Next Due Date</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach($asset->inspections->sortByDesc('inspection_date') as $insp)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-medium whitespace-nowrap">
-                                            {{ $insp->inspection_date ? $insp->inspection_date->format('M d, Y') : 'N/A' }}
-                                        </td>
-                                        <td class="px-4 py-3 font-medium text-gray-900">
-                                            {{ $insp->inspector }}
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap">
-                                            @php
-                                                $iResult = match(strtolower($insp->result)) {
-                                                    'passed', 'good', 'excellent' => 'bg-emerald-100 text-emerald-800',
-                                                    'warning', 'fair', 'needs_attention' => 'bg-amber-100 text-amber-800',
-                                                    default => 'bg-rose-100 text-rose-800',
-                                                };
-                                            @endphp
-                                            <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ $iResult }}">
-                                                {{ ucfirst($insp->result) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 text-gray-700">
-                                            {{ $insp->findings ?: 'No defects observed.' }}
-                                        </td>
-                                        <td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">
-                                            {{ $insp->next_due_date ? $insp->next_due_date->format('M d, Y') : 'Unscheduled' }}
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="text-center py-10 text-gray-500 bg-gray-50 rounded-xl">
-                        <i class="fas fa-clipboard-check text-3xl text-gray-400 mb-2"></i>
-                        <p class="text-sm font-medium">No formal inspection reports recorded.</p>
-                    </div>
-                @endif
-            </div>
-
-            {{-- TAB 6: ACCESSORIES & ATTACHMENTS --}}
-            <div x-show="activeTab === 'accessories'" class="space-y-6">
-                {{-- Attachments Section --}}
-                <div>
-                    <h3 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2 mb-4">
-                        <i class="fas fa-paperclip text-blue-600"></i> Physical Equipment Attachments
-                    </h3>
-                    @if($asset->attachments->count() > 0)
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($asset->attachments as $att)
-                                <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="font-bold text-gray-900 text-sm">{{ $att->name }}</span>
-                                        <span class="font-mono text-xs text-gray-500">{{ $att->code ?? 'N/A' }}</span>
-                                    </div>
-                                    <p class="text-xs text-gray-600 mb-2">{{ $att->description ?? 'No description.' }}</p>
-                                    <div class="flex justify-between text-xs text-gray-500 pt-2 border-t border-gray-200">
-                                        <span>Status: <strong class="text-gray-800">{{ ucfirst($att->status ?? 'Active') }}</strong></span>
-                                        <span>Qty: <strong class="text-gray-800">{{ $att->quantity ?? 1 }}</strong></span>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl">No physical attachments linked to this asset.</p>
-                    @endif
-                </div>
-
-                {{-- Accessories Section --}}
-                <div class="pt-4 border-t border-gray-200">
-                    <h3 class="text-base font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2 mb-4">
-                        <i class="fas fa-puzzle-piece text-purple-600"></i> Linked Spare Accessories & Peripherals
-                    </h3>
-                    @if($asset->accessories->count() > 0)
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            @foreach($asset->accessories as $acc)
-                                <div class="bg-purple-50/40 p-4 rounded-xl border border-purple-200">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <span class="font-bold text-purple-950 text-sm">{{ $acc->name }}</span>
-                                        <span class="font-bold text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded">Qty: {{ $acc->quantity }}</span>
-                                    </div>
-                                    <p class="text-xs text-gray-600">{{ $acc->description ?: 'No remarks' }}</p>
-                                    <div class="text-xs text-purple-700 mt-2 font-medium">Condition: {{ ucfirst($acc->condition ?? 'good') }}</div>
-                                </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <p class="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl">No paired accessories recorded.</p>
-                    @endif
-                </div>
-            </div>
-
-            {{-- TAB 7: DIGITAL DOCUMENTS & CERTIFICATES --}}
-            <div x-show="activeTab === 'documents'" class="space-y-4">
-                <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                    <div>
-                        <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                            <i class="fas fa-file-shield text-indigo-600"></i> Digital Equipment Documents & Compliance Dossier
+            {{-- TAB 3: WORK ORDERS, REPAIRS & INSPECTIONS --}}
+            <div x-show="activeTab === 'maintenance'" class="space-y-6">
+                {{-- Work Orders --}}
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-screwdriver-wrench text-amber-600"></i> Service & Work Orders
                         </h3>
-                        <p class="text-xs text-gray-500">Operation manuals, warranty certificates, registration cards, donation deeds, and purchase invoices.</p>
+                        <a href="{{ route('maintenance.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
+                            <i class="fas fa-plus mr-1"></i> New Work Order
+                        </a>
                     </div>
-                    <button @click="showUploadModal = true" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors">
-                        <i class="fas fa-plus mr-1"></i> Upload Document
-                    </button>
+
+                    @if($asset->maintenance->count() > 0)
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead class="bg-gray-50 text-gray-600 text-xs uppercase font-semibold border-b border-gray-200">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left">Work Order #</th>
+                                        <th class="px-4 py-3 text-left">Task & Description</th>
+                                        <th class="px-4 py-3 text-center">Priority</th>
+                                        <th class="px-4 py-3 text-left">Technician</th>
+                                        <th class="px-4 py-3 text-right">Cost</th>
+                                        <th class="px-4 py-3 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @foreach($asset->maintenance->sortByDesc('start_date') as $m)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 align-middle font-mono font-bold text-blue-700 whitespace-nowrap text-left">
+                                                {{ $m->work_order_number ?? ('WO-' . str_pad($m->id, 5, '0', STR_PAD_LEFT)) }}
+                                            </td>
+                                            <td class="px-4 py-3 align-middle text-left">
+                                                <p class="font-bold text-gray-900 capitalize">{{ str_replace('_', ' ', $m->type) }}</p>
+                                                <p class="text-xs text-gray-600 line-clamp-1">{{ $m->description }}</p>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle text-center whitespace-nowrap">
+                                                @php
+                                                    $priColor = match($m->priority ?? 'medium') {
+                                                        'urgent' => 'bg-rose-100 text-rose-800',
+                                                        'high'   => 'bg-amber-100 text-amber-800',
+                                                        'low'    => 'bg-blue-100 text-blue-800',
+                                                        default  => 'bg-gray-100 text-gray-800',
+                                                    };
+                                                @endphp
+                                                <span class="px-2 py-0.5 text-xs font-bold uppercase rounded {{ $priColor }}">
+                                                    {{ $m->priority ?? 'medium' }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle whitespace-nowrap text-gray-700 text-left">
+                                                {{ $m->assignedUser?->name ?? 'Unassigned' }}
+                                            </td>
+                                            <td class="px-4 py-3 align-middle font-bold text-gray-900 whitespace-nowrap text-right">
+                                                ₱{{ number_format($m->cost ?? 0, 2) }}
+                                            </td>
+                                            <td class="px-4 py-3 align-middle whitespace-nowrap text-center">
+                                                @php
+                                                    $mStatus = match($m->status) {
+                                                        'completed'   => 'bg-emerald-100 text-emerald-800',
+                                                        'in_progress' => 'bg-blue-100 text-blue-800',
+                                                        'cancelled'   => 'bg-gray-200 text-gray-700',
+                                                        default       => 'bg-amber-100 text-amber-800',
+                                                    };
+                                                @endphp
+                                                <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ $mStatus }}">
+                                                    {{ ucfirst(str_replace('_', ' ', $m->status)) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-xs text-gray-400 italic py-3">No maintenance work orders logged for this equipment.</p>
+                    @endif
                 </div>
 
-                @if($asset->documents->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead class="bg-gray-50 text-gray-600 text-xs uppercase font-semibold">
-                                <tr>
-                                    <th class="px-4 py-3">Document Title</th>
-                                    <th class="px-4 py-3">Type</th>
-                                    <th class="px-4 py-3">File Specs</th>
-                                    <th class="px-4 py-3">Expiry Compliance</th>
-                                    <th class="px-4 py-3">Uploaded By</th>
-                                    <th class="px-4 py-3 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                @foreach($asset->documents as $doc)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="px-4 py-3 font-medium text-gray-900">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fas fa-file-pdf text-red-500 text-lg"></i>
-                                                <div>
-                                                    <p class="font-bold text-gray-900">{{ $doc->title }}</p>
-                                                    @if($doc->notes)
-                                                        <p class="text-xs text-gray-500">{{ $doc->notes }}</p>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap">
-                                            <span class="px-2.5 py-0.5 text-xs font-semibold rounded bg-gray-100 text-gray-800 uppercase">
-                                                {{ str_replace('_', ' ', $doc->document_type) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-600">
-                                            <div>{{ $doc->formatted_file_size }}</div>
-                                            <div class="text-gray-400 font-mono text-[11px] truncate max-w-[150px]">{{ $doc->file_name }}</div>
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-xs">
-                                            @if($doc->expiry_date)
-                                                @if($doc->is_expired)
-                                                    <span class="text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded font-bold">
-                                                        <i class="fas fa-circle-exclamation"></i> Expired ({{ $doc->expiry_date->format('M d, Y') }})
-                                                    </span>
-                                                @else
-                                                    <span class="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded font-medium">
-                                                        Valid until {{ $doc->expiry_date->format('M d, Y') }}
-                                                    </span>
-                                                @endif
-                                            @else
-                                                <span class="text-gray-400">No expiration</span>
-                                            @endif
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-600">
-                                            <div>{{ $doc->uploader?->name ?? 'System' }}</div>
-                                            <div class="text-gray-400">{{ $doc->created_at->format('M d, Y') }}</div>
-                                        </td>
-                                        <td class="px-4 py-3 whitespace-nowrap text-right text-xs">
-                                            <div class="flex items-center justify-end gap-2">
-                                                <a href="{{ route('assets.documents.download', $doc) }}" class="p-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg" title="Download Document">
-                                                    <i class="fas fa-download"></i>
-                                                </a>
-                                                <form action="{{ route('assets.documents.destroy', $doc) }}" method="POST" onsubmit="return confirm('Delete document [{{ $doc->title }}]?');" class="inline">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="p-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg" title="Delete Document">
-                                                        <i class="fas fa-trash-can"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
+                {{-- Safety Inspections --}}
+                <div class="space-y-3 pt-4 border-t border-gray-100">
+                    <div class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-shield-check text-emerald-600"></i> Safety Inspections
+                        </h3>
+                        <a href="{{ route('inspection.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
+                            <i class="fas fa-plus mr-1"></i> Log Inspection
+                        </a>
+                    </div>
+
+                    @if($asset->inspections->count() > 0)
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm border-collapse">
+                                <thead class="bg-gray-50 text-gray-600 text-xs uppercase font-semibold border-b border-gray-200">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left">Inspection Date</th>
+                                        <th class="px-4 py-3 text-left">Inspector</th>
+                                        <th class="px-4 py-3 text-center">Outcome</th>
+                                        <th class="px-4 py-3 text-left">Findings & Remarks</th>
+                                        <th class="px-4 py-3 text-left">Next Due</th>
                                     </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="text-center py-12 text-gray-500 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200">
-                        <i class="fas fa-folder-open text-4xl text-gray-300 mb-2"></i>
-                        <h4 class="text-sm font-bold text-gray-700">No Digital Documents Attached</h4>
-                        <p class="text-xs text-gray-500 mt-1 max-w-sm mx-auto">Upload operations manuals, equipment warranties, donation deeds, or certifications for official LGU record-keeping.</p>
-                        <button @click="showUploadModal = true" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-colors">
-                            <i class="fas fa-file-arrow-up mr-1"></i> Upload First Document
-                        </button>
-                    </div>
-                @endif
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    @foreach($asset->inspections->sortByDesc('inspection_date') as $insp)
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-4 py-3 align-middle font-medium whitespace-nowrap text-left">
+                                                {{ $insp->inspection_date ? $insp->inspection_date->format('M d, Y') : 'N/A' }}
+                                            </td>
+                                            <td class="px-4 py-3 align-middle font-medium text-gray-900 text-left">
+                                                {{ $insp->inspector }}
+                                            </td>
+                                            <td class="px-4 py-3 align-middle whitespace-nowrap text-center">
+                                                @php
+                                                    $iResult = match(strtolower($insp->result)) {
+                                                        'passed', 'good', 'excellent' => 'bg-emerald-100 text-emerald-800',
+                                                        'warning', 'fair', 'needs_attention' => 'bg-amber-100 text-amber-800',
+                                                        default => 'bg-rose-100 text-rose-800',
+                                                    };
+                                                @endphp
+                                                <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ $iResult }}">
+                                                    {{ ucfirst($insp->result) }}
+                                                </span>
+                                            </td>
+                                            <td class="px-4 py-3 align-middle text-gray-700 text-left">
+                                                {{ $insp->findings ?: 'No defects observed.' }}
+                                            </td>
+                                            <td class="px-4 py-3 align-middle text-xs text-gray-500 whitespace-nowrap text-left">
+                                                {{ $insp->next_due_date ? $insp->next_due_date->format('M d, Y') : 'Unscheduled' }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <p class="text-xs text-gray-400 italic py-3">No routine safety inspection reports recorded.</p>
+                    @endif
+                </div>
             </div>
 
-            {{-- TAB 8: AUDIT TRAIL & HISTORY --}}
-            <div x-show="activeTab === 'audit'" class="space-y-4">
-                <div class="border-b border-gray-100 pb-2">
-                    <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                        <i class="fas fa-timeline text-blue-600"></i> Immutable Audit Trail & Custody Movement History
-                    </h3>
-                    <p class="text-xs text-gray-500">
-                        @if(auth()->user()?->isAdmin())
-                            Chronological, tamper-evident log of every change, state transition, and user interaction on this asset across all accounts (Full Administrative View).
-                        @else
-                            Chronological log of your interactions and changes on this asset. (Administrative access required for full multi-user audit trail).
-                        @endif
-                    </p>
-                </div>
-
-                @if($asset->auditLogs->count() > 0)
-                    <div class="relative pl-6 border-l-2 border-gray-200 space-y-6 my-4">
-                        @foreach($asset->auditLogs as $log)
-                            <div class="relative">
-                                @php
-                                    $dotColor = match($log->event) {
-                                        'created'        => 'bg-emerald-500 ring-emerald-100',
-                                        'status_changed' => 'bg-amber-500 ring-amber-100',
-                                        'deleted'        => 'bg-rose-500 ring-rose-100',
-                                        default          => 'bg-blue-500 ring-blue-100',
-                                    };
-                                @endphp
-                                <div class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full ring-4 {{ $dotColor }}"></div>
-
-                                <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 text-sm">
-                                    <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-                                        <span class="font-bold text-gray-900 text-xs uppercase tracking-wider">
-                                            {{ strtoupper(str_replace('_', ' ', $log->event)) }}
-                                        </span>
-                                        <span class="text-xs text-gray-400 font-mono">
-                                            {{ $log->created_at->format('Y-m-d H:i:s') }} ({{ $log->created_at->diffForHumans() }})
-                                        </span>
-                                    </div>
-                                    <p class="text-gray-800 text-sm leading-relaxed">{{ $log->description }}</p>
-                                    
-                                    <div class="flex flex-wrap items-center justify-between gap-2 mt-3 pt-2 border-t border-gray-200 text-xs text-gray-500">
-                                        <span>
-                                            <i class="fas fa-user-circle text-gray-400 mr-1"></i>
-                                            Actor: <strong class="text-gray-700">{{ $log->user?->name ?? 'System Process' }}</strong>
-                                        </span>
-                                        @if($log->ip_address)
-                                            <span class="font-mono text-gray-400">IP: {{ $log->ip_address }}</span>
-                                        @endif
-                                    </div>
-
-                                    @if($log->new_values || $log->old_values)
-                                        <details class="mt-2 text-xs">
-                                            <summary class="cursor-pointer text-blue-600 hover:text-blue-800 font-medium">
-                                                View Field Level Changes
-                                            </summary>
-                                            <div class="mt-2 p-2 bg-white rounded border border-gray-200 font-mono text-[11px] overflow-x-auto space-y-1">
-                                                @if($log->old_values)
-                                                    <div><strong class="text-rose-600">Old:</strong> {{ json_encode($log->old_values) }}</div>
-                                                @endif
-                                                @if($log->new_values)
-                                                    <div><strong class="text-emerald-600">New:</strong> {{ json_encode($log->new_values) }}</div>
-                                                @endif
-                                            </div>
-                                        </details>
-                                    @endif
+            {{-- TAB 4: AUDIT TRAIL, HISTORY & ACCESSORIES --}}
+            <div x-show="activeTab === 'history'" class="space-y-6">
+                {{-- Accessories & Attachments Glimpse --}}
+                @if($asset->attachments->count() > 0 || $asset->accessories->count() > 0)
+                    <div class="space-y-3">
+                        <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
+                            <i class="fas fa-paperclip text-blue-600"></i> Linked Attachments & Accessories
+                        </h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            @foreach($asset->attachments as $att)
+                                <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs">
+                                    <div class="font-bold text-gray-900">{{ $att->name }}</div>
+                                    <div class="text-gray-500 mt-0.5">Attachment (Qty: {{ $att->quantity ?? 1 }})</div>
                                 </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <div class="text-center py-10 text-gray-500 bg-gray-50 rounded-xl">
-                        <i class="fas fa-fingerprint text-3xl text-gray-400 mb-2"></i>
-                        <p class="text-sm font-medium">
-                            @if(auth()->user()?->isAdmin())
-                                No audit events recorded yet for this asset.
-                            @else
-                                No audit events recorded for your account on this asset yet.
-                            @endif
-                        </p>
+                            @endforeach
+                            @foreach($asset->accessories as $acc)
+                                <div class="bg-purple-50/50 p-3 rounded-xl border border-purple-200 text-xs">
+                                    <div class="font-bold text-purple-950">{{ $acc->name }}</div>
+                                    <div class="text-purple-700 mt-0.5">Accessory (Qty: {{ $acc->quantity }})</div>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
+
+                {{-- Activity Audit Trail --}}
+                <div class="space-y-4">
+                    <div class="border-b border-gray-100 pb-2">
+                        <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-timeline text-blue-600"></i> Activity & Custody History
+                        </h3>
+                        <p class="text-xs text-gray-400 mt-0.5">Chronological record of status changes, verifications, and inspections.</p>
+                    </div>
+
+                    @if($asset->auditLogs->count() > 0)
+                        <div class="relative pl-6 border-l-2 border-gray-200 space-y-5 my-3">
+                            @foreach($asset->auditLogs as $log)
+                                <div class="relative">
+                                    @php
+                                        $dotColor = match($log->event) {
+                                            'created'        => 'bg-emerald-500 ring-emerald-100',
+                                            'status_changed' => 'bg-amber-500 ring-amber-100',
+                                            'deleted'        => 'bg-rose-500 ring-rose-100',
+                                            default          => 'bg-blue-500 ring-blue-100',
+                                        };
+                                    @endphp
+                                    <div class="absolute -left-[31px] top-1.5 w-4 h-4 rounded-full ring-4 {{ $dotColor }}"></div>
+
+                                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-xs">
+                                        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                            <span class="font-bold text-gray-900 uppercase">
+                                                {{ strtoupper(str_replace('_', ' ', $log->event)) }}
+                                            </span>
+                                            <span class="text-gray-400 font-mono">
+                                                {{ $log->created_at->format('M d, Y h:i A') }}
+                                            </span>
+                                        </div>
+                                        <p class="text-gray-800 text-sm leading-relaxed my-1">{{ $log->description }}</p>
+                                        <div class="text-[11px] text-gray-500 mt-2 pt-1 border-t border-gray-200 flex items-center justify-between">
+                                            <span>By: <strong>{{ $log->user?->name ?? 'System' }}</strong></span>
+                                            @if($log->ip_address)
+                                                <span class="font-mono text-gray-400">IP: {{ $log->ip_address }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-xs text-gray-400 italic py-3">No activity logs recorded yet.</p>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -916,38 +681,40 @@
     </div>
 
     {{-- MODAL: DECOMMISSION / RETIRE ASSET --}}
-    <div x-show="showRetireModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
-        <div @click.away="showRetireModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-                <h3 class="text-lg font-bold text-rose-700 flex items-center gap-2">
-                    <i class="fas fa-ban"></i> Decommission / Retire Asset
-                </h3>
-                <button @click="showRetireModal = false" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
+    @if(auth()->user()?->isAdmin())
+        <div x-show="showRetireModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+            <div @click.away="showRetireModal = false" class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+                    <h3 class="text-lg font-bold text-rose-700 flex items-center gap-2">
+                        <i class="fas fa-ban"></i> Decommission / Retire Asset
+                    </h3>
+                    <button @click="showRetireModal = false" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <p class="text-xs text-gray-600">
+                    Retiring an asset marks it as decommissioned from disaster service. Its operational history, maintenance, and deployment records will be preserved for audit compliance.
+                </p>
+
+                <form action="{{ route('assets.retire', $asset) }}" method="POST" class="space-y-4 text-sm">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Retirement Justification / Reason *</label>
+                        <textarea name="retirement_reason" required rows="3" placeholder="Provide reason (e.g. Beyond economic repair, destroyed during response, obsolete)..." class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                        <button type="button" @click="showRetireModal = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl text-xs">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-sm">
+                            Confirm Decommissioning
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <p class="text-xs text-gray-600">
-                Retiring an asset marks it as decommissioned from disaster service. Its operational history, maintenance, and deployment records will be immutably preserved for audit compliance.
-            </p>
-
-            <form action="{{ route('assets.retire', $asset) }}" method="POST" class="space-y-4 text-sm">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Retirement Justification / Reason *</label>
-                    <textarea name="retirement_reason" required rows="3" placeholder="Provide detailed justification (e.g. Beyond economic repair, destroyed during Typhoon response, obsolete)..." class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
-                    <button type="button" @click="showRetireModal = false" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl text-xs">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs shadow-sm">
-                        Confirm Decommissioning
-                    </button>
-                </div>
-            </form>
         </div>
-    </div>
+    @endif
 </div>
 @endsection

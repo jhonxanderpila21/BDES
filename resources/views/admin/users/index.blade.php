@@ -4,11 +4,10 @@
 
 @php
     $roleLabels = [
-        'administrator' => 'Administrator',
-        'barangay_captain' => 'Barangay Captain',
-        'inventory_officer' => 'Inventory Officer',
-        'maintenance_officer' => 'Maintenance Officer',
-        'viewer' => 'Viewer',
+        'administrator'       => 'Admin',
+        'inventory_officer'   => 'Inventory',
+        'maintenance_officer' => 'Maintenance',
+        'viewer'              => 'Staff (Viewing)',
     ];
 @endphp
 

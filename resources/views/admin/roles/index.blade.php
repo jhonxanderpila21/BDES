@@ -24,7 +24,7 @@
         <i class="fas fa-shield-alt text-blue-600 text-lg mt-0.5"></i>
         <div class="text-xs text-blue-900 leading-relaxed">
             <strong class="font-semibold text-blue-950">BDES Role-Based Access Control (RBAC):</strong>
-            The system employs 5 statutory disaster management roles strictly governed by Laravel Policies, Form Requests, and Middleware. Role definitions and permission boundaries prevent privilege escalation and enforce operational separation of duties.
+            The system employs 4 dedicated operational roles strictly governed by Laravel Policies, Form Requests, and Middleware: <strong>Admin</strong>, <strong>Inventory</strong>, <strong>Maintenance</strong>, and <strong>Staff for Viewing</strong>.
         </div>
     </div>
 
@@ -32,9 +32,9 @@
         $rolesData = [
             [
                 'key'         => 'administrator',
-                'name'        => 'Administrator',
+                'name'        => 'Admin',
                 'badge'       => 'danger',
-                'description' => 'Full administrative control, user account provisioning, system settings, and executive audit.',
+                'description' => 'Full administrative control, user account provisioning, system settings, asset retirement, and executive audit.',
                 'scope'       => 'All Modules',
                 'permissions' => [
                     'User Account Management (Create, Edit, Disable, Reset Password)',
@@ -49,24 +49,8 @@
                 ],
             ],
             [
-                'key'         => 'barangay_captain',
-                'name'        => 'Hon. Barangay Captain',
-                'badge'       => 'primary',
-                'description' => 'Executive governance, disaster preparedness oversight, and statutory equipment decommissioning authorization.',
-                'scope'       => 'Executive & Oversight',
-                'permissions' => [
-                    'Executive Disaster Readiness Dashboard',
-                    'Asset Registry & 360° Dossiers Inspection',
-                    'Asset Decommissioning / Retirement Authorization',
-                    'Depreciation & Salvage Value Audit',
-                    'Official Disaster Asset Reports Generation & Export',
-                    'Asset History & Audit Trail Oversight',
-                    'Asset Locations Inquiry',
-                ],
-            ],
-            [
                 'key'         => 'inventory_officer',
-                'name'        => 'Inventory Officer',
+                'name'        => 'Inventory',
                 'badge'       => 'warning',
                 'description' => 'Field equipment operations, asset registry, deployments, return check-ins, accessories, and consumables replenishment.',
                 'scope'       => 'Inventory & Field Operations',
@@ -83,7 +67,7 @@
             ],
             [
                 'key'         => 'maintenance_officer',
-                'name'        => 'Maintenance Officer',
+                'name'        => 'Maintenance',
                 'badge'       => 'success',
                 'description' => 'Equipment servicing, repair work orders, preventive maintenance schedules, and physical quality inspections.',
                 'scope'       => 'Equipment Upkeep & Service',
@@ -98,7 +82,7 @@
             ],
             [
                 'key'         => 'viewer',
-                'name'        => 'Viewer / Staff',
+                'name'        => 'Staff for Viewing',
                 'badge'       => 'secondary',
                 'description' => 'Read-only inquiry access to asset registries, location mappings, and incident monitoring logs.',
                 'scope'       => 'Read-Only Catalog',

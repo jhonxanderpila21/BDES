@@ -261,11 +261,10 @@ class UserManagementTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeText('Role & Access Control');
-        $response->assertSeeText('Administrator');
-        $response->assertSeeText('Hon. Barangay Captain');
-        $response->assertSeeText('Inventory Officer');
-        $response->assertSeeText('Maintenance Officer');
-        $response->assertSeeText('Viewer / Staff');
+        $response->assertSeeText('Admin');
+        $response->assertSeeText('Inventory');
+        $response->assertSeeText('Maintenance');
+        $response->assertSeeText('Staff for Viewing');
         $response->assertSeeText('Role Permissions & Authority Matrix');
     }
 }

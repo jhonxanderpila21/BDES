@@ -239,7 +239,7 @@
                     <tbody class="divide-y divide-gray-200">
                         @forelse($assets as $asset)
                             <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors group"
-                                onclick="if(!event.target.closest('button, a, form, input')) window.location.href='{{ route('assets.show', $asset) }}';"
+                                onclick="if(!event.target.closest('button, a, form, input')) openViewAssetModal(@js($asset), @js($asset->category->name ?? 'N/A'), @js($asset->type->name ?? 'N/A'), @js($asset->location->name ?? 'N/A'));"
                                 title="Click to view {{ $asset->name }} details">
                                 <td class="px-5 py-3.5 whitespace-nowrap">
                                     <a href="{{ route('assets.show', $asset) }}" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 group-hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors">
@@ -695,58 +695,80 @@
     </x-modal>
 
     {{-- View Asset Modal --}}
-    <x-modal id="view-asset-modal" title="Asset Specifications & Details">
-        <div class="space-y-4">
-            <div class="flex items-center justify-between pb-3 border-b border-gray-200">
-                <div>
-                    <h3 id="view_asset_name" class="text-lg font-bold text-gray-900"></h3>
-                    <p id="view_asset_code" class="text-xs font-mono font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block mt-1"></p>
+    <x-modal id="view-asset-modal" title="Equipment Details">
+        <div class="space-y-5">
+            {{-- Header Profile Card --}}
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg font-bold shrink-0">
+                        <i class="fas fa-box-archive"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 id="view_asset_name" class="text-base font-bold text-gray-900"></h3>
+                            <span id="view_asset_code" class="text-xs font-mono font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded"></span>
+                        </div>
+                        <p id="view_asset_type_category" class="text-xs text-gray-500 mt-0.5">Category · Type</p>
+                    </div>
                 </div>
                 <div id="view_asset_status_badge"></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Category</span>
-                    <span id="view_asset_category" class="font-medium text-gray-800"></span>
+            {{-- 2-Column Clean Key Facts --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Assigned Facility / Location</span>
+                    <p id="view_asset_location" class="font-semibold text-gray-800 mt-0.5 flex items-center gap-1.5 text-xs sm:text-sm">
+                        <i class="fas fa-location-dot text-blue-500 text-xs"></i>
+                        <span></span>
+                    </p>
                 </div>
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Asset Type</span>
-                    <span id="view_asset_type" class="font-medium text-gray-800"></span>
+
+                <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Operational Condition</span>
+                    <p id="view_asset_condition" class="font-semibold text-gray-800 mt-0.5 capitalize text-xs sm:text-sm"></p>
                 </div>
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Serial Number</span>
-                    <span id="view_asset_serial" class="font-mono text-gray-800"></span>
+
+                <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Serial Number / Brand</span>
+                    <p class="font-semibold text-gray-800 mt-0.5 text-xs sm:text-sm">
+                        <span id="view_asset_serial" class="font-mono text-gray-900"></span>
+                        <span id="view_asset_manufacturer" class="text-gray-500 font-normal ml-1"></span>
+                    </p>
                 </div>
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Manufacturer</span>
-                    <span id="view_asset_manufacturer" class="text-gray-800"></span>
-                </div>
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Location</span>
-                    <span id="view_asset_location" class="text-gray-800"></span>
-                </div>
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Condition</span>
-                    <span id="view_asset_condition" class="capitalize text-gray-800"></span>
-                </div>
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Purchase Date</span>
-                    <span id="view_asset_purchase_date" class="text-gray-800"></span>
-                </div>
-                <div>
-                    <span class="text-gray-500 text-xs font-medium uppercase block">Warranty Expiry</span>
-                    <span id="view_asset_warranty" class="text-gray-800"></span>
+
+                <div class="bg-white p-3 rounded-xl border border-gray-100 shadow-2xs">
+                    <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Acquisition Cost & Date</span>
+                    <p class="font-semibold text-gray-800 mt-0.5 text-xs sm:text-sm">
+                        <span id="view_asset_cost" class="font-bold text-emerald-700"></span>
+                        <span id="view_asset_purchase_date" class="text-gray-400 font-normal ml-1 text-xs"></span>
+                    </p>
                 </div>
             </div>
 
-            <div id="view_asset_notes_container" class="pt-2 border-t border-gray-100">
-                <span class="text-gray-500 text-xs font-medium uppercase block">Notes & Specifications</span>
-                <p id="view_asset_notes" class="text-sm text-gray-700 mt-1 bg-gray-50 p-3 rounded-lg"></p>
+            {{-- Operational Notes Callout --}}
+            <div id="view_asset_notes_container" class="bg-blue-50/50 p-3.5 rounded-xl border border-blue-100">
+                <span class="text-[11px] font-bold text-blue-900 uppercase tracking-wider block mb-1">
+                    <i class="fas fa-file-lines text-blue-500 mr-1"></i> Notes & Remarks
+                </span>
+                <p id="view_asset_notes" class="text-xs text-gray-700 leading-relaxed"></p>
             </div>
 
-            <div class="pt-4 border-t border-gray-200 flex justify-end">
-                <x-button variant="secondary" type="button" onclick="window.closeModal('view-asset-modal')">Close</x-button>
+            {{-- Modal Actions --}}
+            <div class="pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <a id="view_asset_dossier_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors w-full sm:w-auto shadow-sm">
+                        <i class="fas fa-folder-open"></i>
+                        <span>Open Full Dossier</span>
+                    </a>
+                    <a id="view_asset_deploy_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors hidden sm:inline-flex">
+                        <i class="fas fa-truck-fast"></i>
+                        <span>Deploy</span>
+                    </a>
+                </div>
+                <button type="button" onclick="window.closeModal('view-asset-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors w-full sm:w-auto">
+                    Close
+                </button>
             </div>
         </div>
     </x-modal>
@@ -1013,28 +1035,72 @@
             function openViewAssetModal(asset, categoryName, typeName, locationName) {
                 document.getElementById('view_asset_name').textContent = asset.name || 'Unnamed Asset';
                 document.getElementById('view_asset_code').textContent = asset.code || '';
-                document.getElementById('view_asset_category').textContent = categoryName || 'N/A';
-                document.getElementById('view_asset_type').textContent = typeName || 'N/A';
-                document.getElementById('view_asset_serial').textContent = asset.serial_number || 'N/A';
-                document.getElementById('view_asset_manufacturer').textContent = asset.manufacturer || 'N/A';
-                document.getElementById('view_asset_location').textContent = locationName || 'N/A';
-                document.getElementById('view_asset_condition').textContent = asset.condition || 'N/A';
-                document.getElementById('view_asset_purchase_date').textContent = asset.purchase_date ? asset.purchase_date.substring(0, 10) : 'N/A';
-                document.getElementById('view_asset_warranty').textContent = asset.warranty_expiry ? asset.warranty_expiry.substring(0, 10) : 'N/A';
-                document.getElementById('view_asset_notes').textContent = asset.notes || 'None';
                 
-                const statusBadge = document.getElementById('view_asset_status_badge');
-                const statusText = (asset.status || '').replace('_', ' ').toUpperCase();
-                let statusClasses = 'bg-gray-100 text-gray-700';
-                if (asset.status === 'available') statusClasses = 'bg-emerald-100 text-emerald-800';
-                else if (asset.status === 'deployed') statusClasses = 'bg-blue-100 text-blue-800';
-                else if (asset.status === 'under_maintenance') statusClasses = 'bg-amber-100 text-amber-800';
-                else if (asset.status === 'out_of_service') statusClasses = 'bg-red-100 text-red-800';
-                else if (asset.status === 'lost') statusClasses = 'bg-purple-100 text-purple-800';
-                else if (asset.status === 'retired') statusClasses = 'bg-gray-200 text-gray-800';
+                const typeCatElem = document.getElementById('view_asset_type_category');
+                if (typeCatElem) {
+                    typeCatElem.textContent = (categoryName || 'General') + (typeName && typeName !== 'N/A' ? ' · ' + typeName : '');
+                }
 
-                const displayStatus = asset.status === 'available' ? '1 AVAILABLE (IN STOCK)' : statusText;
-                statusBadge.innerHTML = `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusClasses}">${displayStatus}</span>`;
+                document.getElementById('view_asset_serial').textContent = asset.serial_number ? 'S/N: ' + asset.serial_number : 'Unserialized';
+                document.getElementById('view_asset_manufacturer').textContent = asset.manufacturer ? '· ' + asset.manufacturer : '';
+                
+                const locElem = document.getElementById('view_asset_location');
+                if (locElem) {
+                    const locSpan = locElem.querySelector('span');
+                    if (locSpan) locSpan.textContent = locationName || 'Not assigned';
+                }
+                
+                const condElem = document.getElementById('view_asset_condition');
+                const cond = asset.condition || 'good';
+                condElem.textContent = cond.charAt(0).toUpperCase() + cond.slice(1);
+
+                const costFormatted = asset.acquisition_cost ? '₱' + parseFloat(asset.acquisition_cost).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '₱0.00';
+                document.getElementById('view_asset_cost').textContent = costFormatted;
+                
+                const dateText = asset.purchase_date ? '• ' + asset.purchase_date.substring(0, 10) : '';
+                document.getElementById('view_asset_purchase_date').textContent = dateText;
+
+                const notesElem = document.getElementById('view_asset_notes');
+                const notesContainer = document.getElementById('view_asset_notes_container');
+                if (asset.notes && asset.notes.trim() !== '') {
+                    notesElem.textContent = asset.notes;
+                    notesContainer.classList.remove('hidden');
+                } else {
+                    notesContainer.classList.add('hidden');
+                }
+
+                const statusBadge = document.getElementById('view_asset_status_badge');
+                let statusClasses = 'bg-gray-100 text-gray-700';
+                let displayStatus = (asset.status || '').replace(/_/g, ' ').toUpperCase();
+                if (asset.status === 'available') {
+                    statusClasses = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+                    displayStatus = '1 AVAILABLE (READY)';
+                } else if (asset.status === 'deployed') {
+                    statusClasses = 'bg-blue-100 text-blue-800 border border-blue-200';
+                } else if (asset.status === 'under_maintenance') {
+                    statusClasses = 'bg-amber-100 text-amber-800 border border-amber-200';
+                } else if (asset.status === 'out_of_service' || asset.status === 'lost') {
+                    statusClasses = 'bg-rose-100 text-rose-800 border border-rose-200';
+                } else if (asset.status === 'retired') {
+                    statusClasses = 'bg-gray-200 text-gray-800 border border-gray-300';
+                }
+                statusBadge.innerHTML = `<span class="px-2.5 py-1 text-xs font-bold rounded-full ${statusClasses}">${displayStatus}</span>`;
+
+                const dossierBtn = document.getElementById('view_asset_dossier_btn');
+                if (dossierBtn) {
+                    dossierBtn.href = '/assets/' + asset.id;
+                }
+
+                const deployBtn = document.getElementById('view_asset_deploy_btn');
+                if (deployBtn) {
+                    if (asset.status === 'available') {
+                        deployBtn.href = '/deployment/create?asset_id=' + asset.id;
+                        deployBtn.classList.remove('hidden');
+                    } else {
+                        deployBtn.classList.add('hidden');
+                    }
+                }
+
                 window.openModal('view-asset-modal');
             }
 
