@@ -323,7 +323,7 @@
                                         </button>
 
                                         {{-- Safe Delete --}}
-                                        <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirm('Remove asset [{{ $asset->code }}]? If operational records exist, it will be safely retired instead.');">
+                                        <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Asset: [{{ $asset->code }}] - {{ addslashes($asset->name) }}', 'If operational history exists, this asset will be safely retired and preserved in logs instead of permanently purged.');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
@@ -442,7 +442,7 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('asset-categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Archive/Delete this category?');" onclick="event.stopPropagation()">
+                                        <form action="{{ route('asset-categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Category: {{ addslashes($category->name) }}', 'This category will be archived or removed from the inventory catalog.');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Category" onclick="event.stopPropagation()">
@@ -564,7 +564,7 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('asset-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset type?');" onclick="event.stopPropagation()">
+                                        <form action="{{ route('asset-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Asset Type: {{ addslashes($type->name) }}', 'This asset type definition will be deleted from the system.');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Type" onclick="event.stopPropagation()">

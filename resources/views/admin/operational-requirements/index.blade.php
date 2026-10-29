@@ -32,95 +32,96 @@
     </div>
 
     {{-- High-Level KPI Summary Cards --}}
+    {{-- High-Level KPI Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         @if($activeTab === 'needs')
             {{-- Total Needs --}}
-            <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}" class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Total Equipment Needs</p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Total Equipment Needs</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_needs'] ?? $assetNeeds->total() }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <i class="fas fa-gas-pump"></i>
                 </div>
-            </div>
+            </a>
 
             {{-- Healthy Needs --}}
-            <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'needs', 'status' => 'Monitoring Only']) }}" class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Monitoring Only">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate (Monitoring)</p>
                     <p class="text-2xl font-bold text-emerald-700">{{ $metrics['needs_monitoring'] ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                     <i class="fas fa-circle-check"></i>
                 </div>
-            </div>
+            </a>
 
             {{-- Attention Needed --}}
-            <div class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'needs', 'status' => 'Requires Maintenance']) }}" class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Requires Maintenance">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-1">Requires Refill / Maint.</p>
                     <p class="text-2xl font-bold text-amber-700">{{ $metrics['needs_attention'] ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
-            </div>
+            </a>
 
             {{-- Equipment Models --}}
-            <div class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}" class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group block">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Equipment Models</p>
                     <p class="text-2xl font-bold text-purple-700">{{ $needAssetTypes->count() }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
                     <i class="fas fa-boxes-stacked"></i>
                 </div>
-            </div>
+            </a>
         @else
             {{-- Total Requirements --}}
-            <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}" class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Warehouse Supplies</p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Warehouse Supplies</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_requirements'] ?? $requirements->total() }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                     <i class="fas fa-boxes-stacked"></i>
                 </div>
-            </div>
+            </a>
 
             {{-- Adequate Reserves --}}
-            <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements', 'status' => 'adequate']) }}" class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Adequate Reserves">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate Reserves</p>
                     <p class="text-2xl font-bold text-emerald-700">{{ $metrics['adequate_stock'] ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                     <i class="fas fa-circle-check"></i>
                 </div>
-            </div>
+            </a>
 
             {{-- Low Stock Alert --}}
-            <div class="bg-white rounded-xl p-5 border border-rose-200 bg-rose-50/20 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements', 'status' => 'low']) }}" class="bg-white rounded-xl p-5 border border-rose-200 bg-rose-50/20 shadow-sm hover:border-rose-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Low Stock Alert">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-rose-700 mb-1">Low Stock Alert</p>
                     <p class="text-2xl font-bold text-rose-700">{{ $metrics['low_stock'] ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
                     <i class="fas fa-triangle-exclamation"></i>
                 </div>
-            </div>
+            </a>
 
             {{-- Covered Asset Types --}}
-            <div class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
+            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}" class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all flex items-center justify-between group block">
                 <div>
                     <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Equipment Types Covered</p>
                     <p class="text-2xl font-bold text-indigo-700">{{ $metrics['monitored_types'] ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">
+                <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                     <i class="fas fa-tags"></i>
                 </div>
-            </div>
+            </a>
         @endif
     </div>
 
@@ -296,7 +297,7 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('operational-requirements.destroy', $requirement) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this requirement?');" onclick="event.stopPropagation()">
+                                        <form action="{{ route('operational-requirements.destroy', $requirement) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Supply: {{ addslashes($requirement->requirement_name) }}', 'This requirement will be removed from the warehouse supplies catalog.');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Requirement" onclick="event.stopPropagation()">
@@ -468,7 +469,7 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         {{-- Delete --}}
-                                        <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset need?');" onclick="event.stopPropagation()">
+                                        <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Equipment Need: {{ addslashes($need->need_name) }} ({{ addslashes($need->assetType->name ?? 'Asset') }})', 'This will delete this equipment operational need specification.');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete" onclick="event.stopPropagation()">

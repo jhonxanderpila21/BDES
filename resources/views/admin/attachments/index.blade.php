@@ -39,48 +39,48 @@
     {{-- High-Level KPI Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {{-- Total Attachments --}}
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
+        <a href="{{ route('attachments.index', ['tab' => 'attachments']) }}" class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Total Attachments</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Total Attachments</p>
                 <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_attachments'] }}</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-paperclip"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Attachment Units --}}
-        <div class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('attachments.index', ['tab' => 'attachments']) }}" class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all flex items-center justify-between group block">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Attachment Units</p>
                 <p class="text-2xl font-bold text-indigo-700">{{ $metrics['total_attachment_items'] }}</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 <i class="fas fa-boxes-stacked"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Total Accessories --}}
-        <div class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('attachments.index', ['tab' => 'accessories']) }}" class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group block">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Total Accessories</p>
                 <p class="text-2xl font-bold text-purple-700">{{ $metrics['total_accessories'] }}</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
                 <i class="fas fa-tools"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Available Accessories --}}
-        <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('attachments.index', ['tab' => 'accessories', 'status' => 'available']) }}" class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Available">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Available Quantity</p>
                 <p class="text-2xl font-bold text-emerald-700">{{ $metrics['available_accessories'] ?? 0 }} Available</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 <i class="fas fa-check-circle"></i>
             </div>
-        </div>
+        </a>
     </div>
 
     {{-- Module Navigation Tabs --}}
@@ -233,7 +233,7 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('attachments.destroy', $attachment) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this attachment?');" onclick="event.stopPropagation()">
+                                        <form action="{{ route('attachments.destroy', $attachment) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Attachment: {{ addslashes($attachment->attachment_name) }}', 'This attachment record will be removed from the system.');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Attachment" onclick="event.stopPropagation()">
@@ -366,7 +366,7 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         {{-- Delete --}}
-                                        <form action="{{ route('asset-accessories.destroy', $acc) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this accessory?');" onclick="event.stopPropagation()">
+                                        <form action="{{ route('asset-accessories.destroy', $acc) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Accessory: {{ addslashes($acc->accessory_name) }}', 'This accessory record will be removed from the system.');" onclick="event.stopPropagation()">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Accessory" onclick="event.stopPropagation()">

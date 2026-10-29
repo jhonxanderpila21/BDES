@@ -31,48 +31,48 @@
     {{-- Dashboard Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {{-- Total --}}
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm flex items-center justify-between">
+        <a href="{{ route('deployment.index') }}" class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">Total Records</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Total Records</p>
                 <p class="text-2xl font-bold text-gray-900">{{ $statusCounts['total'] }}</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-clipboard-list"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Active --}}
-        <div class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('deployment.index', ['status' => 'active']) }}" class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Active">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Active in Field</p>
                 <p class="text-2xl font-bold text-emerald-700">{{ $statusCounts['active'] }}</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 <i class="fas fa-truck"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Pending Return --}}
-        <div class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('deployment.index', ['status' => 'pending_return']) }}" class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Pending Return">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-1">Pending Return</p>
                 <p class="text-2xl font-bold text-amber-700">{{ $statusCounts['pending_return'] }}</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
                 <i class="fas fa-clock"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Returned --}}
-        <div class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('deployment.index', ['status' => 'returned']) }}" class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Returned">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Returned</p>
                 <p class="text-2xl font-bold text-purple-700">{{ $statusCounts['returned'] }}</p>
             </div>
-            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl">
+            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
                 <i class="fas fa-circle-check"></i>
             </div>
-        </div>
+        </a>
     </div>
 
     {{-- Filters & Search --}}
@@ -285,7 +285,7 @@
                                     </button>
 
                                     {{-- Delete Deployment --}}
-                                    <form action="{{ route('deployment.destroy', $deployment) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this deployment record?');">
+                                    <form action="{{ route('deployment.destroy', $deployment) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Deployment: {{ addslashes($deployment->asset->name ?? 'Record') }} ({{ addslashes($deployment->destination ?? 'Field') }})', 'This deployment record will be permanently deleted from the dispatch logs.');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">

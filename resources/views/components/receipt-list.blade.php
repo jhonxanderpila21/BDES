@@ -14,7 +14,7 @@
                     {{ $receipt->reference_number ?: \Illuminate\Support\Str::limit($receipt->file_name, 24) }}
                 </a>
                 @if(! $compact && (auth()->user()->isAdmin() || (int) $receipt->uploaded_by === (int) auth()->id()))
-                    <form method="POST" action="{{ route('receipts.destroy', $receipt) }}" class="inline">
+                    <form method="POST" action="{{ route('receipts.destroy', $receipt) }}" class="inline" onsubmit="return confirmSecureDelete(event, this, 'Receipt: {{ addslashes($receipt->file_name) }}', 'This attached receipt/document will be permanently deleted.');">
                         @csrf @method('DELETE')
                         <button type="submit" class="text-red-500 hover:text-red-700 text-xs" title="Remove receipt">
                             <i class="fas fa-trash"></i>

@@ -41,68 +41,64 @@
     {{-- High-Level KPI Summary Cards --}}
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
         {{-- Total Schedules --}}
-        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center justify-between">
+        <a href="{{ route('maintenance.index', ['tab' => 'schedules']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Schedules</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5 group-hover:text-blue-600 transition-colors">Schedules</p>
                 <p class="text-xl font-bold text-gray-900">{{ $metrics['total_schedules'] }}</p>
                 <p class="text-[10px] text-gray-400">Preventive routines</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-calendar-check"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Attention Due --}}
-        <div class="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('maintenance.index', ['tab' => 'schedules']) }}" class="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between group block" title="View due schedules">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-0.5">Due / Overdue</p>
                 <p class="text-xl font-bold text-amber-700">{{ $metrics['schedules_due'] }}</p>
                 <p class="text-[10px] text-amber-600">Requires attention</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-lg">
+            <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-lg group-hover:bg-amber-600 group-hover:text-white transition-colors">
                 <i class="fas fa-triangle-exclamation"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Active Maintenance --}}
-        <div class="bg-white rounded-xl p-4 border border-indigo-200 bg-indigo-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="bg-white rounded-xl p-4 border border-indigo-200 bg-indigo-50/20 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all flex items-center justify-between group block" title="View active work orders">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-0.5">Active Orders</p>
                 <p class="text-xl font-bold text-indigo-700">{{ $metrics['active_maintenance'] }}</p>
                 <p class="text-[10px] text-indigo-600">In-progress repairs</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
+            <div class="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 <i class="fas fa-wrench"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Inspections Count --}}
-        <div class="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-sm flex items-center justify-between">
+        <a href="{{ route('maintenance.index', ['tab' => 'inspections']) }}" class="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="View asset inspections">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-0.5">Inspections</p>
                 <p class="text-xl font-bold text-emerald-700">{{ $metrics['total_inspections'] }}</p>
                 <p class="text-[10px] text-emerald-600">Quality audits</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg">
+            <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 <i class="fas fa-clipboard-check"></i>
             </div>
-        </div>
+        </a>
 
         {{-- Completed Tasks --}}
-        <div class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm flex items-center justify-between">
+        <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-gray-400 hover:shadow-md transition-all flex items-center justify-between group block">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5">Completed Tasks</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-0.5 group-hover:text-gray-900 transition-colors">Completed Tasks</p>
                 <p class="text-xl font-bold text-gray-900">{{ $metrics['completed_maintenance'] ?? 0 }}</p>
-                @if(auth()->user()?->isAdmin())
-                    <a href="{{ route('financials.expenses') }}" class="text-[10px] text-blue-600 hover:underline">View costs in Financials &rarr;</a>
-                @else
-                    <p class="text-[10px] text-gray-400">Resolved work orders</p>
-                @endif
+                <p class="text-[10px] text-gray-400">Resolved work orders</p>
             </div>
-            <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center text-lg">
+            <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-700 flex items-center justify-center text-lg group-hover:bg-gray-700 group-hover:text-white transition-colors">
                 <i class="fas fa-check-double"></i>
             </div>
-        </div>
+        </a>
     </div>
 
     {{-- Main Module Tabs Navigation --}}
@@ -286,7 +282,7 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('maintenance-schedules.destroy', $schedule) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this preventive maintenance schedule?');">
+                                        <form action="{{ route('maintenance-schedules.destroy', $schedule) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Schedule: {{ addslashes($schedule->title ?? 'Maintenance Schedule') }}', 'This planned maintenance routine will be deleted.');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
@@ -452,7 +448,7 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this maintenance record?');">
+                                        <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Work Order: {{ addslashes($item->title ?? 'Maintenance Log') }}', 'This maintenance work order record will be permanently deleted.');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
@@ -592,7 +588,7 @@
                                         >
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <form action="{{ route('inspection.destroy', $insp) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this inspection record?');">
+                                        <form action="{{ route('inspection.destroy', $insp) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Inspection: {{ addslashes($insp->asset->name ?? 'Inspection Record') }}', 'This inspection record will be permanently deleted.');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">

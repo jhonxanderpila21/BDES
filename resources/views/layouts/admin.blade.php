@@ -72,6 +72,9 @@
         </div>
     </div>
 
+    {{-- Global Delete Confirmation Security Modal --}}
+    <x-delete-confirm-modal />
+
     @stack('scripts')
 </body>
 </html>

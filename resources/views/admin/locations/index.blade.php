@@ -34,45 +34,45 @@
 
     {{-- KPI Summary Deck --}}
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+        <a href="{{ route('locations.index') }}" class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center gap-4 group block">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-map-marked-alt"></i>
             </div>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Total Facilities</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 group-hover:text-blue-600 transition-colors">Total Facilities</p>
                 <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ $stats['total_locations'] ?? $locations->total() }}</p>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+        <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all flex items-center gap-4 group block" title="View all assets in registry">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                 <i class="fas fa-boxes-stacked"></i>
             </div>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Assets Kept</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 group-hover:text-indigo-600 transition-colors">Assets Kept</p>
                 <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ $stats['total_assets'] ?? 0 }}</p>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white p-5 rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center gap-4 group block" title="View ready assets">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 <i class="fas fa-check-circle"></i>
             </div>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Ready for Deployment</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Ready for Deployment</p>
                 <p class="text-2xl font-bold text-emerald-700 mt-0.5">{{ $stats['available_assets'] ?? 0 }}</p>
             </div>
-        </div>
+        </a>
 
-        <div class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+        <a href="{{ route('locations.index') }}" class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center gap-4 group block">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors">
                 <i class="fas fa-layer-group"></i>
             </div>
             <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Storage Capacity</p>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 group-hover:text-amber-600 transition-colors">Storage Capacity</p>
                 <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ number_format($stats['total_capacity'] ?? 0) }} <span class="text-xs font-normal text-gray-400">slots</span></p>
             </div>
-        </div>
+        </a>
     </div>
 
     {{-- Search & Filters --}}
@@ -222,13 +222,13 @@
                                         {{-- Delete Button with Deletion Protection --}}
                                         @if($location->assets_count > 0)
                                             <button type="button" 
-                                                    onclick="alert('Cannot delete facility [{{ addslashes($location->name) }}] because {{ $location->assets_count }} asset(s) are currently kept here. Please relocate or reassign all assets to another facility first.');" 
+                                                    onclick="window.bdesToast('Cannot delete facility [{{ addslashes($location->name) }}] because {{ $location->assets_count }} asset(s) are currently kept here. Please relocate or reassign all assets to another facility first.', 'warning', 5000, 'Deletion Blocked');" 
                                                     class="p-2 rounded-lg text-gray-300 hover:text-gray-400 cursor-not-allowed transition-colors" 
                                                     title="Deletion blocked: {{ $location->assets_count }} asset(s) currently stored">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         @else
-                                            <form action="{{ route('locations.destroy', $location) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to permanently delete location [{{ $location->name }}]? This action cannot be undone.');">
+                                            <form action="{{ route('locations.destroy', $location) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Facility: {{ addslashes($location->name) }}', 'This action will permanently delete this location from the facility registry. Ensure no active operations rely on it.');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors" title="Delete Location">

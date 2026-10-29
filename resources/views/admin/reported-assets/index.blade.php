@@ -243,7 +243,7 @@
 
                                     {{-- Delete (Admin-only) --}}
                                     @if(auth()->user()->isAdmin())
-                                        <form action="{{ route('reported-assets.destroy', $report) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete incident report for [{{ $report->asset_name }}]? This action cannot be undone.');">
+                                        <form action="{{ route('reported-assets.destroy', $report) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Report: [{{ addslashes($report->asset_name) }}] (#{{ $report->id }})', 'This incident report record will be permanently deleted from the registry.');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete Report">

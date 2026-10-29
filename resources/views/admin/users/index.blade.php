@@ -97,7 +97,7 @@
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     @if($user->trashed())
-                                        <form action="{{ route('users.restore', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Restore this user account?');">
+                                        <form action="{{ route('users.restore', $user->id) }}" method="POST" class="inline-block" onsubmit="return confirmSecureAction(event, this, { title: 'Restore User Account', itemName: '{{ addslashes($user->name) }} ({{ $user->username }})', warning: 'This account will be reactivated and restored to active user listings.', confirmText: 'Yes, Restore Account', iconClass: 'fas fa-trash-arrow-up', isDestructive: false });">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="p-2 rounded hover:bg-emerald-50 transition-colors text-emerald-600 hover:text-emerald-800" title="Restore Account">
@@ -113,7 +113,7 @@
                                         </button>
 
                                         @if(auth()->id() !== $user->id)
-                                            <form action="{{ route('users.toggle-active', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('{{ $user->is_active ? 'Disable' : 'Enable' }} this account?');">
+                                            <form action="{{ route('users.toggle-active', $user) }}" method="POST" class="inline-block" onsubmit="return confirmSecureAction(event, this, { title: '{{ $user->is_active ? 'Disable' : 'Enable' }} User Account', itemName: '{{ addslashes($user->name) }} ({{ $user->username }})', warning: '{{ $user->is_active ? 'This user will be temporarily blocked from signing in.' : 'This user account will regain active sign-in access.' }}', confirmText: '{{ $user->is_active ? 'Yes, Disable Account' : 'Yes, Enable Account' }}', iconClass: 'fas {{ $user->is_active ? 'fa-user-slash' : 'fa-user-check' }}', isDestructive: {{ $user->is_active ? 'true' : 'false' }} });">
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors {{ $user->is_active ? 'text-orange-600 hover:text-orange-800' : 'text-green-600 hover:text-green-800' }}" title="{{ $user->is_active ? 'Disable account' : 'Enable account' }}">
@@ -122,7 +122,7 @@
                                             </form>
                                         @endif
 
-                                        <form action="{{ route('users.reset-password', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Reset password for {{ $user->name }} to standard temporary password (TempPass_123)?');">
+                                        <form action="{{ route('users.reset-password', $user) }}" method="POST" class="inline-block" onsubmit="return confirmSecureAction(event, this, { title: 'Reset User Password', itemName: '{{ addslashes($user->name) }} ({{ $user->username }})', warning: 'The account password will be reset to temporary default (TempPass_123).', confirmText: 'Yes, Reset Password', iconClass: 'fas fa-key', isDestructive: false });">
                                             @csrf
                                             <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-blue-600 hover:text-blue-800" title="Reset to TempPass_123">
                                                 <i class="fas fa-key"></i>
@@ -130,7 +130,7 @@
                                         </form>
 
                                         @if(auth()->id() !== $user->id)
-                                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Archive (soft-delete) this user account?');">
+                                            <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'User Account: {{ addslashes($user->name) }} ({{ $user->username }})', 'This user account will be archived and will lose system access.');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600 hover:text-red-800" title="Archive / Delete">

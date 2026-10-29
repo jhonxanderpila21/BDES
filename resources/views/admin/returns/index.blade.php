@@ -68,7 +68,7 @@
                                     <button onclick="window.openModal('return-modal')" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit Return">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <form action="{{ route('returns.destroy', $return) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this return record?');">
+                                    <form action="{{ route('returns.destroy', $return) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Return: {{ addslashes($return->asset->name ?? 'Record') }} (#{{ $return->id }})', 'This return log entry will be permanently deleted.');">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600">
