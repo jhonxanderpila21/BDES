@@ -41,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     // Foundation Modules (Admin only)
     Route::middleware(['role:administrator,barangay_captain'])->group(function () {
         Route::patch('/users/{id}/restore', [UserController::class, 'restore'])->name('users.restore');
+        Route::get('/users/suggest-credentials', [UserController::class, 'suggestCredentials'])->name('users.suggest-credentials');
         Route::resource('users', UserController::class);
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
         Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password')->middleware('throttle:10,1');

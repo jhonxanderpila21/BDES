@@ -81,6 +81,23 @@ class UserController extends Controller
         if (isset($input['email'])) {
             $input['email'] = strtolower(trim($input['email']));
         }
+
+        // Auto-generate username and email from first and last name if not provided
+        if (empty($input['username']) && !empty($input['first_name']) && !empty($input['last_name'])) {
+            $input['username'] = self::generateBaseUsername($input['first_name'], $input['last_name']);
+        }
+        if (empty($input['email']) && !empty($input['first_name']) && !empty($input['last_name'])) {
+            $input['email'] = self::generateBaseEmail($input['first_name'], $input['last_name']);
+        }
+
+        // Automatically resolve any uniqueness collision with existing users (including soft-deleted)
+        if (!empty($input['username'])) {
+            $input['username'] = self::makeUniqueUsername($input['username']);
+        }
+        if (!empty($input['email'])) {
+            $input['email'] = self::makeUniqueEmail($input['email']);
+        }
+
         $request->merge($input);
 
         $nameRegex = '/^[a-zA-Z\s\-\'\.ñÑáéíóúÁÉÍÓÚ]+$/u';
@@ -254,5 +271,118 @@ class UserController extends Controller
 
         return redirect()->route('users.index')
             ->with('success', "Password reset for {$user->name}. Temporary password is: " . User::DEFAULT_TEMP_PASSWORD);
+    }
+
+    /**
+     * Endpoint to suggest collision-free username and email based on first and last name.
+     */
+    public function suggestCredentials(Request $request)
+    {
+        $firstName = (string) $request->query('first_name', '');
+        $lastName = (string) $request->query('last_name', '');
+
+        if (trim($firstName) === '' || trim($lastName) === '') {
+            return response()->json([
+                'username' => '',
+                'email' => '',
+                'has_conflict' => false,
+            ]);
+        }
+
+        $baseUser = self::generateBaseUsername($firstName, $lastName);
+        $baseEmail = self::generateBaseEmail($firstName, $lastName);
+
+        $uniqueUser = self::makeUniqueUsername($baseUser);
+        $uniqueEmail = self::makeUniqueEmail($baseEmail);
+
+        return response()->json([
+            'username' => $uniqueUser,
+            'email' => $uniqueEmail,
+            'has_conflict' => ($uniqueUser !== $baseUser || $uniqueEmail !== $baseEmail),
+        ]);
+    }
+
+    /**
+     * Compute base username from first and last name.
+     */
+    public static function generateBaseUsername(string $firstName, string $lastName): string
+    {
+        $cleanFirst = preg_replace('/[^a-z0-9]/', '', strtolower(Str::slug($firstName, '')));
+        $cleanLast = preg_replace('/[^a-z0-9]/', '', strtolower(Str::slug($lastName, '')));
+        $initial = $cleanFirst !== '' ? substr($cleanFirst, 0, 1) : '';
+        $base = $initial . $cleanLast;
+
+        return $base ?: 'user';
+    }
+
+    /**
+     * Compute base email from first and last name.
+     */
+    public static function generateBaseEmail(string $firstName, string $lastName, string $domain = 'bdes.gov'): string
+    {
+        $username = self::generateBaseUsername($firstName, $lastName);
+        return "{$username}@{$domain}";
+    }
+
+    /**
+     * Auto-increment username counter if it collides with an existing or archived user.
+     */
+    public static function makeUniqueUsername(string $username, ?int $ignoreUserId = null): string
+    {
+        $username = strtolower(trim($username));
+        if ($username === '') {
+            return $username;
+        }
+
+        if (preg_match('/^(.*?)([0-9]+)$/', $username, $matches)) {
+            $base = $matches[1] !== '' ? $matches[1] : $username;
+            $counter = (int) $matches[2];
+        } else {
+            $base = $username;
+            $counter = 1;
+        }
+
+        $candidate = $username;
+        while (User::withTrashed()
+            ->when($ignoreUserId, fn($q) => $q->where('id', '!=', $ignoreUserId))
+            ->where('username', $candidate)
+            ->exists()) {
+            $counter++;
+            $candidate = "{$base}{$counter}";
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * Auto-increment email counter if it collides with an existing or archived user.
+     */
+    public static function makeUniqueEmail(string $email, ?int $ignoreUserId = null): string
+    {
+        $email = strtolower(trim($email));
+        if ($email === '' || !str_contains($email, '@')) {
+            return $email;
+        }
+
+        [$local, $domain] = explode('@', $email, 2);
+
+        if (preg_match('/^(.*?)([0-9]+)$/', $local, $matches)) {
+            $base = $matches[1] !== '' ? $matches[1] : $local;
+            $counter = (int) $matches[2];
+        } else {
+            $base = $local;
+            $counter = 1;
+        }
+
+        $candidate = $email;
+        while (User::withTrashed()
+            ->when($ignoreUserId, fn($q) => $q->where('id', '!=', $ignoreUserId))
+            ->where('email', $candidate)
+            ->exists()) {
+            $counter++;
+            $candidate = "{$base}{$counter}@{$domain}";
+        }
+
+        return $candidate;
     }
 }

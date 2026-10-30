@@ -267,4 +267,89 @@ class UserManagementTest extends TestCase
         $response->assertSeeText('Staff for Viewing');
         $response->assertSeeText('Role Permissions & Authority Matrix');
     }
+
+    public function test_user_creation_auto_generates_email_and_username_when_omitted(): void
+    {
+        $userData = [
+            'first_name' => 'Ramon',
+            'last_name'  => 'Magsaysay',
+            'role'       => 'viewer',
+        ];
+
+        $response = $this->actingAs($this->admin)->post(route('users.store'), $userData);
+
+        $response->assertRedirect(route('users.index'));
+        $this->assertDatabaseHas('users', [
+            'first_name' => 'Ramon',
+            'last_name'  => 'Magsaysay',
+            'username'   => 'rmagsaysay',
+            'email'      => 'rmagsaysay@bdes.gov',
+            'role'       => 'viewer',
+        ]);
+    }
+
+    public function test_user_creation_auto_resolves_conflict_when_same_username_or_email_already_exists(): void
+    {
+        // First user
+        $user1 = [
+            'first_name' => 'Jose',
+            'last_name'  => 'Rizal',
+            'username'   => 'jrizal',
+            'email'      => 'jrizal@bdes.gov',
+            'role'       => 'viewer',
+        ];
+        $this->actingAs($this->admin)->post(route('users.store'), $user1)->assertRedirect(route('users.index'));
+
+        // Second user with same name / username / email
+        $user2 = [
+            'first_name' => 'Jose',
+            'last_name'  => 'Rizal',
+            'username'   => 'jrizal',
+            'email'      => 'jrizal@bdes.gov',
+            'role'       => 'viewer',
+        ];
+        $this->actingAs($this->admin)->post(route('users.store'), $user2)->assertRedirect(route('users.index'));
+
+        $this->assertDatabaseHas('users', [
+            'username' => 'jrizal',
+            'email'    => 'jrizal@bdes.gov',
+        ]);
+        $this->assertDatabaseHas('users', [
+            'username' => 'jrizal2',
+            'email'    => 'jrizal2@bdes.gov',
+        ]);
+
+        // Third user with same name (omitted username & email)
+        $user3 = [
+            'first_name' => 'Jose',
+            'last_name'  => 'Rizal',
+            'role'       => 'viewer',
+        ];
+        $this->actingAs($this->admin)->post(route('users.store'), $user3)->assertRedirect(route('users.index'));
+
+        $this->assertDatabaseHas('users', [
+            'username' => 'jrizal3',
+            'email'    => 'jrizal3@bdes.gov',
+        ]);
+    }
+
+    public function test_suggest_credentials_endpoint_returns_unique_credentials(): void
+    {
+        User::factory()->create([
+            'username' => 'agui',
+            'email'    => 'agui@bdes.gov',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('users.suggest-credentials', [
+            'first_name' => 'Andres',
+            'last_name'  => 'Gui',
+        ]));
+
+        $response->assertOk();
+        $response->assertJson([
+            'username'     => 'agui2',
+            'email'        => 'agui2@bdes.gov',
+            'has_conflict' => true,
+        ]);
+    }
 }

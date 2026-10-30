@@ -175,21 +175,21 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="First Name" required>
-                    <input type="text" name="first_name" placeholder="e.g., Juan" value="{{ old('first_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" name="first_name" id="add-user-first-name" placeholder="e.g., Juan" value="{{ old('first_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </x-form-group>
 
                 <x-form-group label="Middle Name (Optional)">
-                    <input type="text" name="middle_name" placeholder="e.g., Santos" value="{{ old('middle_name') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" name="middle_name" id="add-user-middle-name" placeholder="e.g., Santos" value="{{ old('middle_name') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </x-form-group>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Last Name" required>
-                    <input type="text" name="last_name" placeholder="e.g., Dela Cruz" value="{{ old('last_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" name="last_name" id="add-user-last-name" placeholder="e.g., Dela Cruz" value="{{ old('last_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                 </x-form-group>
 
                 <x-form-group label="Suffix (Optional)">
-                    <select name="suffix" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select name="suffix" id="add-user-suffix" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                         <option value="">None</option>
                         @foreach(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $sfx)
                             <option value="{{ $sfx }}" {{ old('suffix') === $sfx ? 'selected' : '' }}>{{ $sfx }}</option>
@@ -200,11 +200,17 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Username" required>
-                    <input type="text" name="username" placeholder="e.g., jdelacruz" value="{{ old('username') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <div class="relative">
+                        <input type="text" name="username" id="add-user-username" placeholder="e.g., jdelacruz" value="{{ old('username') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <span id="add-user-username-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-generated from First and Last Name.</span>
                 </x-form-group>
 
                 <x-form-group label="Email Address" required>
-                    <input type="email" name="email" placeholder="e.g., jdelacruz@bdes.gov.ph" value="{{ old('email') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <div class="relative">
+                        <input type="email" name="email" id="add-user-email" placeholder="e.g., jdelacruz@bdes.gov" value="{{ old('email') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <span id="add-user-email-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-generated based on First and Last Name.</span>
                 </x-form-group>
             </div>
 
@@ -289,9 +295,105 @@
 
     @push('scripts')
         <script>
+            // Existing usernames and emails to prevent collisions instantly in real-time
+            const existingUsernames = new Set(@json(\App\Models\User::withTrashed()->pluck('username')->map(fn($u) => strtolower($u))));
+            const existingEmails = new Set(@json(\App\Models\User::withTrashed()->pluck('email')->map(fn($e) => strtolower($e))));
+
+            const addFirstNameInput = document.getElementById('add-user-first-name');
+            const addLastNameInput = document.getElementById('add-user-last-name');
+            const addUsernameInput = document.getElementById('add-user-username');
+            const addEmailInput = document.getElementById('add-user-email');
+            const addUsernameHint = document.getElementById('add-user-username-hint');
+            const addEmailHint = document.getElementById('add-user-email-hint');
+
+            let usernameManuallyChanged = {{ old('username') ? 'true' : 'false' }};
+            let emailManuallyChanged = {{ old('email') ? 'true' : 'false' }};
+
             function openAddUserModal() {
+                if (!{!! json_encode(old('_form') === 'add_user') !!}) {
+                    usernameManuallyChanged = false;
+                    emailManuallyChanged = false;
+                }
                 window.openModal('add-user-modal');
             }
+
+            addUsernameInput?.addEventListener('input', function() {
+                usernameManuallyChanged = this.value.trim().length > 0;
+                if (!usernameManuallyChanged) {
+                    autoGenerateCredentials();
+                } else if (addUsernameHint) {
+                    addUsernameHint.innerHTML = '<span class="text-gray-500 text-[11px]"><i class="fas fa-pen text-gray-400 mr-1"></i> Custom username entered.</span>';
+                }
+            });
+
+            addEmailInput?.addEventListener('input', function() {
+                emailManuallyChanged = this.value.trim().length > 0;
+                if (!emailManuallyChanged) {
+                    autoGenerateCredentials();
+                } else if (addEmailHint) {
+                    addEmailHint.innerHTML = '<span class="text-gray-500 text-[11px]"><i class="fas fa-pen text-gray-400 mr-1"></i> Custom email address entered.</span>';
+                }
+            });
+
+            function autoGenerateCredentials() {
+                const firstName = (addFirstNameInput?.value || '').trim();
+                const lastName = (addLastNameInput?.value || '').trim();
+
+                if (!firstName || !lastName) {
+                    if (!usernameManuallyChanged && addUsernameInput) {
+                        addUsernameInput.value = '';
+                        if (addUsernameHint) addUsernameHint.innerHTML = '<span class="text-[11px] text-gray-500">Auto-generated from First and Last Name.</span>';
+                    }
+                    if (!emailManuallyChanged && addEmailInput) {
+                        addEmailInput.value = '';
+                        if (addEmailHint) addEmailHint.innerHTML = '<span class="text-[11px] text-gray-500">Auto-generated based on First and Last Name.</span>';
+                    }
+                    return;
+                }
+
+                // Sanitize to alphanumeric characters
+                const cleanFirst = firstName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
+                const cleanLast = lastName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
+
+                const initial = cleanFirst.length > 0 ? cleanFirst.charAt(0) : '';
+                const base = (initial + cleanLast) || 'user';
+                const domain = 'bdes.gov';
+
+                let candidateUser = base;
+                let candidateEmail = candidateUser + '@' + domain;
+                let counter = 1;
+
+                while (existingUsernames.has(candidateUser) || existingEmails.has(candidateEmail)) {
+                    counter++;
+                    candidateUser = base + counter;
+                    candidateEmail = candidateUser + '@' + domain;
+                }
+
+                if (!usernameManuallyChanged && addUsernameInput) {
+                    addUsernameInput.value = candidateUser;
+                    if (addUsernameHint) {
+                        if (counter > 1) {
+                            addUsernameHint.innerHTML = '<span class="text-amber-600 font-medium text-[11px]"><i class="fas fa-shield-alt mr-1"></i> Suffix <strong>' + counter + '</strong> auto-applied to avoid conflict with existing ' + base + '.</span>';
+                        } else {
+                            addUsernameHint.innerHTML = '<span class="text-emerald-600 font-medium text-[11px]"><i class="fas fa-check-circle mr-1"></i> Unique username auto-generated.</span>';
+                        }
+                    }
+                }
+
+                if (!emailManuallyChanged && addEmailInput) {
+                    addEmailInput.value = candidateEmail;
+                    if (addEmailHint) {
+                        if (counter > 1) {
+                            addEmailHint.innerHTML = '<span class="text-amber-600 font-medium text-[11px]"><i class="fas fa-shield-alt mr-1"></i> Suffix <strong>' + counter + '</strong> auto-applied to avoid conflict with existing ' + base + '@' + domain + '.</span>';
+                        } else {
+                            addEmailHint.innerHTML = '<span class="text-emerald-600 font-medium text-[11px]"><i class="fas fa-check-circle mr-1"></i> Unique email address auto-generated.</span>';
+                        }
+                    }
+                }
+            }
+
+            addFirstNameInput?.addEventListener('input', autoGenerateCredentials);
+            addLastNameInput?.addEventListener('input', autoGenerateCredentials);
 
             function openEditUserModal(id, firstName, middleName, lastName, suffix, username, email, role) {
                 const form = document.getElementById('edit-user-form');
