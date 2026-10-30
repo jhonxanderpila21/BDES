@@ -27,9 +27,16 @@ class OperationalRequirementController extends Controller
         return view('admin.operational-requirements.index', compact('requirements', 'assetTypes'));
     }
 
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('operational-requirements.index');
+    }
+
     protected function authorizeEditor(Request $request): void
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized. Operational editor permissions required.');
         }
     }
@@ -79,6 +86,25 @@ class OperationalRequirementController extends Controller
 
         return redirect()->route('operational-requirements.index')
             ->with('success', 'Operational requirement created successfully with supporting documents!');
+    }
+
+    public function show(Request $request, OperationalRequirement $operationalRequirement)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($operationalRequirement->load('assetType'));
+        }
+
+        return redirect()->route('operational-requirements.index', [
+            'search' => $operationalRequirement->requirement_type,
+            'view_requirement_id' => $operationalRequirement->id,
+        ]);
+    }
+
+    public function edit(Request $request, OperationalRequirement $operationalRequirement)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('operational-requirements.index');
     }
 
     public function update(Request $request, OperationalRequirement $operationalRequirement)

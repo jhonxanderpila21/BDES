@@ -69,7 +69,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/operational-requirements/{operationalRequirement}/consume', [OperationalRequirementController::class, 'consume'])->name('operational-requirements.consume');
 
     // Asset Needs
-    Route::resource('asset-needs', AssetNeedController::class)->except(['show', 'create', 'edit']);
+    Route::resource('asset-needs', AssetNeedController::class);
     Route::post('asset-needs/{asset_need}/replenish', [AssetNeedController::class, 'replenish'])->name('asset-needs.replenish');
 
     // Asset Accessories

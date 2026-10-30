@@ -66,13 +66,56 @@ class AssetNeedController extends Controller
     }
 
     /**
+     * Authorize that the current user can manage asset needs.
+     */
+    protected function authorizeEditor(Request $request): void
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * Show the form for creating a new asset need (redirect to index for modal).
+     */
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('asset-needs.index');
+    }
+
+    /**
+     * Display the specified asset need.
+     */
+    public function show(Request $request, AssetNeed $assetNeed)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($assetNeed->load('asset'));
+        }
+
+        return redirect()->route('asset-needs.index', [
+            'search' => $assetNeed->requirement,
+            'view_need_id' => $assetNeed->id,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified asset need (redirect to index for modal).
+     */
+    public function edit(Request $request, AssetNeed $assetNeed)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('asset-needs.index');
+    }
+
+    /**
      * Store a newly created asset need.
      */
     public function store(StoreAssetNeedRequest $request)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeEditor($request);
 
         $validated = $request->validated();
 
@@ -93,9 +136,7 @@ class AssetNeedController extends Controller
      */
     public function update(UpdateAssetNeedRequest $request, AssetNeed $assetNeed)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeEditor($request);
 
         $validated = $request->validated();
 
@@ -114,9 +155,7 @@ class AssetNeedController extends Controller
      */
     public function destroy(Request $request, AssetNeed $assetNeed)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeEditor($request);
 
         $assetNeed->delete();
 
@@ -129,9 +168,7 @@ class AssetNeedController extends Controller
      */
     public function replenish(Request $request, AssetNeed $assetNeed)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
-            abort(403, 'Unauthorized action.');
-        }
+        $this->authorizeEditor($request);
 
         if ($request->has('amount') && is_string($request->amount)) {
             $request->merge(['amount' => trim(str_replace([',', ' '], '', $request->amount))]);

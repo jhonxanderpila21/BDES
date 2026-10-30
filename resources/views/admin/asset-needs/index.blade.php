@@ -3,6 +3,10 @@
 @section('title', 'Asset Needs - BDES')
 
 @section('content')
+@php
+    $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+@endphp
+
     {{-- Page Header --}}
     <div class="flex items-center justify-between mb-8">
         <div>
@@ -13,10 +17,17 @@
                 ['label' => 'Asset Needs']
             ]" />
         </div>
-        <button onclick="openAddModal()" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-            <i class="fas fa-plus"></i>
-            Add Asset Need
-        </button>
+        @if(!$isReadOnlyStaff)
+            <button onclick="openAddModal()" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                <i class="fas fa-plus"></i>
+                Add Asset Need
+            </button>
+        @else
+            <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold shadow-xs">
+                <i class="fas fa-shield-alt text-blue-600"></i>
+                Read-Only Staff Access
+            </div>
+        @endif
     </div>
 
 
@@ -90,10 +101,16 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assetNeeds as $need)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="hover:bg-gray-50 transition-colors cursor-pointer" onclick="if (!event.target.closest('button, form, a, input')) { openViewModal({{ json_encode($need) }}); }">
                             {{-- Asset & Type --}}
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <p class="text-sm font-semibold text-gray-900">{{ $need->asset->name ?? 'Unknown Asset' }}</p>
+                                @if(!$isReadOnlyStaff && $need->asset)
+                                    <a href="{{ route('assets.show', $need->asset) }}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                                        {{ $need->asset->name }}
+                                    </a>
+                                @else
+                                    <p class="text-sm font-semibold text-gray-900">{{ $need->asset->name ?? 'Unknown Asset' }}</p>
+                                @endif
                                 <div class="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
                                     <span class="font-mono text-gray-600">{{ $need->asset->code ?? '' }}</span>
                                     <span class="text-gray-300">•</span>
@@ -123,19 +140,26 @@
                             {{-- Actions --}}
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-2">
-                                    {{-- Edit --}}
-                                    <button onclick="openEditModal({{ json_encode($need) }})"
-                                            class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit">
-                                        <i class="fas fa-edit"></i>
+                                    {{-- View Details (Available to all) --}}
+                                    <button type="button" onclick="openViewModal({{ json_encode($need) }})"
+                                            class="p-2 rounded hover:bg-gray-100 transition-colors text-blue-600" title="View Details">
+                                        <i class="fas fa-eye"></i>
                                     </button>
-                                    {{-- Delete --}}
-                                    <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset need?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600" title="Delete">
-                                            <i class="fas fa-trash"></i>
+                                    @if(!$isReadOnlyStaff)
+                                        {{-- Edit --}}
+                                        <button type="button" onclick="openEditModal({{ json_encode($need) }})"
+                                                class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit">
+                                            <i class="fas fa-edit"></i>
                                         </button>
-                                    </form>
+                                        {{-- Delete --}}
+                                        <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset need?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-2 rounded hover:bg-gray-100 transition-colors text-red-600" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -154,170 +178,253 @@
         </div>
     </x-card>
 
+    @if(!$isReadOnlyStaff)
+        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- Add Asset Need Modal                           --}}
+        {{-- ═══════════════════════════════════════════════ --}}
+        <x-modal id="add-asset-need-modal" title="Add Asset Need">
+            <form class="space-y-4" action="{{ route('asset-needs.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                <x-form-group label="Asset" required>
+                    <select name="asset_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select Asset</option>
+                        @foreach($assets as $asset)
+                            <option value="{{ $asset->id }}" {{ old('asset_id') == $asset->id ? 'selected' : '' }}>
+                                {{ $asset->code }} — {{ $asset->name }} ({{ $asset->type->name ?? 'N/A' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Requirement" required>
+                    <input type="text" name="requirement" placeholder="e.g., Diesel Fuel, Battery Pack" value="{{ old('requirement') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <x-form-group label="Unit" required>
+                    <select name="unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select Unit</option>
+                        @foreach($units as $u)
+                            <option value="{{ $u }}" {{ old('unit') == $u ? 'selected' : '' }}>{{ $u }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <x-form-group label="Maximum Capacity" required>
+                        <input type="number" step="0.01" min="0.01" name="maximum_capacity" value="{{ old('maximum_capacity') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </x-form-group>
+                    <x-form-group label="Minimum Level" required>
+                        <input type="number" step="0.01" min="0" name="minimum_level" value="{{ old('minimum_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </x-form-group>
+                    <x-form-group label="Current Level" required>
+                        <input type="number" step="0.01" min="0" name="current_level" value="{{ old('current_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </x-form-group>
+                </div>
+
+                <x-receipt-input label="Specification Sheet, Quotation, or Initial Receipt (Optional)" />
+
+                <div class="flex gap-3 mt-6">
+                    <x-button variant="primary" type="submit" class="flex-1">Create Asset Need</x-button>
+                    <x-button variant="secondary" type="button" @click="ModalStore['add-asset-need-modal'] = false" class="flex-1">Cancel</x-button>
+                </div>
+            </form>
+        </x-modal>
+
+        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- Edit Asset Need Modal                          --}}
+        {{-- ═══════════════════════════════════════════════ --}}
+        <x-modal id="edit-asset-need-modal" title="Edit Asset Need">
+            <form class="space-y-4" id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+
+                <x-form-group label="Asset" required>
+                    <select name="asset_id" id="edit_asset_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select Asset</option>
+                        @foreach($assets as $asset)
+                            <option value="{{ $asset->id }}">
+                                {{ $asset->code }} — {{ $asset->name }} ({{ $asset->type->name ?? 'N/A' }})
+                            </option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+
+                <x-form-group label="Requirement" required>
+                    <input type="text" name="requirement" id="edit_requirement" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <x-form-group label="Unit" required>
+                    <select name="unit" id="edit_unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        @foreach($units as $u)
+                            <option value="{{ $u }}">{{ $u }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <x-form-group label="Maximum Capacity" required>
+                        <input type="number" step="0.01" min="0.01" name="maximum_capacity" id="edit_maximum_capacity" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </x-form-group>
+                    <x-form-group label="Minimum Level" required>
+                        <input type="number" step="0.01" min="0" name="minimum_level" id="edit_minimum_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </x-form-group>
+                    <x-form-group label="Current Level" required>
+                        <input type="number" step="0.01" min="0" name="current_level" id="edit_current_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </x-form-group>
+                </div>
+
+                <div class="flex gap-3 mt-6">
+                    <x-button variant="primary" type="submit" class="flex-1">Update Asset Need</x-button>
+                    <x-button variant="secondary" type="button" @click="ModalStore['edit-asset-need-modal'] = false" class="flex-1">Cancel</x-button>
+                </div>
+            </form>
+        </x-modal>
+
+        {{-- ═══════════════════════════════════════════════ --}}
+        {{-- Replenish Modal                                --}}
+        {{-- ═══════════════════════════════════════════════ --}}
+        <x-modal id="replenish-modal" title="Replenish Stock">
+            <form class="space-y-4" id="replenishForm" method="POST">
+                @csrf
+
+                <div class="bg-blue-50 rounded-lg p-4 mb-2">
+                    <p class="text-sm text-blue-800">
+                        <strong>Requirement:</strong> <span id="replenish_requirement"></span>
+                    </p>
+                    <p class="text-sm text-blue-800 mt-1">
+                        <strong>Current:</strong> <span id="replenish_current"></span> / <span id="replenish_max"></span> <span id="replenish_unit"></span>
+                    </p>
+                    <p class="text-sm text-blue-800 mt-1">
+                        <strong>Remaining capacity:</strong> <span id="replenish_remaining"></span> <span id="replenish_unit2"></span>
+                    </p>
+                </div>
+
+                <x-form-group label="Amount to Replenish" required>
+                    <input type="number" step="0.01" min="0.01" name="amount" id="replenish_amount" placeholder="Enter amount..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </x-form-group>
+
+                <div class="flex gap-3 mt-6">
+                    <x-button variant="primary" type="submit" class="flex-1">
+                        <i class="fas fa-fill-drip mr-2"></i> Replenish
+                    </x-button>
+                    <x-button variant="secondary" type="button" @click="ModalStore['replenish-modal'] = false" class="flex-1">Cancel</x-button>
+                </div>
+            </form>
+        </x-modal>
+    @endif
+
     {{-- ═══════════════════════════════════════════════ --}}
-    {{-- Add Asset Need Modal                           --}}
+    {{-- View Asset Need Modal (Read-Only)               --}}
     {{-- ═══════════════════════════════════════════════ --}}
-    <x-modal id="add-asset-need-modal" title="Add Asset Need">
-        <form class="space-y-4" action="{{ route('asset-needs.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-
-            <x-form-group label="Asset" required>
-                <select name="asset_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Asset</option>
-                    @foreach($assets as $asset)
-                        <option value="{{ $asset->id }}" {{ old('asset_id') == $asset->id ? 'selected' : '' }}>
-                            {{ $asset->code }} — {{ $asset->name }} ({{ $asset->type->name ?? 'N/A' }})
-                        </option>
-                    @endforeach
-                </select>
-            </x-form-group>
-
-            <x-form-group label="Requirement" required>
-                <input type="text" name="requirement" placeholder="e.g., Diesel Fuel, Battery Pack" value="{{ old('requirement') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
-
-            <x-form-group label="Unit" required>
-                <select name="unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Unit</option>
-                    @foreach($units as $u)
-                        <option value="{{ $u }}" {{ old('unit') == $u ? 'selected' : '' }}>{{ $u }}</option>
-                    @endforeach
-                </select>
-            </x-form-group>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form-group label="Maximum Capacity" required>
-                    <input type="number" step="0.01" min="0.01" name="maximum_capacity" value="{{ old('maximum_capacity') }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
-                <x-form-group label="Minimum Level" required>
-                    <input type="number" step="0.01" min="0" name="minimum_level" value="{{ old('minimum_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
-                <x-form-group label="Current Level" required>
-                    <input type="number" step="0.01" min="0" name="current_level" value="{{ old('current_level', 0) }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
+    <x-modal id="view-asset-need-modal" title="Asset Need Details">
+        <div class="space-y-4 text-sm">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-xs uppercase font-semibold text-blue-600 tracking-wider">Target Asset</span>
+                        <h3 class="text-base font-bold text-gray-900" id="view_asset_name"></h3>
+                        <p class="text-xs text-gray-500 font-mono mt-0.5" id="view_asset_code"></p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs uppercase font-semibold text-blue-600 tracking-wider">Asset Type</span>
+                        <p class="text-sm font-semibold text-gray-800" id="view_asset_type"></p>
+                    </div>
+                </div>
             </div>
 
-            <x-receipt-input label="Specification Sheet, Quotation, or Initial Receipt (Optional)" />
-
-            <div class="flex gap-3 mt-6">
-                <x-button variant="primary" type="submit" class="flex-1">Create Asset Need</x-button>
-                <x-button variant="secondary" type="button" @click="ModalStore['add-asset-need-modal'] = false" class="flex-1">Cancel</x-button>
-            </div>
-        </form>
-    </x-modal>
-
-    {{-- ═══════════════════════════════════════════════ --}}
-    {{-- Edit Asset Need Modal                          --}}
-    {{-- ═══════════════════════════════════════════════ --}}
-    <x-modal id="edit-asset-need-modal" title="Edit Asset Need">
-        <form class="space-y-4" id="editForm" method="POST">
-            @csrf
-            @method('PUT')
-
-            <x-form-group label="Asset" required>
-                <select name="asset_id" id="edit_asset_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option value="">Select Asset</option>
-                    @foreach($assets as $asset)
-                        <option value="{{ $asset->id }}">
-                            {{ $asset->code }} — {{ $asset->name }} ({{ $asset->type->name ?? 'N/A' }})
-                        </option>
-                    @endforeach
-                </select>
-            </x-form-group>
-
-            <x-form-group label="Requirement" required>
-                <input type="text" name="requirement" id="edit_requirement" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
-
-            <x-form-group label="Unit" required>
-                <select name="unit" id="edit_unit" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    @foreach($units as $u)
-                        <option value="{{ $u }}">{{ $u }}</option>
-                    @endforeach
-                </select>
-            </x-form-group>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <x-form-group label="Maximum Capacity" required>
-                    <input type="number" step="0.01" min="0.01" name="maximum_capacity" id="edit_maximum_capacity" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
-                <x-form-group label="Minimum Level" required>
-                    <input type="number" step="0.01" min="0" name="minimum_level" id="edit_minimum_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
-                <x-form-group label="Current Level" required>
-                    <input type="number" step="0.01" min="0" name="current_level" id="edit_current_level" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                </x-form-group>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase">Requirement / Supply</label>
+                    <p class="text-sm font-semibold text-gray-900 mt-1" id="view_requirement"></p>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-500 uppercase">Status</label>
+                    <p class="text-sm font-semibold mt-1" id="view_status"></p>
+                </div>
             </div>
 
-            <div class="flex gap-3 mt-6">
-                <x-button variant="primary" type="submit" class="flex-1">Update Asset Need</x-button>
-                <x-button variant="secondary" type="button" @click="ModalStore['edit-asset-need-modal'] = false" class="flex-1">Cancel</x-button>
-            </div>
-        </form>
-    </x-modal>
-
-    {{-- ═══════════════════════════════════════════════ --}}
-    {{-- Replenish Modal                                --}}
-    {{-- ═══════════════════════════════════════════════ --}}
-    <x-modal id="replenish-modal" title="Replenish Stock">
-        <form class="space-y-4" id="replenishForm" method="POST">
-            @csrf
-
-            <div class="bg-blue-50 rounded-lg p-4 mb-2">
-                <p class="text-sm text-blue-800">
-                    <strong>Requirement:</strong> <span id="replenish_requirement"></span>
-                </p>
-                <p class="text-sm text-blue-800 mt-1">
-                    <strong>Current:</strong> <span id="replenish_current"></span> / <span id="replenish_max"></span> <span id="replenish_unit"></span>
-                </p>
-                <p class="text-sm text-blue-800 mt-1">
-                    <strong>Remaining capacity:</strong> <span id="replenish_remaining"></span> <span id="replenish_unit2"></span>
-                </p>
+            <div class="grid grid-cols-3 gap-4 pt-2 border-t border-gray-100">
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <span class="block text-xs text-gray-500 font-medium">Current Stock</span>
+                    <span class="text-base font-bold text-gray-900 font-mono" id="view_current_level"></span>
+                    <span class="text-xs text-gray-500 ml-0.5" id="view_unit"></span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <span class="block text-xs text-gray-500 font-medium">Min Reserve</span>
+                    <span class="text-base font-bold text-gray-900 font-mono" id="view_minimum_level"></span>
+                    <span class="text-xs text-gray-500 ml-0.5" id="view_unit2"></span>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg">
+                    <span class="block text-xs text-gray-500 font-medium">Max Capacity</span>
+                    <span class="text-base font-bold text-gray-900 font-mono" id="view_maximum_capacity"></span>
+                    <span class="text-xs text-gray-500 ml-0.5" id="view_unit3"></span>
+                </div>
             </div>
 
-            <x-form-group label="Amount to Replenish" required>
-                <input type="number" step="0.01" min="0.01" name="amount" id="replenish_amount" placeholder="Enter amount..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            </x-form-group>
-
-            <div class="flex gap-3 mt-6">
-                <x-button variant="primary" type="submit" class="flex-1">
-                    <i class="fas fa-fill-drip mr-2"></i> Replenish
-                </x-button>
-                <x-button variant="secondary" type="button" @click="ModalStore['replenish-modal'] = false" class="flex-1">Cancel</x-button>
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <x-button variant="secondary" type="button" @click="ModalStore['view-asset-need-modal'] = false">Close</x-button>
             </div>
-        </form>
+        </div>
     </x-modal>
 
     @push('scripts')
         <script>
-            function openAddModal() {
-                window.openModal('add-asset-need-modal');
+            function openViewModal(need) {
+                var assetName = 'Unknown Asset';
+                var assetCode = '';
+                var assetType = need.asset_type || '';
+
+                if (need.asset) {
+                    if (need.asset.name) assetName = need.asset.name;
+                    if (need.asset.code) assetCode = need.asset.code;
+                    if (need.asset.type && need.asset.type.name) assetType = need.asset.type.name;
+                }
+
+                document.getElementById('view_asset_name').textContent = assetName;
+                document.getElementById('view_asset_code').textContent = assetCode;
+                document.getElementById('view_asset_type').textContent = assetType;
+                document.getElementById('view_requirement').textContent = need.requirement || '';
+                document.getElementById('view_status').textContent = need.status || '';
+                document.getElementById('view_current_level').textContent = need.current_level || '0';
+                document.getElementById('view_minimum_level').textContent = need.minimum_level || '0';
+                document.getElementById('view_maximum_capacity').textContent = need.maximum_capacity || '0';
+                document.getElementById('view_unit').textContent = need.unit || '';
+                document.getElementById('view_unit2').textContent = need.unit || '';
+                document.getElementById('view_unit3').textContent = need.unit || '';
+                window.openModal('view-asset-need-modal');
             }
 
-            function openEditModal(need) {
-                document.getElementById('editForm').action = '/asset-needs/' + need.id;
-                document.getElementById('edit_asset_id').value = need.asset_id;
-                document.getElementById('edit_requirement').value = need.requirement;
-                document.getElementById('edit_unit').value = need.unit;
-                document.getElementById('edit_maximum_capacity').value = need.maximum_capacity;
-                document.getElementById('edit_minimum_level').value = need.minimum_level;
-                document.getElementById('edit_current_level').value = need.current_level;
-                window.openModal('edit-asset-need-modal');
-            }
+            @if(!$isReadOnlyStaff)
+                function openAddModal() {
+                    window.openModal('add-asset-need-modal');
+                }
 
-            function openReplenishModal(id, requirement, current, max, unit) {
-                var remaining = Math.round((max - current) * 100) / 100;
-                document.getElementById('replenishForm').action = '/asset-needs/' + id + '/replenish';
-                document.getElementById('replenish_requirement').textContent = requirement;
-                document.getElementById('replenish_current').textContent = current;
-                document.getElementById('replenish_max').textContent = max;
-                document.getElementById('replenish_unit').textContent = unit;
-                document.getElementById('replenish_unit2').textContent = unit;
-                document.getElementById('replenish_remaining').textContent = remaining;
-                document.getElementById('replenish_amount').value = '';
-                document.getElementById('replenish_amount').max = remaining;
-                window.openModal('replenish-modal');
-            }
+                function openEditModal(need) {
+                    document.getElementById('editForm').action = '/asset-needs/' + need.id;
+                    document.getElementById('edit_asset_id').value = need.asset_id;
+                    document.getElementById('edit_requirement').value = need.requirement;
+                    document.getElementById('edit_unit').value = need.unit;
+                    document.getElementById('edit_maximum_capacity').value = need.maximum_capacity;
+                    document.getElementById('edit_minimum_level').value = need.minimum_level;
+                    document.getElementById('edit_current_level').value = need.current_level;
+                    window.openModal('edit-asset-need-modal');
+                }
+
+                function openReplenishModal(id, requirement, current, max, unit) {
+                    var remaining = Math.round((max - current) * 100) / 100;
+                    document.getElementById('replenishForm').action = '/asset-needs/' + id + '/replenish';
+                    document.getElementById('replenish_requirement').textContent = requirement;
+                    document.getElementById('replenish_current').textContent = current;
+                    document.getElementById('replenish_max').textContent = max;
+                    document.getElementById('replenish_unit').textContent = unit;
+                    document.getElementById('replenish_unit2').textContent = unit;
+                    document.getElementById('replenish_remaining').textContent = remaining;
+                    document.getElementById('replenish_amount').value = '';
+                    document.getElementById('replenish_amount').max = remaining;
+                    window.openModal('replenish-modal');
+                }
+            @endif
         </script>
     @endpush
 @endsection

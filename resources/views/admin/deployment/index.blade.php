@@ -3,6 +3,10 @@
 @section('title', 'Deployments & Returns - BDES')
 
 @section('content')
+@php
+    $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+@endphp
+
     {{-- Page Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
@@ -13,16 +17,23 @@
                 ['label' => 'Deployments & Returns']
             ]" />
         </div>
-        <div class="flex items-center gap-3">
-            <button onclick="openGenericRecordReturnModal()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm">
-                <i class="fas fa-undo"></i>
-                Record Return
-            </button>
-            <button onclick="openCreateDeploymentModal()" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm">
-                <i class="fas fa-plus"></i>
-                Deploy Asset
-            </button>
-        </div>
+        @if(!$isReadOnlyStaff)
+            <div class="flex items-center gap-3">
+                <button onclick="openGenericRecordReturnModal()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm">
+                    <i class="fas fa-undo"></i>
+                    Record Return
+                </button>
+                <button onclick="openCreateDeploymentModal()" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    Deploy Asset
+                </button>
+            </div>
+        @else
+            <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold shadow-xs">
+                <i class="fas fa-shield-alt text-blue-600"></i>
+                Read-Only Staff Access
+            </div>
+        @endif
     </div>
 
     {{-- Session Alerts --}}
@@ -239,29 +250,31 @@
                             {{-- Action Buttons --}}
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    {{-- Return Equipment Button (for active/pending deployments) --}}
-                                    @if($deployment->status !== 'returned')
-                                        <button 
-                                            type="button"
-                                            onclick='openRecordReturnModal(@json($deployment))' 
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-colors shadow-xs" 
-                                            title="Record Return of this Borrowed Equipment"
-                                        >
-                                            <i class="fas fa-undo"></i>
-                                            <span>Return</span>
-                                        </button>
-                                    @else
-                                        {{-- View Return Details --}}
-                                        @if($deployment->returnRecord)
+                                    @if(!$isReadOnlyStaff)
+                                        {{-- Return Equipment Button (for active/pending deployments) --}}
+                                        @if($deployment->status !== 'returned')
                                             <button 
                                                 type="button"
-                                                onclick='openViewReturnModal(@json($deployment->returnRecord), @js($deployment->asset->name ?? 'Asset'), @js($deployment->asset->code ?? 'N/A'))' 
-                                                class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors" 
-                                                title="View Return Inspection Details"
+                                                onclick='openRecordReturnModal(@json($deployment))' 
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-colors shadow-xs" 
+                                                title="Record Return of this Borrowed Equipment"
                                             >
-                                                <i class="fas fa-clipboard-check"></i>
+                                                <i class="fas fa-undo"></i>
+                                                <span>Return</span>
                                             </button>
                                         @endif
+                                    @endif
+
+                                    {{-- View Return Details --}}
+                                    @if($deployment->status === 'returned' && $deployment->returnRecord)
+                                        <button 
+                                            type="button"
+                                            onclick='openViewReturnModal(@json($deployment->returnRecord), @js($deployment->asset->name ?? 'Asset'), @js($deployment->asset->code ?? 'N/A'))' 
+                                            class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors" 
+                                            title="View Return Inspection Details"
+                                        >
+                                            <i class="fas fa-clipboard-check"></i>
+                                        </button>
                                     @endif
 
                                     {{-- View Details Modal --}}
@@ -274,24 +287,26 @@
                                         <i class="fas fa-eye"></i>
                                     </button>
 
-                                    {{-- Edit Deployment --}}
-                                    <button 
-                                        type="button"
-                                        onclick='openEditDeploymentModal(@json($deployment))' 
-                                        class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 transition-colors" 
-                                        title="Edit Deployment"
-                                    >
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-
-                                    {{-- Delete Deployment --}}
-                                    <form action="{{ route('deployment.destroy', $deployment) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this deployment record?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
-                                            <i class="fas fa-trash"></i>
+                                    @if(!$isReadOnlyStaff)
+                                        {{-- Edit Deployment --}}
+                                        <button 
+                                            type="button"
+                                            onclick='openEditDeploymentModal(@json($deployment))' 
+                                            class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 transition-colors" 
+                                            title="Edit Deployment"
+                                        >
+                                            <i class="fas fa-edit"></i>
                                         </button>
-                                    </form>
+
+                                        {{-- Delete Deployment --}}
+                                        <form action="{{ route('deployment.destroy', $deployment) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to delete this deployment record?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -314,6 +329,7 @@
         </div>
     </x-card>
 
+    @if(!$isReadOnlyStaff)
     {{-- ======================================================== --}}
     {{-- MODAL 1: Create Deployment                               --}}
     {{-- ======================================================== --}}
@@ -538,6 +554,7 @@
             </div>
         </form>
     </x-modal>
+    @endif
 
     {{-- ======================================================== --}}
     {{-- MODAL 3: View Return Inspection Details                  --}}
@@ -592,6 +609,7 @@
         </div>
     </x-modal>
 
+    @if(!$isReadOnlyStaff)
     {{-- ======================================================== --}}
     {{-- MODAL 4: Edit Deployment                                 --}}
     {{-- ======================================================== --}}
@@ -651,6 +669,7 @@
             </div>
         </form>
     </x-modal>
+    @endif
 
     {{-- ======================================================== --}}
     {{-- MODAL 5: View Full Deployment & Return Dossier            --}}
@@ -726,7 +745,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-2 border-t border-gray-100">
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 pt-2 border-t border-gray-100">
                     <div>
                         <span class="text-xs text-gray-500 block">Deployment Date</span>
                         <p id="dossier_deployment_date" class="font-medium text-gray-900 mt-0.5"></p>
@@ -734,6 +753,10 @@
                     <div>
                         <span class="text-xs text-gray-500 block">Expected Return Date</span>
                         <p id="dossier_expected_return_date" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-500 block">Condition at Deployment</span>
+                        <p id="dossier_condition_before" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Approving Officer</span>
@@ -802,16 +825,20 @@
 
             {{-- Footer Action Buttons --}}
             <div class="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                    <button type="button" id="dossier_process_return_btn" onclick="closeDeploymentDetailsAndReturn()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
-                        <i class="fas fa-undo"></i>
-                        <span>Process Return of Asset</span>
-                    </button>
-                    <button type="button" onclick="closeDeploymentDetailsAndEdit()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-colors">
-                        <i class="fas fa-edit"></i>
-                        <span>Edit Deployment</span>
-                    </button>
-                </div>
+                @if(!$isReadOnlyStaff)
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="dossier_process_return_btn" onclick="closeDeploymentDetailsAndReturn()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                            <i class="fas fa-undo"></i>
+                            <span>Process Return of Asset</span>
+                        </button>
+                        <button type="button" onclick="closeDeploymentDetailsAndEdit()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-colors">
+                            <i class="fas fa-edit"></i>
+                            <span>Edit Deployment</span>
+                        </button>
+                    </div>
+                @else
+                    <div></div>
+                @endif
                 <x-button variant="secondary" type="button" onclick="window.closeModal('view-deployment-modal')">
                     Close Details
                 </x-button>
@@ -823,6 +850,7 @@
         <script>
             let currentDeploymentModalData = null;
 
+            @if(!$isReadOnlyStaff)
             function openCreateDeploymentModal() {
                 window.openModal('create-deployment-modal');
             }
@@ -900,6 +928,7 @@
                     }
                 }
             }
+            @endif
 
             function openDeploymentDetailsModal(deployment) {
                 currentDeploymentModalData = deployment;
@@ -964,7 +993,10 @@
                 // Approving Officer & Condition Before
                 const approvedBy = deployment.approved_by_user ? deployment.approved_by_user.name : (deployment.user ? deployment.user.name : 'Authorized Official');
                 document.getElementById('dossier_approved_by').textContent = approvedBy;
-                document.getElementById('dossier_condition_before').textContent = (deployment.condition_before || asset.condition || 'Good').toUpperCase();
+                const condBeforeElem = document.getElementById('dossier_condition_before');
+                if (condBeforeElem) {
+                    condBeforeElem.textContent = (deployment.condition_before || asset.condition || 'Good').toUpperCase();
+                }
                 document.getElementById('dossier_purpose').textContent = deployment.purpose || 'None provided';
 
                 // Attached receipts / borrow slip
@@ -1015,6 +1047,7 @@
                 window.openModal('view-deployment-modal');
             }
 
+            @if(!$isReadOnlyStaff)
             function closeDeploymentDetailsAndReturn() {
                 window.closeModal('view-deployment-modal');
                 if (currentDeploymentModalData) {
@@ -1028,6 +1061,7 @@
                     openEditDeploymentModal(currentDeploymentModalData);
                 }
             }
+            @endif
 
             function openViewReturnModal(returnRecord, assetName, assetCode) {
                 document.getElementById('view_asset_code').textContent = assetCode || 'N/A';
@@ -1049,6 +1083,7 @@
                 window.openModal('view-return-modal');
             }
 
+            @if(!$isReadOnlyStaff)
             function openEditDeploymentModal(deployment) {
                 const form = document.getElementById('editDeploymentForm');
                 form.action = '/deployment/' + deployment.id;
@@ -1073,6 +1108,7 @@
 
                 window.openModal('edit-deployment-modal');
             }
+            @endif
         </script>
     @endpush
 @endsection

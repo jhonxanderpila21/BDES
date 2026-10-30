@@ -90,10 +90,64 @@ class DeploymentController extends Controller
     }
 
     /**
+     * Authorize that the current user can manage deployments.
+     */
+    protected function authorizeEditor(Request $request): void
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * Show the form for creating a new deployment (redirect to index for modal).
+     */
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index');
+    }
+
+    /**
+     * Display the specified deployment.
+     */
+    public function show(Request $request, Deployment $deployment)
+    {
+        $deployment->load([
+            'asset.category',
+            'asset.type',
+            'returnRecord.receivedByUser',
+            'approvedByUser',
+            'user',
+            'receipts',
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($deployment);
+        }
+
+        return redirect()->route('deployment.index', [
+            'search' => $deployment->asset->code ?? $deployment->destination,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified deployment (redirect to index for modal).
+     */
+    public function edit(Request $request, Deployment $deployment)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index');
+    }
+
+    /**
      * Store a newly created deployment.
      */
     public function store(Request $request)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('create', Deployment::class);
 
         // Normalize text inputs
@@ -188,6 +242,7 @@ class DeploymentController extends Controller
      */
     public function returnAsset(Request $request, Deployment $deployment)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('return', $deployment);
 
         // Normalize text inputs
@@ -298,6 +353,9 @@ class DeploymentController extends Controller
      */
     public function update(Request $request, Deployment $deployment)
     {
+        $this->authorizeEditor($request);
+        Gate::authorize('update', $deployment);
+
         $validated = $request->validate([
             'destination'          => ['required', 'string', 'max:255'],
             'assigned_team'        => ['nullable', 'string', 'max:255'],
@@ -333,6 +391,7 @@ class DeploymentController extends Controller
      */
     public function destroy(Deployment $deployment)
     {
+        $this->authorizeEditor(request());
         Gate::authorize('delete', $deployment);
 
         DB::transaction(function () use ($deployment) {
