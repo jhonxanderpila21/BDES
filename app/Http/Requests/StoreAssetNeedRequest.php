@@ -45,4 +45,23 @@ class StoreAssetNeedRequest extends FormRequest
             'current_level.lte' => 'The current level cannot exceed the maximum capacity.',
         ], \App\Services\ReceiptService::messages());
     }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->asset_id) {
+                $asset = \App\Models\Asset::with('type')->find($this->asset_id);
+                if ($asset) {
+                    $typeName = strtolower($asset->type->name ?? '');
+                    $assetName = strtolower($asset->name ?? '');
+                    if (str_contains($typeName, 'fire extinguisher') || str_contains($assetName, 'fire extinguisher')) {
+                        $validator->errors()->add('asset_id', 'Fire extinguishers cannot have operational supplies or refill specifications assigned.');
+                    }
+                }
+            }
+        });
+    }
 }

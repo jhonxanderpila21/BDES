@@ -259,7 +259,7 @@
                                             >
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('attachments.destroy', $attachment) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Attachment: {{ addslashes($attachment->attachment_name) }}', 'This attachment record will be removed from the system.');" onclick="event.stopPropagation()">
+                                            <form action="{{ route('attachments.destroy', $attachment) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Attachment: {{ addslashes($attachment->name) }}', 'This attachment record will be removed from the system.');" onclick="event.stopPropagation()">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Attachment">

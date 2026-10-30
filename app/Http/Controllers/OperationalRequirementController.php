@@ -53,7 +53,7 @@ class OperationalRequirementController extends Controller
         }
 
         $requirements = $reqQuery->latest('id')->paginate(10, ['*'], 'requirements_page')->withQueryString();
-        $assetTypes = AssetType::orderBy('name')->get();
+        $assetTypes = AssetType::where('name', 'not like', '%Fire Extinguisher%')->orderBy('name')->get();
 
         // 2. Equipment Supply Needs & Allocations Query
         $needsQuery = \App\Models\AssetNeed::with(['asset.type', 'asset.location']);
@@ -90,7 +90,13 @@ class OperationalRequirementController extends Controller
         $needAssetTypes = \App\Models\AssetNeed::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
         $units = \App\Services\AssetNeedStatusService::units();
         $statuses = \App\Services\AssetNeedStatusService::statuses();
-        $assets = \App\Models\Asset::with('type')->orderBy('name')->get();
+        $assets = \App\Models\Asset::with('type')
+            ->whereDoesntHave('type', function ($q) {
+                $q->where('name', 'like', '%Fire Extinguisher%');
+            })
+            ->where('name', 'not like', '%Fire Extinguisher%')
+            ->orderBy('name')
+            ->get();
 
         // Calculate KPI summary metrics matching Asset Registry structure
         $allRequirements = OperationalRequirement::all();
@@ -173,6 +179,20 @@ class OperationalRequirementController extends Controller
         $validated = $request->validate($rules, $messages);
         unset($validated['receipts'], $validated['receipt_reference_number']);
 
+        if (!empty($validated['asset_type_id'])) {
+            $type = AssetType::find($validated['asset_type_id']);
+            if ($type && str_contains(strtolower($type->name), 'fire extinguisher')) {
+                return redirect()->route('operational-requirements.index')
+                    ->withInput()
+                    ->with('error', 'Fire extinguishers cannot have operational requirements or refills assigned.');
+            }
+        }
+        if (str_contains(strtolower($validated['requirement_type']), 'fire extinguisher') || str_contains(strtolower($validated['requirement_type']), 'abc dry chemical')) {
+            return redirect()->route('operational-requirements.index')
+                ->withInput()
+                ->with('error', 'Fire extinguisher refills cannot be logged as operational requirements.');
+        }
+
         $requirement = OperationalRequirement::create($validated);
         \App\Services\ReceiptService::attachFromRequest($requirement, $request);
 
@@ -234,6 +254,20 @@ class OperationalRequirementController extends Controller
             'current_level.lte' => 'The current stock level cannot exceed the maximum capacity.',
         ]);
 
+        if (!empty($validated['asset_type_id'])) {
+            $type = AssetType::find($validated['asset_type_id']);
+            if ($type && str_contains(strtolower($type->name), 'fire extinguisher')) {
+                return redirect()->route('operational-requirements.index')
+                    ->withInput()
+                    ->with('error', 'Fire extinguishers cannot have operational requirements or refills assigned.');
+            }
+        }
+        if (str_contains(strtolower($validated['requirement_type']), 'fire extinguisher') || str_contains(strtolower($validated['requirement_type']), 'abc dry chemical')) {
+            return redirect()->route('operational-requirements.index')
+                ->withInput()
+                ->with('error', 'Fire extinguisher refills cannot be logged as operational requirements.');
+        }
+
         $operationalRequirement->update($validated);
 
         return redirect()->route('operational-requirements.index')
@@ -253,6 +287,14 @@ class OperationalRequirementController extends Controller
     public function refill(Request $request, OperationalRequirement $operationalRequirement)
     {
         $this->authorizeEditor($request);
+
+        $operationalRequirement->load('assetType');
+        $typeName = strtolower($operationalRequirement->assetType->name ?? '');
+        $reqName = strtolower($operationalRequirement->requirement_type ?? '');
+        if (str_contains($typeName, 'fire extinguisher') || str_contains($reqName, 'fire extinguisher') || str_contains($reqName, 'abc dry chemical')) {
+            return redirect()->route('operational-requirements.index')
+                ->with('error', 'Fire extinguishers cannot be refilled by barangay staff.');
+        }
 
         if ($request->has('amount') && is_string($request->amount)) {
             $request->merge(['amount' => trim(str_replace([',', ' '], '', $request->amount))]);

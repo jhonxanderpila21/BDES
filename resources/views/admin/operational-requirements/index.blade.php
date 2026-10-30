@@ -310,7 +310,7 @@
                                             >
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('operational-requirements.destroy', $requirement) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Supply: {{ addslashes($requirement->requirement_name) }}', 'This requirement will be removed from the warehouse supplies catalog.');" onclick="event.stopPropagation()">
+                                            <form action="{{ route('operational-requirements.destroy', $requirement) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Supply: {{ addslashes($requirement->requirement_type) }}', 'This requirement will be removed from the warehouse supplies catalog.');" onclick="event.stopPropagation()">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Requirement" onclick="event.stopPropagation()">
@@ -490,7 +490,7 @@
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             {{-- Delete --}}
-                                            <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Equipment Need: {{ addslashes($need->need_name) }} ({{ addslashes($need->assetType->name ?? 'Asset') }})', 'This will delete this equipment operational need specification.');" onclick="event.stopPropagation()">
+                                            <form action="{{ route('asset-needs.destroy', $need) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Equipment Need: {{ addslashes($need->requirement) }} ({{ addslashes($need->asset->name ?? $need->asset_type ?? 'Asset') }})', 'This will delete this equipment operational need specification.');" onclick="event.stopPropagation()">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete" onclick="event.stopPropagation()">

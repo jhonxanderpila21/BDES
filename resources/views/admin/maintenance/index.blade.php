@@ -457,7 +457,7 @@
                                                     >
                                                         <i class="fas fa-edit"></i>
                                                     </button>
-                                                    <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Work Order: {{ addslashes($item->title ?? 'Maintenance Log') }}', 'This maintenance work order record will be permanently deleted.');">
+                                                    <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Work Order: [{{ addslashes($item->work_order_number) }}] ({{ addslashes($item->asset->name ?? 'Asset') }})', 'This maintenance work order record will be permanently deleted.');">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">

@@ -124,6 +124,14 @@ class AssetNeedController extends Controller
     {
         $this->authorizeEditor($request);
 
+        $assetNeed->load('asset.type');
+        $assetName = strtolower($assetNeed->asset->name ?? '');
+        $typeName = strtolower($assetNeed->asset_type ?? $assetNeed->asset->type->name ?? '');
+        if (str_contains($assetName, 'fire extinguisher') || str_contains($typeName, 'fire extinguisher')) {
+            return redirect()->route('asset-needs.index')
+                ->with('error', 'Fire extinguishers cannot be refilled by barangay staff.');
+        }
+
         if ($request->has('amount') && is_string($request->amount)) {
             $request->merge(['amount' => trim(str_replace([',', ' '], '', $request->amount))]);
         }
