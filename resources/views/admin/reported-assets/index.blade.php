@@ -3,6 +3,10 @@
 @section('title', 'Reported Assets - BDES')
 
 @section('content')
+    @php
+        $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+    @endphp
+
     {{-- Page Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
@@ -16,14 +20,21 @@
                 ['label' => 'Reported Assets']
             ]" />
         </div>
-        <button 
-            type="button"
-            onclick="openAddModal()" 
-            class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm"
-        >
-            <i class="fas fa-plus"></i>
-            File Report
-        </button>
+        @if($isReadOnlyStaff)
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                <i class="fas fa-shield-alt text-amber-600"></i>
+                Read-Only Staff Access
+            </span>
+        @else
+            <button 
+                type="button"
+                onclick="openAddModal()" 
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm"
+            >
+                <i class="fas fa-plus"></i>
+                File Report
+            </button>
+        @endif
     </div>
 
     {{-- Dashboard Summary KPI Cards (Clickable quick status filters) --}}
@@ -231,25 +242,27 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
 
-                                    {{-- Edit --}}
-                                    <button 
-                                        type="button"
-                                        onclick="openEditModal({{ $report->id }}, {{ $report->asset_id }}, @js($report->reported_type), @js($report->location), @js($report->description), @js($report->action))"
-                                        class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 hover:text-amber-800 transition-colors" 
-                                        title="Edit Report"
-                                    >
-                                        <i class="fas fa-edit"></i>
-                                    </button>
+                                    @if(!$isReadOnlyStaff)
+                                        {{-- Edit --}}
+                                        <button 
+                                            type="button"
+                                            onclick="openEditModal({{ $report->id }}, {{ $report->asset_id }}, @js($report->reported_type), @js($report->location), @js($report->description), @js($report->action))"
+                                            class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 hover:text-amber-800 transition-colors" 
+                                            title="Edit Report"
+                                        >
+                                            <i class="fas fa-edit"></i>
+                                        </button>
 
-                                    {{-- Delete (Admin-only) --}}
-                                    @if(auth()->user()->isAdmin())
-                                        <form action="{{ route('reported-assets.destroy', $report) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete incident report for [{{ $report->asset_name }}]? This action cannot be undone.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete Report">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        {{-- Delete (Admin-only) --}}
+                                        @if(auth()->user()->isAdmin())
+                                            <form action="{{ route('reported-assets.destroy', $report) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete incident report for [{{ $report->asset_name }}]? This action cannot be undone.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete Report">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     @endif
                                 </div>
                             </td>
@@ -269,6 +282,7 @@
         </div>
     </x-card>
 
+    @if(!$isReadOnlyStaff)
     {{-- Add Report Modal (Reported Date removed, defaults to current timestamp automatically) --}}
     <x-modal id="add-report-modal" title="File an Incident / Damage Report">
         <form class="space-y-4" action="{{ route('reported-assets.store') }}" method="POST" enctype="multipart/form-data">
@@ -397,4 +411,5 @@
             }
         </script>
     @endpush
+    @endif
 @endsection

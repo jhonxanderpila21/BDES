@@ -13,6 +13,11 @@ class StoreReportedAssetRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        $user = $this->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
         return true;
     }
 

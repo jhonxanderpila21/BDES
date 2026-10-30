@@ -3,6 +3,9 @@
 @section('title', 'Report #' . $reportedAsset->id . ' - BDES')
 
 @section('content')
+@php
+    $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+@endphp
 <div class="space-y-6">
     {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm print:shadow-none print:border-none">
@@ -30,7 +33,12 @@
 
         {{-- Quick Actions --}}
         <div class="flex flex-wrap items-center gap-2 print:hidden">
-            @if($reportedAsset->asset)
+            @if($isReadOnlyStaff)
+                <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    <i class="fas fa-shield-alt text-amber-600"></i>
+                    Read-Only Staff Access
+                </span>
+            @elseif($reportedAsset->asset)
                 <a href="{{ route('assets.show', $reportedAsset->asset) }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-medium text-sm transition-colors">
                     <i class="fas fa-box"></i>
                     <span>View Asset Dossier</span>
@@ -64,7 +72,7 @@
                         <div>
                             <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Asset Information</p>
                             <p class="text-sm font-semibold text-gray-900">
-                                @if($reportedAsset->asset)
+                                @if($reportedAsset->asset && !$isReadOnlyStaff)
                                     <a href="{{ route('assets.show', $reportedAsset->asset) }}" class="text-blue-600 hover:text-blue-800 hover:underline">
                                         {{ $reportedAsset->asset_name }}
                                     </a>
@@ -216,14 +224,14 @@
         {{-- Right Column: Quick Actions & Reference --}}
         <div class="space-y-6">
             {{-- Change Status Card --}}
-            @if(auth()->user()->hasRole('viewer'))
+            @if($isReadOnlyStaff)
                 <x-card>
                     <div class="p-6 text-center">
-                        <div class="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <i class="fas fa-eye text-xl"></i>
+                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-200">
+                            <i class="fas fa-shield-alt text-xl"></i>
                         </div>
-                        <h3 class="text-sm font-semibold text-gray-900 mb-1">Read-Only Access</h3>
-                        <p class="text-xs text-gray-500">Your account has viewer permissions. Status updates require operational or admin credentials.</p>
+                        <h3 class="text-sm font-semibold text-gray-900 mb-1">Read-Only Staff Access</h3>
+                        <p class="text-xs text-gray-500">Your account has staff read-only permissions. Status updates, report edits, and deletions are restricted.</p>
                     </div>
                 </x-card>
             @elseif(count($allowedNext) > 0)
