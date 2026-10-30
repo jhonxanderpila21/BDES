@@ -24,12 +24,12 @@ class MaintenanceController extends Controller
     {
         $requestedTab = $request->get('tab');
         if ($requestedTab === 'schedules') {
-            $activeTab = 'inspections';
+            $activeTab = 'logs';
         } else {
-            $activeTab = $request->get('tab', 'inspections');
+            $activeTab = $request->get('tab', 'logs');
         }
         if (!in_array($activeTab, ['logs', 'inspections'], true)) {
-            $activeTab = 'inspections';
+            $activeTab = 'logs';
         }
 
         // Dynamically refresh schedule statuses
@@ -112,7 +112,7 @@ class MaintenanceController extends Controller
         if ($request->filled('priority')) {
             $maintenancesQuery->where('priority', $request->priority);
         }
-        if ($request->filled('status') && $activeTab === 'logs') {
+        if ($request->filled('status') && $activeTab === 'logs' && !in_array($request->status, ['due_overdue', 'Monitoring Only', 'Maintenance Due', 'Overdue'], true)) {
             if ($request->status === 'active') {
                 $maintenancesQuery->whereIn('status', ['in_progress', 'scheduled']);
             } else {
@@ -142,7 +142,7 @@ class MaintenanceController extends Controller
         }
         if ($request->filled('inspection_status')) {
             $inspectionsQuery->where('status', $request->inspection_status);
-        } elseif ($request->filled('status') && in_array($request->status, ['completed', 'scheduled', 'overdue'], true) && $request->status !== 'due_overdue') {
+        } elseif ($request->filled('status') && $activeTab === 'inspections' && in_array($request->status, ['completed', 'scheduled', 'overdue'], true)) {
             $inspectionsQuery->where('status', $request->status);
         }
         $inspections = $inspectionsQuery->latest('id')->paginate(10, ['*'], 'inspections_page')->withQueryString();
