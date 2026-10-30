@@ -303,25 +303,37 @@ class UserController extends Controller
     }
 
     /**
-     * Compute base username from first and last name.
+     * Compute base username from first and last name (lastname first, full names).
      */
     public static function generateBaseUsername(string $firstName, string $lastName): string
     {
         $cleanFirst = preg_replace('/[^a-z0-9]/', '', strtolower(Str::slug($firstName, '')));
         $cleanLast = preg_replace('/[^a-z0-9]/', '', strtolower(Str::slug($lastName, '')));
-        $initial = $cleanFirst !== '' ? substr($cleanFirst, 0, 1) : '';
-        $base = $initial . $cleanLast;
 
-        return $base ?: 'user';
+        if ($cleanLast !== '' && $cleanFirst !== '') {
+            $base = "{$cleanLast}{$cleanFirst}";
+        } else {
+            $base = ($cleanLast ?: $cleanFirst) ?: 'user';
+        }
+
+        return $base;
     }
 
     /**
-     * Compute base email from first and last name.
+     * Compute base email from first and last name (lastname first, full names, dot-separated).
      */
     public static function generateBaseEmail(string $firstName, string $lastName, string $domain = 'bdes.gov'): string
     {
-        $username = self::generateBaseUsername($firstName, $lastName);
-        return "{$username}@{$domain}";
+        $cleanFirst = preg_replace('/[^a-z0-9]/', '', strtolower(Str::slug($firstName, '')));
+        $cleanLast = preg_replace('/[^a-z0-9]/', '', strtolower(Str::slug($lastName, '')));
+
+        if ($cleanLast !== '' && $cleanFirst !== '') {
+            $prefix = "{$cleanLast}.{$cleanFirst}";
+        } else {
+            $prefix = ($cleanLast ?: $cleanFirst) ?: 'user';
+        }
+
+        return "{$prefix}@{$domain}";
     }
 
     /**

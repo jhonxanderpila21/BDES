@@ -282,8 +282,8 @@ class UserManagementTest extends TestCase
         $this->assertDatabaseHas('users', [
             'first_name' => 'Ramon',
             'last_name'  => 'Magsaysay',
-            'username'   => 'rmagsaysay',
-            'email'      => 'rmagsaysay@bdes.gov',
+            'username'   => 'magsaysayramon',
+            'email'      => 'magsaysay.ramon@bdes.gov',
             'role'       => 'viewer',
         ]);
     }
@@ -294,8 +294,8 @@ class UserManagementTest extends TestCase
         $user1 = [
             'first_name' => 'Jose',
             'last_name'  => 'Rizal',
-            'username'   => 'jrizal',
-            'email'      => 'jrizal@bdes.gov',
+            'username'   => 'rizaljose',
+            'email'      => 'rizal.jose@bdes.gov',
             'role'       => 'viewer',
         ];
         $this->actingAs($this->admin)->post(route('users.store'), $user1)->assertRedirect(route('users.index'));
@@ -304,19 +304,19 @@ class UserManagementTest extends TestCase
         $user2 = [
             'first_name' => 'Jose',
             'last_name'  => 'Rizal',
-            'username'   => 'jrizal',
-            'email'      => 'jrizal@bdes.gov',
+            'username'   => 'rizaljose',
+            'email'      => 'rizal.jose@bdes.gov',
             'role'       => 'viewer',
         ];
         $this->actingAs($this->admin)->post(route('users.store'), $user2)->assertRedirect(route('users.index'));
 
         $this->assertDatabaseHas('users', [
-            'username' => 'jrizal',
-            'email'    => 'jrizal@bdes.gov',
+            'username' => 'rizaljose',
+            'email'    => 'rizal.jose@bdes.gov',
         ]);
         $this->assertDatabaseHas('users', [
-            'username' => 'jrizal2',
-            'email'    => 'jrizal2@bdes.gov',
+            'username' => 'rizaljose2',
+            'email'    => 'rizal.jose2@bdes.gov',
         ]);
 
         // Third user with same name (omitted username & email)
@@ -328,16 +328,16 @@ class UserManagementTest extends TestCase
         $this->actingAs($this->admin)->post(route('users.store'), $user3)->assertRedirect(route('users.index'));
 
         $this->assertDatabaseHas('users', [
-            'username' => 'jrizal3',
-            'email'    => 'jrizal3@bdes.gov',
+            'username' => 'rizaljose3',
+            'email'    => 'rizal.jose3@bdes.gov',
         ]);
     }
 
     public function test_suggest_credentials_endpoint_returns_unique_credentials(): void
     {
         User::factory()->create([
-            'username' => 'agui',
-            'email'    => 'agui@bdes.gov',
+            'username' => 'guiandres',
+            'email'    => 'gui.andres@bdes.gov',
         ]);
 
         $response = $this->actingAs($this->admin)->get(route('users.suggest-credentials', [
@@ -347,8 +347,8 @@ class UserManagementTest extends TestCase
 
         $response->assertOk();
         $response->assertJson([
-            'username'     => 'agui2',
-            'email'        => 'agui2@bdes.gov',
+            'username'     => 'guiandres2',
+            'email'        => 'gui.andres2@bdes.gov',
             'has_conflict' => true,
         ]);
     }

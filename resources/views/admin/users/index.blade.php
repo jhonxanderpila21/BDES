@@ -201,16 +201,16 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Username" required>
                     <div class="relative">
-                        <input type="text" name="username" id="add-user-username" placeholder="e.g., jdelacruz" value="{{ old('username') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="text" name="username" id="add-user-username" placeholder="e.g., delacruzjuan" value="{{ old('username') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
-                    <span id="add-user-username-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-generated from First and Last Name.</span>
+                    <span id="add-user-username-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-generated based on Last and First Name.</span>
                 </x-form-group>
 
                 <x-form-group label="Email Address" required>
                     <div class="relative">
-                        <input type="email" name="email" id="add-user-email" placeholder="e.g., jdelacruz@bdes.gov" value="{{ old('email') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="email" name="email" id="add-user-email" placeholder="e.g., delacruz.juan@bdes.gov" value="{{ old('email') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
-                    <span id="add-user-email-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-generated based on First and Last Name.</span>
+                    <span id="add-user-email-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-generated based on Last and First Name.</span>
                 </x-form-group>
             </div>
 
@@ -355,18 +355,18 @@
                 const cleanFirst = firstName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
                 const cleanLast = lastName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
 
-                const initial = cleanFirst.length > 0 ? cleanFirst.charAt(0) : '';
-                const base = (initial + cleanLast) || 'user';
+                const baseUser = (cleanLast && cleanFirst) ? (cleanLast + cleanFirst) : (cleanLast || cleanFirst || 'user');
+                const baseEmailLocal = (cleanLast && cleanFirst) ? (cleanLast + '.' + cleanFirst) : (cleanLast || cleanFirst || 'user');
                 const domain = 'bdes.gov';
 
-                let candidateUser = base;
-                let candidateEmail = candidateUser + '@' + domain;
+                let candidateUser = baseUser;
+                let candidateEmail = baseEmailLocal + '@' + domain;
                 let counter = 1;
 
                 while (existingUsernames.has(candidateUser) || existingEmails.has(candidateEmail)) {
                     counter++;
-                    candidateUser = base + counter;
-                    candidateEmail = candidateUser + '@' + domain;
+                    candidateUser = baseUser + counter;
+                    candidateEmail = baseEmailLocal + counter + '@' + domain;
                 }
 
                 if (!usernameManuallyChanged && addUsernameInput) {
