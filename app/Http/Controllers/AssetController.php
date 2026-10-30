@@ -143,6 +143,8 @@ class AssetController extends Controller
      */
     public function create()
     {
+        Gate::authorize('create', Asset::class);
+
         return redirect()->route('assets.index', ['tab' => 'assets']);
     }
 
@@ -310,6 +312,8 @@ class AssetController extends Controller
      */
     public function edit(Asset $asset)
     {
+        Gate::authorize('update', $asset);
+
         return redirect()->route('assets.index', ['tab' => 'assets']);
     }
 

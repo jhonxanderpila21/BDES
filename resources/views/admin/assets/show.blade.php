@@ -3,6 +3,9 @@
 @section('title', 'Asset Dossier: ' . $asset->name . ' (' . $asset->code . ') - BDES')
 
 @section('content')
+@php
+    $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+@endphp
 <div x-data="{ activeTab: 'overview', showUploadModal: false, showRetireModal: false }" class="space-y-6">
 
     {{-- Top Header & Quick Action Bar --}}
@@ -51,12 +54,14 @@
                 <span class="hidden sm:inline">Print Dossier</span>
             </button>
 
-            <button @click="showUploadModal = true" class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-medium text-sm transition-colors">
-                <i class="fas fa-file-upload"></i>
-                <span>Add Document</span>
-            </button>
+            @if(!$isReadOnlyStaff && auth()->user()?->can('uploadDocument', $asset))
+                <button @click="showUploadModal = true" class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-medium text-sm transition-colors">
+                    <i class="fas fa-file-upload"></i>
+                    <span>Add Document</span>
+                </button>
+            @endif
 
-            @if($asset->status === 'available')
+            @if(!$isReadOnlyStaff && $asset->status === 'available')
                 <a href="{{ route('deployment.create', ['asset_id' => $asset->id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm shadow-sm transition-colors">
                     <i class="fas fa-truck-fast"></i>
                     <span>Deploy Asset</span>
@@ -90,12 +95,14 @@
                     </p>
                 </div>
             </div>
-            <form action="{{ route('deployment.return', $activeDep->id) }}" method="POST" class="print:hidden">
-                @csrf
-                <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg shadow-sm whitespace-nowrap">
-                    <i class="fas fa-arrow-rotate-left mr-1"></i> Process Return
-                </button>
-            </form>
+            @if(!$isReadOnlyStaff)
+                <form action="{{ route('deployment.return', $activeDep->id) }}" method="POST" class="print:hidden">
+                    @csrf
+                    <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg shadow-sm whitespace-nowrap">
+                        <i class="fas fa-arrow-rotate-left mr-1"></i> Process Return
+                    </button>
+                </form>
+            @endif
         </div>
     @elseif($asset->status === 'retired')
         <div class="bg-gray-100 border-l-4 border-gray-600 p-4 rounded-xl flex items-start gap-3">
@@ -331,7 +338,7 @@
                     <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
                         <i class="fas fa-truck text-blue-600"></i> Field Dispatch & Mission Records
                     </h3>
-                    @if($asset->status === 'available')
+                    @if(!$isReadOnlyStaff && $asset->status === 'available')
                         <a href="{{ route('deployment.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
                             <i class="fas fa-plus mr-1"></i> New Deployment
                         </a>
@@ -412,9 +419,11 @@
                         <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
                             <i class="fas fa-screwdriver-wrench text-amber-600"></i> Service & Work Orders
                         </h3>
-                        <a href="{{ route('maintenance.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
-                            <i class="fas fa-plus mr-1"></i> New Work Order
-                        </a>
+                        @if(!$isReadOnlyStaff)
+                            <a href="{{ route('maintenance.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
+                                <i class="fas fa-plus mr-1"></i> New Work Order
+                            </a>
+                        @endif
                     </div>
 
                     @if($asset->maintenance->count() > 0)
@@ -488,9 +497,11 @@
                         <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
                             <i class="fas fa-shield-check text-emerald-600"></i> Safety Inspections
                         </h3>
-                        <a href="{{ route('inspection.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
-                            <i class="fas fa-plus mr-1"></i> Log Inspection
-                        </a>
+                        @if(!$isReadOnlyStaff)
+                            <a href="{{ route('inspection.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
+                                <i class="fas fa-plus mr-1"></i> Log Inspection
+                            </a>
+                        @endif
                     </div>
 
                     @if($asset->inspections->count() > 0)
@@ -620,6 +631,7 @@
     </div>
 
     {{-- MODAL: UPLOAD DIGITAL DOCUMENT --}}
+    @if(!$isReadOnlyStaff && auth()->user()?->can('uploadDocument', $asset))
     <div x-show="showUploadModal" x-cloak class="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
         <div @click.away="showUploadModal = false" class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -679,6 +691,7 @@
             </form>
         </div>
     </div>
+    @endif
 
     {{-- MODAL: DECOMMISSION / RETIRE ASSET --}}
     @if(auth()->user()?->isAdmin())

@@ -124,6 +124,6 @@ class User extends Authenticatable
      */
     public function isViewer(): bool
     {
-        return $this->hasRole('viewer');
+        return $this->hasRole('viewer', 'staff');
     }
 }

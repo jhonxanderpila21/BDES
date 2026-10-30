@@ -16,11 +16,23 @@ class AssetCategoryController extends Controller
     }
 
     /**
+     * Show the form for creating a new asset category.
+     */
+    public function create(Request $request)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'categories']);
+    }
+
+    /**
      * Store a newly created asset category in storage.
      */
     public function store(Request $request)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -54,11 +66,23 @@ class AssetCategoryController extends Controller
     }
 
     /**
+     * Show the form for editing the specified asset category.
+     */
+    public function edit(Request $request, AssetCategory $assetCategory)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'categories']);
+    }
+
+    /**
      * Update the specified asset category in storage.
      */
     public function update(Request $request, AssetCategory $assetCategory)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -88,7 +112,7 @@ class AssetCategoryController extends Controller
      */
     public function destroy(Request $request, AssetCategory $assetCategory)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 

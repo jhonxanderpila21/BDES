@@ -3,6 +3,10 @@
 @section('title', 'Assets - BDES')
 
 @section('content')
+    @php
+        $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+    @endphp
+
     {{-- Page Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
@@ -18,25 +22,27 @@
         </div>
 
         {{-- Contextual Action Buttons --}}
-        <div class="flex flex-wrap items-center gap-2">
+        @if(!$isReadOnlyStaff)
+            <div class="flex flex-wrap items-center gap-2">
 
-            @if($activeTab === 'categories')
-                <button onclick="openAddCategoryModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                    <i class="fas fa-plus"></i>
-                    Add Category
-                </button>
-            @elseif($activeTab === 'types')
-                <button onclick="openAddTypeModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                    <i class="fas fa-plus"></i>
-                    Add Asset Type
-                </button>
-            @else
-                <button onclick="openAddAssetModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                    <i class="fas fa-plus"></i>
-                    Add Asset
-                </button>
-            @endif
-        </div>
+                @if($activeTab === 'categories')
+                    <button onclick="openAddCategoryModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                        <i class="fas fa-plus"></i>
+                        Add Category
+                    </button>
+                @elseif($activeTab === 'types')
+                    <button onclick="openAddTypeModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                        <i class="fas fa-plus"></i>
+                        Add Asset Type
+                    </button>
+                @else
+                    <button onclick="openAddAssetModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                        <i class="fas fa-plus"></i>
+                        Add Asset
+                    </button>
+                @endif
+            </div>
+        @endif
     </div>
 
     {{-- Session Alerts --}}
@@ -313,30 +319,32 @@
                                             <i class="fas fa-eye"></i>
                                         </button>
 
-                                        {{-- Edit Modal --}}
-                                        <button 
-                                            onclick="openEditAssetModal({{ json_encode($asset) }})" 
-                                            class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 hover:text-amber-800 transition-colors" 
-                                            title="Edit Asset"
-                                        >
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-
-                                        {{-- Safe Delete --}}
-                                        <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirm('Remove asset [{{ $asset->code }}]? If operational records exist, it will be safely retired instead.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                        @if(!$isReadOnlyStaff)
+                                            {{-- Edit Modal --}}
+                                            <button 
+                                                onclick="openEditAssetModal({{ json_encode($asset) }})" 
+                                                class="p-1.5 rounded-lg hover:bg-amber-50 text-amber-600 hover:text-amber-800 transition-colors" 
+                                                title="Edit Asset"
+                                            >
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
+
+                                            {{-- Safe Delete --}}
+                                            <form action="{{ route('assets.destroy', $asset) }}" method="POST" class="inline-block" onsubmit="return confirm('Remove asset [{{ $asset->code }}]? If operational records exist, it will be safely retired instead.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="8" class="px-6 py-12 text-center">
-                                    <x-empty-state icon="fas fa-boxes-stacked" title="No assets found" description="Start by clicking Add Asset above to register new equipment." />
+                                    <x-empty-state icon="fas fa-boxes-stacked" title="No assets found" :description="$isReadOnlyStaff ? 'No assets matching the criteria were found.' : 'Start by clicking Add Asset above to register new equipment.'" />
                                 </td>
                             </tr>
                         @endforelse
@@ -423,28 +431,32 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button
-                                            onclick="openEditCategoryModal({{ $category->id }}, @js($category->name), @js($category->description), @js($category->status))"
-                                            class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
-                                            title="Edit Category"
-                                        >
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('asset-categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Archive/Delete this category?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Category">
-                                                <i class="fas fa-trash"></i>
+                                    @if(!$isReadOnlyStaff)
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button
+                                                onclick="openEditCategoryModal({{ $category->id }}, @js($category->name), @js($category->description), @js($category->status))"
+                                                class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
+                                                title="Edit Category"
+                                            >
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
-                                    </div>
+                                            <form action="{{ route('asset-categories.destroy', $category) }}" method="POST" class="inline-block" onsubmit="return confirm('Archive/Delete this category?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Category">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-gray-400 font-medium">Read-only</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="5" class="px-6 py-12 text-center">
-                                    <x-empty-state icon="fas fa-folder-open" title="No categories found" description="Create your first asset category using the Add Category button above." />
+                                    <x-empty-state icon="fas fa-folder-open" title="No categories found" :description="$isReadOnlyStaff ? 'No categories available in the registry.' : 'Create your first asset category using the Add Category button above.'" />
                                 </td>
                             </tr>
                         @endforelse
@@ -534,28 +546,32 @@
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button
-                                            onclick="openEditTypeModal({{ $type->id }}, @js($type->name), {{ $type->category_id ?? 'null' }}, {{ $type->serialized ? 'true' : 'false' }}, {{ $type->borrowable ? 'true' : 'false' }}, {{ $type->requires_maintenance ? 'true' : 'false' }}, {{ $type->requires_inspection ? 'true' : 'false' }}, {{ $type->has_accessories ? 'true' : 'false' }}, {{ $type->has_attachments ? 'true' : 'false' }}, {{ $type->requires_operational_requirements ? 'true' : 'false' }})"
-                                            class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
-                                            title="Edit Type"
-                                        >
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('asset-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset type?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Type">
-                                                <i class="fas fa-trash"></i>
+                                    @if(!$isReadOnlyStaff)
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button
+                                                onclick="openEditTypeModal({{ $type->id }}, @js($type->name), {{ $type->category_id ?? 'null' }}, {{ $type->serialized ? 'true' : 'false' }}, {{ $type->borrowable ? 'true' : 'false' }}, {{ $type->requires_maintenance ? 'true' : 'false' }}, {{ $type->requires_inspection ? 'true' : 'false' }}, {{ $type->has_accessories ? 'true' : 'false' }}, {{ $type->has_attachments ? 'true' : 'false' }}, {{ $type->requires_operational_requirements ? 'true' : 'false' }})"
+                                                class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
+                                                title="Edit Type"
+                                            >
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
-                                    </div>
+                                            <form action="{{ route('asset-types.destroy', $type) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this asset type?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete Type">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @else
+                                        <span class="text-xs text-gray-400 font-medium">Read-only</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="5" class="px-6 py-12 text-center">
-                                    <x-empty-state icon="fas fa-tags" title="No asset types found" description="Create your first asset type using the Add Asset Type button above." />
+                                    <x-empty-state icon="fas fa-tags" title="No asset types found" :description="$isReadOnlyStaff ? 'No asset types available in the registry.' : 'Create your first asset type using the Add Asset Type button above.'" />
                                 </td>
                             </tr>
                         @endforelse
@@ -571,7 +587,8 @@
     {{-- ========================================================================= --}}
     {{-- MODALS: ASSETS                                                            --}}
     {{-- ========================================================================= --}}
-    @include('admin.assets.partials._add_asset_modal')
+    @if(!$isReadOnlyStaff)
+        @include('admin.assets.partials._add_asset_modal')
 
 
     {{-- Edit Asset Modal --}}
@@ -693,6 +710,7 @@
             </div>
         </form>
     </x-modal>
+    @endif
 
     {{-- View Asset Modal --}}
     <x-modal id="view-asset-modal" title="Equipment Details">
@@ -761,10 +779,12 @@
                         <i class="fas fa-folder-open"></i>
                         <span>Open Full Dossier</span>
                     </a>
-                    <a id="view_asset_deploy_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors hidden sm:inline-flex">
-                        <i class="fas fa-truck-fast"></i>
-                        <span>Deploy</span>
-                    </a>
+                    @if(!$isReadOnlyStaff)
+                        <a id="view_asset_deploy_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors hidden sm:inline-flex">
+                            <i class="fas fa-truck-fast"></i>
+                            <span>Deploy</span>
+                        </a>
+                    @endif
                 </div>
                 <button type="button" onclick="window.closeModal('view-asset-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors w-full sm:w-auto">
                     Close
@@ -776,8 +796,9 @@
     {{-- ========================================================================= --}}
     {{-- MODALS: CATEGORIES                                                        --}}
     {{-- ========================================================================= --}}
-    {{-- Add Category Modal --}}
-    <x-modal id="add-category-modal" title="Add Category">
+    @if(!$isReadOnlyStaff)
+        {{-- Add Category Modal --}}
+        <x-modal id="add-category-modal" title="Add Category">
         <form class="space-y-4" action="{{ route('asset-categories.store') }}" method="POST">
             @csrf
 
@@ -998,9 +1019,11 @@
             </div>
         </form>
     </x-modal>
+    @endif
 
     @push('scripts')
         <script>
+            @if(!$isReadOnlyStaff)
             // Asset Modals
             function openAddAssetModal() {
                 window.openModal('add-asset-modal');
@@ -1031,6 +1054,7 @@
                 document.getElementById('retire_asset_label').textContent = `${name} (${code})`;
                 window.openModal('retire-asset-modal');
             }
+            @endif
 
             function openViewAssetModal(asset, categoryName, typeName, locationName) {
                 document.getElementById('view_asset_name').textContent = asset.name || 'Unnamed Asset';
@@ -1104,6 +1128,7 @@
                 window.openModal('view-asset-modal');
             }
 
+            @if(!$isReadOnlyStaff)
             // Category Modals
             function openAddCategoryModal() {
                 window.openModal('add-category-modal');
@@ -1137,6 +1162,7 @@
                 document.getElementById('edit-type-requires_operational_requirements').checked = Boolean(requiresOperationalRequirements);
                 window.openModal('edit-type-modal');
             }
+            @endif
         </script>
     @endpush
 @endsection
