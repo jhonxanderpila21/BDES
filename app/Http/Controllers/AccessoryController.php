@@ -17,11 +17,23 @@ class AccessoryController extends Controller
     }
 
     /**
+     * Show the form for creating a new accessory.
+     */
+    public function create(Request $request)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('attachments.index', ['tab' => 'accessories']);
+    }
+
+    /**
      * Store a newly created accessory in storage.
      */
     public function store(Request $request)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -52,11 +64,23 @@ class AccessoryController extends Controller
     }
 
     /**
+     * Show the form for editing the specified accessory.
+     */
+    public function edit(Request $request, Accessory $accessory)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('attachments.index', ['tab' => 'accessories']);
+    }
+
+    /**
      * Update the specified accessory in storage.
      */
     public function update(Request $request, Accessory $accessory)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -91,7 +115,7 @@ class AccessoryController extends Controller
      */
     public function destroy(Request $request, Accessory $accessory)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 

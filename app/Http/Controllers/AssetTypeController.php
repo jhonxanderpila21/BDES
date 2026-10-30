@@ -16,11 +16,23 @@ class AssetTypeController extends Controller
     }
 
     /**
+     * Show the form for creating a new asset type.
+     */
+    public function create(Request $request)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'types']);
+    }
+
+    /**
      * Store a newly created asset type in storage.
      */
     public function store(Request $request)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -65,11 +77,23 @@ class AssetTypeController extends Controller
     }
 
     /**
+     * Show the form for editing the specified asset type.
+     */
+    public function edit(Request $request, AssetType $assetType)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'types']);
+    }
+
+    /**
      * Update the specified asset type in storage.
      */
     public function update(Request $request, AssetType $assetType)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -109,7 +133,7 @@ class AssetTypeController extends Controller
      */
     public function destroy(Request $request, AssetType $assetType)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 

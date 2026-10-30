@@ -16,9 +16,41 @@ class InspectionController extends Controller
     protected function authorizeInspector(Request $request): void
     {
         $user = $request->user();
-        if ($user && $user->hasRole('viewer', 'inventory_officer')) {
+        if ($user && ($user->isViewer() || $user->hasRole('viewer', 'staff', 'inventory_officer'))) {
             abort(403, 'Unauthorized. Physical inspection and equipment servicing requires Maintenance Officer or Administrator permissions.');
         }
+    }
+
+    /**
+     * Show form to create an inspection (restricted for staff).
+     */
+    public function create(Request $request)
+    {
+        $this->authorizeInspector($request);
+        return redirect()->route('maintenance.index', ['tab' => 'inspections']);
+    }
+
+    /**
+     * Display the specified inspection details (accessible for staff).
+     */
+    public function show(Request $request, Inspection $inspection)
+    {
+        $inspection->load(['asset.category', 'receipts']);
+
+        if ($request->wantsJson()) {
+            return response()->json($inspection);
+        }
+
+        return redirect()->route('maintenance.index', ['tab' => 'inspections']);
+    }
+
+    /**
+     * Show form to edit an inspection (restricted for staff).
+     */
+    public function edit(Request $request, Inspection $inspection)
+    {
+        $this->authorizeInspector($request);
+        return redirect()->route('maintenance.index', ['tab' => 'inspections']);
     }
 
     public function store(Request $request)

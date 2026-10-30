@@ -44,6 +44,10 @@ class AssetPolicy
      */
     public function create(User $user): bool
     {
+        if ($user->isViewer()) {
+            return false;
+        }
+
         return $user->hasRole('inventory_officer', 'bdrrmc_officer');
     }
 
@@ -52,6 +56,10 @@ class AssetPolicy
      */
     public function update(User $user, Asset $asset): bool
     {
+        if ($user->isViewer()) {
+            return false;
+        }
+
         return $user->hasRole('inventory_officer', 'bdrrmc_officer');
     }
 
@@ -69,6 +77,10 @@ class AssetPolicy
      */
     public function retire(User $user, Asset $asset): bool
     {
+        if ($user->isViewer()) {
+            return false;
+        }
+
         return $user->hasRole('barangay_captain');
     }
 
@@ -77,6 +89,10 @@ class AssetPolicy
      */
     public function uploadDocument(User $user, Asset $asset): bool
     {
+        if ($user->isViewer()) {
+            return false;
+        }
+
         return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 

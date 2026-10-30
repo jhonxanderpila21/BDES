@@ -13,6 +13,10 @@ class UpdateAssetNeedRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        if ($this->user() && ($this->user()->isViewer() || $this->user()->hasRole('viewer', 'staff'))) {
+            return false;
+        }
+
         return true;
     }
 

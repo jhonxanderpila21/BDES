@@ -84,11 +84,35 @@ class ReportedAssetController extends Controller
     }
 
     /**
+     * Authorize that the user has permission to create or edit reports.
+     */
+    protected function authorizeEditor(Request $request): void
+    {
+        $user = $request->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            abort(403, 'Unauthorized action. Filing and modifying asset reports is restricted for staff members.');
+        }
+    }
+
+    /**
+     * Show form to create a report (restricted for staff).
+     */
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+        return redirect()->route('reported-assets.index');
+    }
+
+    /**
      * Display a single report with its full status history timeline.
      */
-    public function show(ReportedAsset $reportedAsset)
+    public function show(Request $request, ReportedAsset $reportedAsset)
     {
         $reportedAsset->load(['asset', 'reporter', 'statusHistories.changedByUser', 'receipts']);
+
+        if ($request->wantsJson()) {
+            return response()->json($reportedAsset);
+        }
 
         $allowedNext = ReportedAssetService::allowedNextStatuses($reportedAsset->status);
 
@@ -96,10 +120,21 @@ class ReportedAssetController extends Controller
     }
 
     /**
+     * Show form to edit a report (restricted for staff).
+     */
+    public function edit(Request $request, ReportedAsset $reportedAsset)
+    {
+        $this->authorizeEditor($request);
+        return redirect()->route('reported-assets.index');
+    }
+
+    /**
      * Store a newly created report.
      */
     public function store(StoreReportedAssetRequest $request)
     {
+        $this->authorizeEditor($request);
+
         $validated = $request->validated();
         $validated['reported_by'] = auth()->id();
         $validated['status'] = ReportedAssetService::STATUS_PENDING;
@@ -126,6 +161,8 @@ class ReportedAssetController extends Controller
      */
     public function update(UpdateReportedAssetRequest $request, ReportedAsset $reportedAsset)
     {
+        $this->authorizeEditor($request);
+
         $validated = $request->validated();
         $reportedAsset->update($validated);
 
@@ -136,9 +173,10 @@ class ReportedAssetController extends Controller
     /**
      * Remove the specified report (admin-only).
      */
-    public function destroy(ReportedAsset $reportedAsset)
+    public function destroy(Request $request, ReportedAsset $reportedAsset)
     {
-        if (!auth()->user()->isAdmin()) {
+        $user = $request->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff') || !$user->isAdmin()) {
             abort(403, 'Unauthorized. Only administrators can delete reported asset records.');
         }
 
@@ -153,7 +191,8 @@ class ReportedAssetController extends Controller
      */
     public function changeStatus(Request $request, ReportedAsset $reportedAsset)
     {
-        if (auth()->user()->hasRole('viewer')) {
+        $user = $request->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
             abort(403, 'Unauthorized action. Status changes require operational permissions.');
         }
 

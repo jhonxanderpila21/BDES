@@ -16,11 +16,16 @@ class AssetHistoryController extends Controller
     {
         $currentUser = $request->user();
         $isAdmin = $currentUser && $currentUser->isAdmin();
+        $isViewer = $currentUser && ($currentUser->isViewer() || $currentUser->hasRole('viewer', 'staff'));
+
+        // Staff members and Administrators can view all system audit logs.
+        // Other non-admin operational roles remain scoped to their own account.
+        $canViewAllLogs = $isAdmin || $isViewer;
 
         $query = AuditLog::with(['user', 'auditable'])->latest('id');
 
-        // Scoping: Non-admin users are strictly scoped to their own account's audit logs
-        if (!$isAdmin) {
+        // Scoping: Non-admin users (except staff) are strictly scoped to their own account's audit logs
+        if (!$canViewAllLogs) {
             $query->where('user_id', $currentUser->id);
         } elseif ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
@@ -63,7 +68,7 @@ class AssetHistoryController extends Controller
 
         // Metrics: Scoped appropriately to account or system
         $metricsBase = AuditLog::query();
-        if (!$isAdmin) {
+        if (!$canViewAllLogs) {
             $metricsBase->where('user_id', $currentUser->id);
         }
 
@@ -71,12 +76,12 @@ class AssetHistoryController extends Controller
             'total_logs'     => (clone $metricsBase)->count(),
             'today_logs'     => (clone $metricsBase)->whereDate('created_at', today())->count(),
             'status_changes' => (clone $metricsBase)->where('event', 'status_changed')->count(),
-            'active_actors'  => $isAdmin ? AuditLog::distinct('user_id')->count('user_id') : 1,
+            'active_actors'  => $canViewAllLogs ? AuditLog::distinct('user_id')->count('user_id') : 1,
         ];
 
-        $users = $isAdmin ? User::orderBy('name')->get() : collect([$currentUser]);
+        $users = $canViewAllLogs ? User::orderBy('name')->get() : collect([$currentUser]);
 
-        return view('admin.asset-history.index', compact('logs', 'metrics', 'users', 'isAdmin'));
+        return view('admin.asset-history.index', compact('logs', 'metrics', 'users', 'isAdmin', 'isViewer'));
     }
 
     /**
@@ -85,6 +90,10 @@ class AssetHistoryController extends Controller
     public function export(Request $request): StreamedResponse
     {
         $currentUser = $request->user();
+        if (!$currentUser || $currentUser->isViewer() || $currentUser->hasRole('viewer', 'staff')) {
+            abort(403, 'Unauthorized. Staff members are not authorized to export audit logs.');
+        }
+
         $isAdmin = $currentUser && $currentUser->isAdmin();
 
         $query = AuditLog::with(['user', 'auditable'])->latest('id');

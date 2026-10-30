@@ -70,12 +70,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/operational-requirements/{operationalRequirement}/consume', [OperationalRequirementController::class, 'consume'])->name('operational-requirements.consume');
 
     // Asset Needs
-    Route::resource('asset-needs', AssetNeedController::class)->except(['show', 'create', 'edit']);
+    Route::resource('asset-needs', AssetNeedController::class);
     Route::post('asset-needs/{asset_need}/replenish', [AssetNeedController::class, 'replenish'])->name('asset-needs.replenish');
 
     // Asset Accessories
     Route::post('asset-accessories/{asset_accessory}/adjust-quantity', [AssetAccessoryController::class, 'adjustQuantity'])->name('asset-accessories.adjust-quantity');
-    Route::resource('asset-accessories', AssetAccessoryController::class)->except(['create', 'show', 'edit']);
+    Route::resource('asset-accessories', AssetAccessoryController::class)->except(['create', 'edit']);
 
     // Operations (Deployments & Returns)
     Route::post('deployment/{deployment}/return', [DeploymentController::class, 'returnAsset'])->name('deployment.return');
@@ -84,7 +84,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Maintenance Schedules (Preventive Maintenance)
     Route::post('maintenance-schedules/{maintenance_schedule}/complete', [MaintenanceScheduleController::class, 'complete'])->name('maintenance-schedules.complete');
-    Route::resource('maintenance-schedules', MaintenanceScheduleController::class)->except(['create', 'show', 'edit']);
+    Route::resource('maintenance-schedules', MaintenanceScheduleController::class)->except(['create', 'edit']);
 
     // Reported Assets
     Route::post('reported-assets/{reported_asset}/change-status', [ReportedAssetController::class, 'changeStatus'])->name('reported-assets.change-status');

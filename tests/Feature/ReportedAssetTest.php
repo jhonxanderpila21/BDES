@@ -18,6 +18,7 @@ class ReportedAssetTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+    private User $staff;
     private Asset $asset;
 
     protected function setUp(): void
@@ -26,6 +27,11 @@ class ReportedAssetTest extends TestCase
 
         $this->user = User::factory()->create([
             'role'      => 'administrator',
+            'is_active' => true,
+        ]);
+
+        $this->staff = User::factory()->create([
+            'role'      => 'viewer',
             'is_active' => true,
         ]);
 
@@ -290,5 +296,231 @@ class ReportedAssetTest extends TestCase
         // Refresh the asset
         $this->asset->refresh();
         $this->assertFalse($this->asset->has_open_report);
+    }
+
+    public function test_staff_can_view_reported_assets_index_with_summary_cards_and_read_only_badge(): void
+    {
+        ReportedAsset::create([
+            'asset_id'       => $this->asset->id,
+            'asset_category' => 'Emergency Equipment',
+            'asset_name'     => 'GEN-TEST — Test Generator',
+            'reported_by'    => $this->user->id,
+            'reported_type'  => 'Damage',
+            'status'         => 'Pending',
+            'location'       => 'Barangay Hall Bay 2',
+            'description'    => 'Power surge during storm.',
+            'reported_date'  => Carbon::today(),
+        ]);
+
+        $response = $this->actingAs($this->staff)->get(route('reported-assets.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Reported Assets');
+        $response->assertSee('Read-Only Staff Access');
+        $response->assertSee('Awaiting Review');
+        $response->assertSee('Test Generator');
+        $response->assertSee('Barangay Hall Bay 2');
+        $response->assertSee('Power surge during storm.');
+        $response->assertSee('View Details');
+
+        // Verify modification controls are hidden
+        $response->assertDontSee('File Report');
+        $response->assertDontSee('openAddModal');
+        $response->assertDontSee('openEditModal');
+        $response->assertDontSee('route(\'reported-assets.destroy\'');
+    }
+
+    public function test_staff_can_view_complete_report_details_and_timeline(): void
+    {
+        $report = ReportedAsset::create([
+            'asset_id'       => $this->asset->id,
+            'asset_category' => 'Emergency Equipment',
+            'asset_name'     => 'GEN-TEST — Test Generator',
+            'reported_by'    => $this->user->id,
+            'reported_type'  => 'Malfunction',
+            'status'         => 'Ongoing',
+            'location'       => 'Storage Bay 3',
+            'description'    => 'Oil leak and irregular voltage output.',
+            'action'         => 'Dispatched mechanic for inspection',
+            'reported_date'  => Carbon::today(),
+        ]);
+
+        $report->statusHistories()->create([
+            'from_status' => null,
+            'to_status'   => 'Pending',
+            'changed_by'  => $this->user->id,
+            'notes'       => 'Initial report filed.',
+        ]);
+
+        $report->statusHistories()->create([
+            'from_status' => 'Pending',
+            'to_status'   => 'Ongoing',
+            'changed_by'  => $this->user->id,
+            'notes'       => 'Investigation started.',
+        ]);
+
+        // 1. View report details page (HTML)
+        $response = $this->actingAs($this->staff)->get(route('reported-assets.show', $report));
+
+        $response->assertStatus(200);
+        $response->assertSee('Incident Report #' . $report->id);
+        $response->assertSee('Incident Overview');
+        $response->assertSee('Test Generator');
+        $response->assertSee('Emergency Equipment');
+        $response->assertSee('Malfunction');
+        $response->assertSee('Storage Bay 3');
+        $response->assertSee($this->user->name);
+        $response->assertSee('Ongoing');
+        $response->assertSee('Oil leak and irregular voltage output.');
+        $response->assertSee('Dispatched mechanic for inspection');
+        $response->assertSee('Status History');
+        $response->assertSee('Initial report filed.');
+        $response->assertSee('Investigation started.');
+
+        // Verify staff cannot transition status
+        $response->assertSee('Read-Only Staff Access');
+        $response->assertDontSee('Transition Status');
+        $response->assertDontSee('route(\'reported-assets.change-status\'');
+
+        // 2. View complete report details via JSON endpoint
+        $jsonResponse = $this->actingAs($this->staff)->getJson(route('reported-assets.show', $report));
+        $jsonResponse->assertStatus(200);
+        $jsonResponse->assertJsonPath('asset_name', 'GEN-TEST — Test Generator');
+        $jsonResponse->assertJsonPath('reported_type', 'Malfunction');
+        $jsonResponse->assertJsonPath('location', 'Storage Bay 3');
+        $jsonResponse->assertJsonPath('reporter.name', $this->user->name);
+        $jsonResponse->assertJsonPath('status', 'Ongoing');
+    }
+
+    public function test_staff_can_search_and_use_all_filters(): void
+    {
+        $rescueCategory = AssetCategory::create([
+            'name'        => 'Rescue Vehicles',
+            'description' => 'Boats and trucks',
+        ]);
+        $rescueType = AssetType::create([
+            'name'        => 'Rescue Boat',
+            'category_id' => $rescueCategory->id,
+        ]);
+        $rescueAsset = Asset::create([
+            'code'        => 'BOAT-01',
+            'name'        => 'Inflatable Rescue Boat',
+            'category_id' => $rescueCategory->id,
+            'type_id'     => $rescueType->id,
+            'location_id' => $this->asset->location_id,
+            'condition'   => 'good',
+            'status'      => 'available',
+        ]);
+
+        $report1 = ReportedAsset::create([
+            'asset_id'       => $this->asset->id,
+            'asset_category' => 'Emergency Equipment',
+            'asset_name'     => 'GEN-TEST — Test Generator',
+            'reported_by'    => $this->user->id,
+            'reported_type'  => 'Damage',
+            'status'         => 'Pending',
+            'location'       => 'Command Center',
+            'description'    => 'Cracked alternator bracket',
+            'reported_date'  => Carbon::today(),
+        ]);
+
+        $report2 = ReportedAsset::create([
+            'asset_id'       => $rescueAsset->id,
+            'asset_category' => 'Rescue Vehicles',
+            'asset_name'     => 'BOAT-01 — Inflatable Rescue Boat',
+            'reported_by'    => $this->user->id,
+            'reported_type'  => 'Malfunction',
+            'status'         => 'Escalated',
+            'location'       => 'River Station Alpha',
+            'description'    => 'Puncture on starboard pontoon',
+            'reported_date'  => Carbon::yesterday(),
+        ]);
+
+        // Search by keyword
+        $searchResponse = $this->actingAs($this->staff)->get(route('reported-assets.index', ['search' => 'alternator']));
+        $searchResponse->assertStatus(200);
+        $searchResponse->assertSee('Test Generator');
+        $searchResponse->assertDontSee('Inflatable Rescue Boat');
+
+        // Filter by asset_category
+        $categoryResponse = $this->actingAs($this->staff)->get(route('reported-assets.index', ['asset_category' => 'Rescue Vehicles']));
+        $categoryResponse->assertStatus(200);
+        $categoryResponse->assertSee('Inflatable Rescue Boat');
+        $categoryResponse->assertDontSee('Test Generator');
+
+        // Filter by reported_type
+        $typeResponse = $this->actingAs($this->staff)->get(route('reported-assets.index', ['reported_type' => 'Damage']));
+        $typeResponse->assertStatus(200);
+        $typeResponse->assertSee('Test Generator');
+        $typeResponse->assertDontSee('Inflatable Rescue Boat');
+
+        // Filter by status
+        $statusResponse = $this->actingAs($this->staff)->get(route('reported-assets.index', ['status' => 'Escalated']));
+        $statusResponse->assertStatus(200);
+        $statusResponse->assertSee('Inflatable Rescue Boat');
+        $statusResponse->assertDontSee('Test Generator');
+
+        // Filter by timeframe (today)
+        $timeframeResponse = $this->actingAs($this->staff)->get(route('reported-assets.index', ['timeframe' => 'today']));
+        $timeframeResponse->assertStatus(200);
+        $timeframeResponse->assertSee('Test Generator');
+        $timeframeResponse->assertDontSee('Inflatable Rescue Boat');
+    }
+
+    public function test_staff_cannot_file_edit_or_delete_reports(): void
+    {
+        $report = ReportedAsset::create([
+            'asset_id'       => $this->asset->id,
+            'asset_category' => 'Emergency Equipment',
+            'asset_name'     => 'GEN-TEST — Test Generator',
+            'reported_by'    => $this->user->id,
+            'reported_type'  => 'Damage',
+            'status'         => 'Pending',
+            'location'       => 'Barangay Hall',
+            'description'    => 'Original description.',
+            'reported_date'  => Carbon::today(),
+        ]);
+
+        // 1. Attempt GET create
+        $responseCreate = $this->actingAs($this->staff)->get(route('reported-assets.create'));
+        $responseCreate->assertStatus(403);
+
+        // 2. Attempt POST store
+        $responseStore = $this->actingAs($this->staff)->post(route('reported-assets.store'), [
+            'asset_id'      => $this->asset->id,
+            'reported_type' => 'Damage',
+            'location'      => 'Unauthorized Location',
+            'description'   => 'Staff filing attempt.',
+            'reported_date' => Carbon::today()->format('Y-m-d'),
+        ]);
+        $responseStore->assertStatus(403);
+        $this->assertDatabaseMissing('reported_assets', ['location' => 'Unauthorized Location']);
+
+        // 3. Attempt GET edit
+        $responseEdit = $this->actingAs($this->staff)->get(route('reported-assets.edit', $report));
+        $responseEdit->assertStatus(403);
+
+        // 4. Attempt PUT update
+        $responseUpdate = $this->actingAs($this->staff)->put(route('reported-assets.update', $report), [
+            'asset_id'      => $this->asset->id,
+            'reported_type' => 'Malfunction',
+            'location'      => 'Tampered Location',
+            'description'   => 'Tampered description.',
+        ]);
+        $responseUpdate->assertStatus(403);
+        $this->assertEquals('Barangay Hall', $report->fresh()->location);
+
+        // 5. Attempt POST change-status
+        $responseStatus = $this->actingAs($this->staff)->post(route('reported-assets.change-status', $report), [
+            'new_status' => 'Ongoing',
+            'notes'      => 'Staff attempt to change status',
+        ]);
+        $responseStatus->assertStatus(403);
+        $this->assertEquals('Pending', $report->fresh()->status);
+
+        // 6. Attempt DELETE destroy
+        $responseDelete = $this->actingAs($this->staff)->delete(route('reported-assets.destroy', $report));
+        $responseDelete->assertStatus(403);
+        $this->assertDatabaseHas('reported_assets', ['id' => $report->id]);
     }
 }

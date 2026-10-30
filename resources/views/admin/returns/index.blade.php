@@ -3,6 +3,9 @@
 @section('title', 'Asset Returns - BDES')
 
 @section('content')
+@php
+    $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+@endphp
     {{-- Page Header --}}
     <div class="flex items-center justify-between mb-8">
         <div>
@@ -13,10 +16,17 @@
                 ['label' => 'Returns']
             ]" />
         </div>
+        @if(!$isReadOnlyStaff)
         <button onclick="openReturnModal()" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
             <i class="fas fa-plus"></i>
             Record Return
         </button>
+        @else
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold shadow-xs">
+            <i class="fas fa-shield-alt text-blue-600"></i>
+            Read-Only Staff Access
+        </div>
+        @endif
     </div>
 
     {{-- Filters --}}
@@ -64,6 +74,7 @@
                                 <x-badge variant="info" size="sm">{{ ucfirst(str_replace('_', ' ', $return->status)) }}</x-badge>
                             </td>
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-right">
+                                @if(!$isReadOnlyStaff)
                                 <div class="flex items-center justify-end gap-2">
                                     <button onclick="window.openModal('return-modal')" class="p-2 rounded hover:bg-gray-100 transition-colors text-yellow-600" title="Edit Return">
                                         <i class="fas fa-edit"></i>
@@ -76,6 +87,7 @@
                                         </button>
                                     </form>
                                 </div>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -93,6 +105,7 @@
         </div>
     </x-card>
 
+    @if(!$isReadOnlyStaff)
     {{-- Return Modal --}}
     <x-modal id="return-modal" title="Record Asset Return">
         <form class="space-y-4">
@@ -148,4 +161,5 @@
             }
         </script>
     @endpush
+    @endif
 @endsection

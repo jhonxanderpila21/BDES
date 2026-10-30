@@ -3,6 +3,9 @@
 @section('title', 'Asset History & Audit Trail - BDES')
 
 @section('content')
+@php
+    $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+@endphp
 <div class="space-y-6">
 
     {{-- Page Header --}}
@@ -17,6 +20,10 @@
                     <span class="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
                         <i class="fas fa-shield-halved"></i> Full Administrative Access &bull; All System Accounts
                     </span>
+                @elseif($isReadOnlyStaff)
+                    <span class="inline-flex items-center gap-1 font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded border border-amber-200">
+                        <i class="fas fa-shield-alt text-amber-600"></i> Read-Only Staff Access &bull; All System Records
+                    </span>
                 @else
                     <span class="inline-flex items-center gap-1 font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
                         <i class="fas fa-user-shield"></i> Account-Specific Access &bull; Logs for {{ auth()->user()->name }}
@@ -30,12 +37,14 @@
             ]" />
         </div>
 
+        @if(!$isReadOnlyStaff)
         <div class="flex items-center gap-2">
             <a href="{{ route('asset-history.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-medium text-sm shadow-sm transition-colors">
                 <i class="fas fa-file-csv"></i>
                 Export Audit Log
             </a>
         </div>
+        @endif
     </div>
 
     {{-- Metrics Cards --}}
@@ -43,7 +52,7 @@
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    {{ auth()->user()->isAdmin() ? 'Total Audit Events' : 'My Audit Events' }}
+                    {{ (auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Total Audit Events' : 'My Audit Events' }}
                 </p>
                 <p class="text-2xl font-bold text-gray-900 mt-1">{{ number_format($metrics['total_logs']) }}</p>
             </div>
@@ -75,9 +84,9 @@
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    {{ auth()->user()->isAdmin() ? 'Active Actors' : 'Account Role' }}
+                    {{ (auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Active Actors' : 'Account Role' }}
                 </p>
-                @if(auth()->user()->isAdmin())
+                @if(auth()->user()->isAdmin() || $isReadOnlyStaff)
                     <p class="text-2xl font-bold text-purple-600 mt-1">{{ number_format($metrics['active_actors']) }}</p>
                 @else
                     <p class="text-sm font-bold text-purple-600 mt-2 uppercase tracking-wide">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
@@ -109,7 +118,7 @@
             <option value="status_changed" {{ request('event') === 'status_changed' ? 'selected' : '' }}>Status Changed</option>
         </select>
 
-        @if(auth()->user()->isAdmin())
+        @if(auth()->user()->isAdmin() || $isReadOnlyStaff)
             <select name="user_id" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
                 <option value="">All Actors / Users</option>
                 @foreach($users as $user)

@@ -11,13 +11,50 @@ use Illuminate\Validation\Rule;
 
 class ReturnController extends Controller
 {
+    /**
+     * Authorize that the current user can manage returns.
+     */
+    protected function authorizeEditor(Request $request): void
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
     public function index(Request $request)
     {
         return redirect()->route('deployment.index', array_merge(['status' => 'returned'], $request->all()));
     }
 
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index', ['status' => 'returned']);
+    }
+
+    public function show(Request $request, AssetReturn $return)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($return->load('asset', 'deployment'));
+        }
+
+        return redirect()->route('deployment.index', [
+            'status' => 'returned',
+            'search' => $return->asset->code ?? $return->returned_by,
+        ]);
+    }
+
+    public function edit(Request $request, AssetReturn $return)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index', ['status' => 'returned']);
+    }
+
     public function store(Request $request)
     {
+        $this->authorizeEditor($request);
         $validated = $request->validate([
             'asset_id' => [
                 'required',
@@ -60,6 +97,7 @@ class ReturnController extends Controller
 
     public function update(Request $request, AssetReturn $return)
     {
+        $this->authorizeEditor($request);
         $validated = $request->validate([
             'asset_id' => 'required|exists:assets,id',
             'returned_by' => 'nullable|string|max:255',
@@ -99,6 +137,7 @@ class ReturnController extends Controller
 
     public function destroy(AssetReturn $return)
     {
+        $this->authorizeEditor(request());
         DB::transaction(function () use ($return) {
             $asset = $return->asset;
             $return->delete();
