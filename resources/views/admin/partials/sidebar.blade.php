@@ -4,7 +4,7 @@
     $isAdmin = $currentUser && $currentUser->isAdmin();
     $isInventory = $currentUser && ($currentUser->hasRole('inventory_officer', 'bdrrmc_officer') || $currentUser->isAdmin());
     $isMaintenance = $currentUser && ($currentUser->hasRole('maintenance_officer') || $currentUser->isAdmin());
-    $isViewer = $currentUser && $currentUser->hasRole('viewer');
+    $isViewer = $currentUser && ($currentUser->isViewer() || $currentUser->hasRole('viewer', 'staff'));
 
     $isActive = function (string $routePattern) {
         return request()->routeIs($routePattern);

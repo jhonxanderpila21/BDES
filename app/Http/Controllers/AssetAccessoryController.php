@@ -24,7 +24,7 @@ class AssetAccessoryController extends Controller
      */
     public function store(StoreAssetAccessoryRequest $request)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -41,11 +41,26 @@ class AssetAccessoryController extends Controller
     }
 
     /**
+     * Display the specified asset accessory.
+     */
+    public function show(Request $request, AssetAccessory $assetAccessory)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($assetAccessory->load(['asset', 'receipts']));
+        }
+
+        return redirect()->route('attachments.index', [
+            'tab' => 'accessories',
+            'view_accessory_id' => $assetAccessory->id,
+        ]);
+    }
+
+    /**
      * Update the specified resource in storage.
      */
     public function update(UpdateAssetAccessoryRequest $request, AssetAccessory $assetAccessory)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -65,7 +80,7 @@ class AssetAccessoryController extends Controller
      */
     public function destroy(Request $request, AssetAccessory $assetAccessory)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -80,7 +95,7 @@ class AssetAccessoryController extends Controller
      */
     public function adjustQuantity(Request $request, AssetAccessory $assetAccessory)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 

@@ -61,7 +61,13 @@ class AttachmentController extends Controller
         if ($request->filled('asset_type_id') && $activeTab === 'attachments') {
             $attachmentsQuery->where('asset_type_id', $request->asset_type_id);
         }
-        $attachments = $attachmentsQuery->latest('id')->paginate(10, ['*'], 'attachments_page')->withQueryString();
+
+        // Sorting for Attachments
+        $allowedSorts = ['id', 'name', 'type', 'quantity', 'condition', 'created_at'];
+        $sortBy = ($activeTab === 'attachments' && in_array($request->get('sort_by'), $allowedSorts, true)) ? $request->get('sort_by') : 'id';
+        $sortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $attachments = $attachmentsQuery->orderBy($sortBy, $sortDir)->paginate(10, ['*'], 'attachments_page')->withQueryString();
 
         // 2. Accessories Data
         $accessoriesQuery = AssetAccessory::with('asset');
@@ -82,7 +88,16 @@ class AttachmentController extends Controller
         if ($request->filled('status') && $activeTab === 'accessories') {
             $accessoriesQuery->where('status', $request->status);
         }
-        $accessories = $accessoriesQuery->latest('id')->paginate(10, ['*'], 'accessories_page')->withQueryString();
+        if ($request->filled('asset_id') && $activeTab === 'accessories') {
+            $accessoriesQuery->where('asset_id', $request->asset_id);
+        }
+
+        // Sorting for Accessories
+        $allowedAccessorySorts = ['id', 'accessory_name', 'asset_type', 'quantity', 'unit_cost', 'status', 'created_at'];
+        $accSortBy = ($activeTab === 'accessories' && in_array($request->get('sort_by'), $allowedAccessorySorts, true)) ? $request->get('sort_by') : 'id';
+        $accSortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        $accessories = $accessoriesQuery->orderBy($accSortBy, $accSortDir)->paginate(10, ['*'], 'accessories_page')->withQueryString();
 
         // Accessories Supporting Data
         $budgetSummary = AssetAccessory::all()
@@ -107,11 +122,23 @@ class AttachmentController extends Controller
     }
 
     /**
+     * Show the form for creating a new attachment.
+     */
+    public function create(Request $request)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('attachments.index', ['tab' => 'attachments']);
+    }
+
+    /**
      * Store a newly created attachment in storage.
      */
     public function store(Request $request)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -162,11 +189,38 @@ class AttachmentController extends Controller
     }
 
     /**
+     * Display the specified attachment.
+     */
+    public function show(Request $request, Attachment $attachment)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($attachment->load(['asset', 'assetType', 'receipts']));
+        }
+
+        return redirect()->route('attachments.index', [
+            'tab' => 'attachments',
+            'view_attachment_id' => $attachment->id,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified attachment.
+     */
+    public function edit(Request $request, Attachment $attachment)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('attachments.index', ['tab' => 'attachments']);
+    }
+
+    /**
      * Update the specified attachment in storage.
      */
     public function update(Request $request, Attachment $attachment)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -206,7 +260,7 @@ class AttachmentController extends Controller
      */
     public function destroy(Request $request, Attachment $attachment)
     {
-        if ($request->user() && $request->user()->hasRole('viewer')) {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
             abort(403, 'Unauthorized action.');
         }
 

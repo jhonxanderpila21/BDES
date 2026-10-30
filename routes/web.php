@@ -74,7 +74,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Asset Accessories
     Route::post('asset-accessories/{asset_accessory}/adjust-quantity', [AssetAccessoryController::class, 'adjustQuantity'])->name('asset-accessories.adjust-quantity');
-    Route::resource('asset-accessories', AssetAccessoryController::class)->except(['create', 'show', 'edit']);
+    Route::resource('asset-accessories', AssetAccessoryController::class)->except(['create', 'edit']);
 
     // Operations (Deployments & Returns)
     Route::post('deployment/{deployment}/return', [DeploymentController::class, 'returnAsset'])->name('deployment.return');
