@@ -44,6 +44,10 @@ class MaintenancePolicy
      */
     public function create(User $user): bool
     {
+        if ($user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
         return $user->hasRole('maintenance_officer', 'bdrrmc_officer');
     }
 
@@ -52,6 +56,10 @@ class MaintenancePolicy
      */
     public function update(User $user, Maintenance $maintenance): bool
     {
+        if ($user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
         return $user->hasRole('maintenance_officer', 'bdrrmc_officer');
     }
 
@@ -60,6 +68,10 @@ class MaintenancePolicy
      */
     public function complete(User $user, Maintenance $maintenance): bool
     {
+        if ($user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
         return $user->hasRole('maintenance_officer', 'bdrrmc_officer');
     }
 
@@ -68,6 +80,10 @@ class MaintenancePolicy
      */
     public function delete(User $user, Maintenance $maintenance): bool
     {
+        if ($user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
         return false; // Handled by admin in before
     }
 }

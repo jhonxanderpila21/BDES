@@ -3,6 +3,10 @@
 @section('title', 'Maintenance & Inspection - BDES')
 
 @section('content')
+    @php
+        $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
+    @endphp
+
     {{-- Page Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
@@ -16,21 +20,28 @@
         
         {{-- Contextual Action Buttons --}}
         <div class="flex flex-wrap items-center gap-2">
-            @if($activeTab === 'schedules')
-                <button onclick="openAddScheduleModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                    <i class="fas fa-plus"></i>
-                    Add Schedule
-                </button>
-            @elseif($activeTab === 'logs')
-                <button onclick="openCreateMaintenanceModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                    <i class="fas fa-plus"></i>
-                    Log Maintenance
-                </button>
-            @elseif($activeTab === 'inspections')
-                <button onclick="openCreateInspectionModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                    <i class="fas fa-plus"></i>
-                    Record Inspection
-                </button>
+            @if($isReadOnlyStaff)
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                    <i class="fas fa-shield-alt text-amber-600"></i>
+                    Read-Only Staff Access
+                </span>
+            @else
+                @if($activeTab === 'schedules')
+                    <button onclick="openAddScheduleModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                        <i class="fas fa-plus"></i>
+                        Add Schedule
+                    </button>
+                @elseif($activeTab === 'logs')
+                    <button onclick="openCreateMaintenanceModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                        <i class="fas fa-plus"></i>
+                        Log Maintenance
+                    </button>
+                @elseif($activeTab === 'inspections')
+                    <button onclick="openCreateInspectionModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+                        <i class="fas fa-plus"></i>
+                        Record Inspection
+                    </button>
+                @endif
             @endif
         </div>
     </div>
@@ -280,19 +291,29 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <button 
                                             type="button"
-                                            onclick='openEditScheduleModal(@json($schedule))'
-                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-                                            title="Edit Schedule"
+                                            onclick='openViewScheduleModal(@json($schedule))'
+                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-colors"
+                                            title="View Schedule Details"
                                         >
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-eye"></i>
                                         </button>
-                                        <form action="{{ route('maintenance-schedules.destroy', $schedule) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this preventive maintenance schedule?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                        @if(!$isReadOnlyStaff)
+                                            <button 
+                                                type="button"
+                                                onclick='openEditScheduleModal(@json($schedule))'
+                                                class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                                                title="Edit Schedule"
+                                            >
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('maintenance-schedules.destroy', $schedule) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this preventive maintenance schedule?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -380,9 +401,15 @@
                                             {{ $item->work_order_number ?? ('WO-' . str_pad($item->id, 5, '0', STR_PAD_LEFT)) }}
                                         </span>
                                         @if($item->asset)
-                                            <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
-                                                [{{ $item->asset->code }}]
-                                            </a>
+                                            @if($isReadOnlyStaff)
+                                                <span class="text-xs font-mono text-gray-500">
+                                                    [{{ $item->asset->code }}]
+                                                </span>
+                                            @else
+                                                <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
+                                                    [{{ $item->asset->code }}]
+                                                </a>
+                                            @endif
                                         @endif
                                     </div>
                                     <p class="text-sm font-bold text-gray-900">{{ $item->asset->name ?? 'Unknown Asset' }}</p>
@@ -433,11 +460,11 @@
                                 <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
                                     @php
                                         $mColor = match($item->status) {
-                                            'completed'   => 'success',
-                                            'in_progress' => 'warning',
-                                            'scheduled'   => 'info',
-                                            'pending'     => 'secondary',
-                                            default       => 'secondary'
+                                             'completed'   => 'success',
+                                             'in_progress' => 'warning',
+                                             'scheduled'   => 'info',
+                                             'pending'     => 'secondary',
+                                             default       => 'secondary'
                                         };
                                     @endphp
                                     <x-badge variant="{{ $mColor }}" size="sm">{{ ucfirst(str_replace('_', ' ', $item->status)) }}</x-badge>
@@ -446,19 +473,29 @@
                                     <div class="flex items-center justify-end gap-1.5">
                                         <button 
                                             type="button" 
-                                            onclick='openEditMaintenanceModal(@json($item))'
-                                            class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
-                                            title="Edit Work Order"
+                                            onclick='openViewMaintenanceModal(@json($item))'
+                                            class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-colors"
+                                            title="View Work Order Details"
                                         >
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-eye"></i>
                                         </button>
-                                        <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this maintenance record?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                        @if(!$isReadOnlyStaff)
+                                            <button 
+                                                type="button" 
+                                                onclick='openEditMaintenanceModal(@json($item))'
+                                                class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                                                title="Edit Work Order"
+                                            >
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this maintenance record?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -586,19 +623,29 @@
                                     <div class="flex items-center justify-end gap-2">
                                         <button 
                                             type="button"
-                                            onclick='openEditInspectionModal(@json($insp))'
-                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-                                            title="Edit Inspection"
+                                            onclick='openViewInspectionModal(@json($insp))'
+                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-colors"
+                                            title="View Inspection Details"
                                         >
-                                            <i class="fas fa-edit"></i>
+                                            <i class="fas fa-eye"></i>
                                         </button>
-                                        <form action="{{ route('inspection.destroy', $insp) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this inspection record?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                        @if(!$isReadOnlyStaff)
+                                            <button 
+                                                type="button"
+                                                onclick='openEditInspectionModal(@json($insp))'
+                                                class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
+                                                title="Edit Inspection"
+                                            >
+                                                <i class="fas fa-edit"></i>
                                             </button>
-                                        </form>
+                                            <form action="{{ route('inspection.destroy', $insp) }}" method="POST" class="inline-block" onsubmit="return confirm('Delete this inspection record?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -621,6 +668,7 @@
     {{-- ========================================================================= --}}
     {{-- MODALS: PREVENTIVE SCHEDULES                                              --}}
     {{-- ========================================================================= --}}
+    @if(!$isReadOnlyStaff)
     {{-- 1. Add Schedule Modal --}}
     <x-modal id="add-schedule-modal" title="Add Preventive Maintenance Schedule">
         <form action="{{ route('maintenance-schedules.store') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
@@ -1103,9 +1151,310 @@
             </div>
         </form>
     </x-modal>
+    @endif
+
+    {{-- ========================================================================= --}}
+    {{-- READ-ONLY VIEW MODALS                                                     --}}
+    {{-- ========================================================================= --}}
+    {{-- View Schedule Modal (Read-Only) --}}
+    <x-modal id="view-schedule-modal" title="Preventive Maintenance Schedule Details">
+        <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Asset</p>
+                        <p class="text-sm font-bold text-gray-900" id="view_sched_asset_name">-</p>
+                        <p class="text-xs font-mono text-blue-600" id="view_sched_asset_code">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Asset Type</p>
+                        <p class="text-sm font-semibold text-gray-800" id="view_sched_asset_type">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Maintenance Task</p>
+                <p class="text-base font-semibold text-gray-900" id="view_sched_task">-</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Interval</p>
+                    <p class="text-sm text-gray-800" id="view_sched_interval">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</p>
+                    <span id="view_sched_status_badge" class="inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">-</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Last Done Date</p>
+                    <p class="text-sm text-gray-800" id="view_sched_last_date">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Due Date</p>
+                    <p class="text-sm font-semibold text-gray-900" id="view_sched_next_date">-</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <x-button variant="secondary" type="button" onclick="window.closeModal('view-schedule-modal')">
+                    Close
+                </x-button>
+            </div>
+        </div>
+    </x-modal>
+
+    {{-- View Maintenance Work Order Modal (Read-Only) --}}
+    <x-modal id="view-maintenance-modal" title="Maintenance Work Order Details">
+        <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                    <div>
+                        <span class="text-xs font-mono font-bold text-blue-700 bg-blue-100 border border-blue-200 px-2.5 py-1 rounded" id="view_maint_wo_number">
+                            -
+                        </span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="view_maint_type_badge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">-</span>
+                        <span id="view_maint_priority_badge" class="px-2 py-0.5 text-xs font-bold uppercase rounded bg-gray-100 text-gray-800">-</span>
+                        <span id="view_maint_status_badge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">-</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-gray-200">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Asset</p>
+                        <p class="text-sm font-bold text-gray-900" id="view_maint_asset_name">-</p>
+                        <p class="text-xs font-mono text-gray-500" id="view_maint_asset_code">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</p>
+                        <p class="text-sm text-gray-800" id="view_maint_asset_category">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Technician / Shop</p>
+                    <p class="text-sm font-medium text-gray-900" id="view_maint_technician">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Assigned Staff Officer</p>
+                    <p class="text-sm text-gray-800" id="view_maint_assigned">-</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Scheduled Date</p>
+                    <p class="text-sm text-gray-800" id="view_maint_sched_date">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Completed Date</p>
+                    <p class="text-sm text-gray-800" id="view_maint_comp_date">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Estimated Duration</p>
+                    <p class="text-sm text-gray-800" id="view_maint_duration">-</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Cost (PHP)</p>
+                    <p class="text-sm font-bold text-gray-900" id="view_maint_cost">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Parts & Materials</p>
+                    <p class="text-sm text-gray-800" id="view_maint_parts">-</p>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Notes & Descriptions</p>
+                <div class="mt-1 p-3 bg-gray-50 rounded-lg text-sm text-gray-700 whitespace-pre-line border border-gray-200" id="view_maint_notes">-</div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <x-button variant="secondary" type="button" onclick="window.closeModal('view-maintenance-modal')">
+                    Close
+                </x-button>
+            </div>
+        </div>
+    </x-modal>
+
+    {{-- View Inspection Modal (Read-Only) --}}
+    <x-modal id="view-inspection-modal" title="Asset Inspection Details">
+        <div class="space-y-4">
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Asset</p>
+                        <p class="text-sm font-bold text-gray-900" id="view_insp_asset_name">-</p>
+                        <p class="text-xs font-mono text-blue-600" id="view_insp_asset_code">-</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</p>
+                        <p class="text-sm text-gray-800" id="view_insp_asset_category">-</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Inspector / Evaluator</p>
+                    <p class="text-sm font-semibold text-gray-900" id="view_insp_inspector">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Result</p>
+                    <span id="view_insp_result_badge" class="inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">-</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Inspection Date</p>
+                    <p class="text-sm text-gray-800" id="view_insp_date">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Next Due Date</p>
+                    <p class="text-sm text-gray-800" id="view_insp_next_due">-</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</p>
+                    <span id="view_insp_status_badge" class="inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">-</span>
+                </div>
+            </div>
+
+            <div>
+                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Findings & Recommendations</p>
+                <div class="mt-1 p-3 bg-gray-50 rounded-lg text-sm text-gray-700 whitespace-pre-line border border-gray-200" id="view_insp_findings">-</div>
+            </div>
+
+            <div class="flex justify-end pt-4 border-t border-gray-200">
+                <x-button variant="secondary" type="button" onclick="window.closeModal('view-inspection-modal')">
+                    Close
+                </x-button>
+            </div>
+        </div>
+    </x-modal>
 
     @push('scripts')
         <script>
+            // View Schedule Modal
+            function openViewScheduleModal(schedule) {
+                document.getElementById('view_sched_asset_name').textContent = (schedule.asset && schedule.asset.name) ? schedule.asset.name : 'Unknown';
+                document.getElementById('view_sched_asset_code').textContent = (schedule.asset && schedule.asset.code) ? '[' + schedule.asset.code + ']' : '-';
+                document.getElementById('view_sched_asset_type').textContent = schedule.asset_type || '-';
+                document.getElementById('view_sched_task').textContent = schedule.maintenance_task || '-';
+                document.getElementById('view_sched_interval').textContent = (schedule.interval_type || '-') + ' (' + (schedule.interval_days || 0) + ' days)';
+                
+                let lastDate = schedule.last_maintenance_date || 'N/A';
+                if (lastDate && lastDate.includes('T')) lastDate = lastDate.split('T')[0];
+                document.getElementById('view_sched_last_date').textContent = lastDate;
+
+                let nextDate = schedule.next_due_date || 'N/A';
+                if (nextDate && nextDate.includes('T')) nextDate = nextDate.split('T')[0];
+                document.getElementById('view_sched_next_date').textContent = nextDate;
+
+                const statusEl = document.getElementById('view_sched_status_badge');
+                statusEl.textContent = schedule.status || '-';
+                statusEl.className = 'inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full ' + (
+                    schedule.status === 'Monitoring Only' ? 'bg-emerald-100 text-emerald-800' :
+                    schedule.status === 'Maintenance Due' ? 'bg-amber-100 text-amber-800' :
+                    schedule.status === 'Overdue' ? 'bg-rose-100 text-rose-800' : 'bg-gray-100 text-gray-800'
+                );
+
+                window.openModal('view-schedule-modal');
+            }
+
+            // View Maintenance Modal
+            function openViewMaintenanceModal(item) {
+                document.getElementById('view_maint_wo_number').textContent = item.work_order_number || ('WO-' + String(item.id).padStart(5, '0'));
+                document.getElementById('view_maint_asset_name').textContent = (item.asset && item.asset.name) ? item.asset.name : 'Unknown Asset';
+                document.getElementById('view_maint_asset_code').textContent = (item.asset && item.asset.code) ? '[' + item.asset.code + ']' : '-';
+                document.getElementById('view_maint_asset_category').textContent = (item.asset && item.asset.category && item.asset.category.name) ? item.asset.category.name : 'Uncategorized';
+                
+                document.getElementById('view_maint_type_badge').textContent = (item.type || '-').toUpperCase();
+                
+                const priBadge = document.getElementById('view_maint_priority_badge');
+                priBadge.textContent = (item.priority || 'medium').toUpperCase();
+                priBadge.className = 'px-2 py-0.5 text-xs font-bold uppercase rounded ' + (
+                    item.priority === 'urgent' ? 'bg-rose-100 text-rose-800' :
+                    item.priority === 'high' ? 'bg-amber-100 text-amber-800' :
+                    item.priority === 'low' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                );
+
+                const statBadge = document.getElementById('view_maint_status_badge');
+                statBadge.textContent = (item.status || '-').replace('_', ' ').toUpperCase();
+                statBadge.className = 'px-2 py-0.5 text-xs font-semibold rounded-full ' + (
+                    item.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
+                    item.status === 'in_progress' ? 'bg-amber-100 text-amber-800' :
+                    item.status === 'scheduled' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                );
+
+                document.getElementById('view_maint_technician').textContent = item.technician || 'Unspecified';
+                document.getElementById('view_maint_assigned').textContent = (item.assigned_user && item.assigned_user.name) ? item.assigned_user.name : (item.assignedUser && item.assignedUser.name ? item.assignedUser.name : 'Unassigned');
+
+                let sDate = item.scheduled_date || 'N/A';
+                if (sDate && sDate.includes('T')) sDate = sDate.split('T')[0];
+                document.getElementById('view_maint_sched_date').textContent = sDate;
+
+                let cDate = item.completed_at || 'N/A';
+                if (cDate && cDate.includes('T')) cDate = cDate.split('T')[0];
+                document.getElementById('view_maint_comp_date').textContent = cDate;
+
+                document.getElementById('view_maint_duration').textContent = item.estimated_duration || 'N/A';
+                document.getElementById('view_maint_cost').textContent = item.cost ? ('₱' + parseFloat(item.cost).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})) : '₱0.00';
+                document.getElementById('view_maint_parts').textContent = item.parts_used || 'None specified';
+                document.getElementById('view_maint_notes').textContent = item.notes || 'No remarks recorded.';
+
+                window.openModal('view-maintenance-modal');
+            }
+
+            // View Inspection Modal
+            function openViewInspectionModal(insp) {
+                document.getElementById('view_insp_asset_name').textContent = (insp.asset && insp.asset.name) ? insp.asset.name : 'Unknown Asset';
+                document.getElementById('view_insp_asset_code').textContent = (insp.asset && insp.asset.code) ? '[' + insp.asset.code + ']' : '-';
+                document.getElementById('view_insp_asset_category').textContent = (insp.asset && insp.asset.category && insp.asset.category.name) ? insp.asset.category.name : 'Uncategorized';
+
+                document.getElementById('view_insp_inspector').textContent = insp.inspector || 'Unassigned';
+
+                const resBadge = document.getElementById('view_insp_result_badge');
+                resBadge.textContent = (insp.result || '-').replace('_', ' ').toUpperCase();
+                resBadge.className = 'inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full ' + (
+                    insp.result === 'passed' ? 'bg-emerald-100 text-emerald-800' :
+                    insp.result === 'failed' ? 'bg-rose-100 text-rose-800' :
+                    insp.result === 'conditional_pass' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-800'
+                );
+
+                let iDate = insp.inspection_date || 'N/A';
+                if (iDate && iDate.includes('T')) iDate = iDate.split('T')[0];
+                document.getElementById('view_insp_date').textContent = iDate;
+
+                let nDate = insp.next_due_date || 'N/A';
+                if (nDate && nDate.includes('T')) nDate = nDate.split('T')[0];
+                document.getElementById('view_insp_next_due').textContent = nDate;
+
+                const statBadge = document.getElementById('view_insp_status_badge');
+                statBadge.textContent = (insp.status || '-').toUpperCase();
+                statBadge.className = 'inline-block mt-1 px-2.5 py-0.5 text-xs font-semibold rounded-full ' + (
+                    insp.status === 'completed' ? 'bg-emerald-100 text-emerald-800' :
+                    insp.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                    insp.status === 'overdue' ? 'bg-rose-100 text-rose-800' : 'bg-gray-100 text-gray-800'
+                );
+
+                document.getElementById('view_insp_findings').textContent = insp.findings || 'No findings reported.';
+
+                window.openModal('view-inspection-modal');
+            }
+
+            @if(!$isReadOnlyStaff)
             // Schedules
             function openAddScheduleModal() {
                 window.openModal('add-schedule-modal');
@@ -1204,6 +1553,7 @@
 
                 window.openModal('edit-inspection-modal');
             }
+            @endif
         </script>
     @endpush
 @endsection

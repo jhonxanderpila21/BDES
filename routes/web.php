@@ -83,7 +83,7 @@ Route::middleware(['auth'])->group(function () {
     
     // Maintenance Schedules (Preventive Maintenance)
     Route::post('maintenance-schedules/{maintenance_schedule}/complete', [MaintenanceScheduleController::class, 'complete'])->name('maintenance-schedules.complete');
-    Route::resource('maintenance-schedules', MaintenanceScheduleController::class)->except(['create', 'show', 'edit']);
+    Route::resource('maintenance-schedules', MaintenanceScheduleController::class)->except(['create', 'edit']);
 
     // Reported Assets
     Route::post('reported-assets/{reported_asset}/change-status', [ReportedAssetController::class, 'changeStatus'])->name('reported-assets.change-status');

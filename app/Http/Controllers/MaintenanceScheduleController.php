@@ -55,14 +55,36 @@ class MaintenanceScheduleController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Authorize schedule modifications.
      */
-    public function destroy(MaintenanceSchedule $maintenanceSchedule)
+    protected function authorizeEditor(Request $request): void
     {
-        $user = request()->user();
-        if (!$user || (!$user->isAdmin() && !$user->hasRole('maintenance_officer', 'bdrrmc_officer'))) {
+        $user = $request->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff') || (!$user->isAdmin() && !$user->hasRole('maintenance_officer', 'bdrrmc_officer'))) {
             abort(403, 'Unauthorized. Schedule management requires Maintenance Officer or Administrator permissions.');
         }
+    }
+
+    /**
+     * Display the specified maintenance schedule details (accessible for staff).
+     */
+    public function show(Request $request, MaintenanceSchedule $maintenanceSchedule)
+    {
+        $maintenanceSchedule->load(['asset.type', 'asset.category', 'receipts']);
+
+        if ($request->wantsJson()) {
+            return response()->json($maintenanceSchedule);
+        }
+
+        return redirect()->route('maintenance-schedules.index');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Request $request, MaintenanceSchedule $maintenanceSchedule)
+    {
+        $this->authorizeEditor($request);
 
         $maintenanceSchedule->delete();
 
@@ -75,10 +97,7 @@ class MaintenanceScheduleController extends Controller
      */
     public function complete(Request $request, MaintenanceSchedule $maintenanceSchedule)
     {
-        $user = $request->user();
-        if (!$user || (!$user->isAdmin() && !$user->hasRole('maintenance_officer', 'bdrrmc_officer'))) {
-            abort(403, 'Unauthorized. Completing maintenance schedules requires Maintenance Officer or Administrator permissions.');
-        }
+        $this->authorizeEditor($request);
 
         $input = $request->all();
         if (isset($input['technician'])) {

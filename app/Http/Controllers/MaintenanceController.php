@@ -149,10 +149,54 @@ class MaintenanceController extends Controller
     }
 
     /**
+     * Authorize that the user has permission to modify maintenance records.
+     */
+    protected function authorizeEditor(Request $request): void
+    {
+        $user = $request->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            abort(403, 'Unauthorized. Maintenance and work order management is restricted for staff members.');
+        }
+    }
+
+    /**
+     * Show form to create a maintenance work order (restricted for staff).
+     */
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+        return redirect()->route('maintenance.index', ['tab' => 'logs']);
+    }
+
+    /**
+     * Display the specified maintenance record details (accessible for staff).
+     */
+    public function show(Request $request, Maintenance $maintenance)
+    {
+        $maintenance->load(['asset.category', 'assignedUser', 'receipts']);
+
+        if ($request->wantsJson()) {
+            return response()->json($maintenance);
+        }
+
+        return redirect()->route('maintenance.index', ['tab' => 'logs']);
+    }
+
+    /**
+     * Show form to edit a maintenance record (restricted for staff).
+     */
+    public function edit(Request $request, Maintenance $maintenance)
+    {
+        $this->authorizeEditor($request);
+        return redirect()->route('maintenance.index', ['tab' => 'logs']);
+    }
+
+    /**
      * Store a newly created maintenance record / work order.
      */
     public function store(Request $request)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('create', Maintenance::class);
 
         // Normalize text and cost inputs
@@ -235,6 +279,7 @@ class MaintenanceController extends Controller
      */
     public function update(Request $request, Maintenance $maintenance)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('update', $maintenance);
 
         // Normalize text and cost inputs
@@ -319,6 +364,7 @@ class MaintenanceController extends Controller
      */
     public function complete(Request $request, Maintenance $maintenance)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('complete', $maintenance);
 
         $input = $request->all();
@@ -391,8 +437,9 @@ class MaintenanceController extends Controller
     /**
      * Remove the specified maintenance record.
      */
-    public function destroy(Maintenance $maintenance)
+    public function destroy(Request $request, Maintenance $maintenance)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('delete', $maintenance);
 
         DB::transaction(function () use ($maintenance) {
