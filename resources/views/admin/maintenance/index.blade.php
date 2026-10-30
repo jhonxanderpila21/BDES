@@ -107,7 +107,7 @@
             <i class="fas fa-wrench"></i>
             <span>Maintenance Logs & Work Orders</span>
             <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'logs' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
-                {{ $maintenances->total() + $schedules->total() }}
+                {{ $maintenances->total() }}
             </span>
         </a>
 
@@ -127,389 +127,318 @@
     {{-- TAB 1: MAINTENANCE LOGS & WORK ORDERS                                     --}}
     {{-- ========================================================================= --}}
     @if($activeTab === 'logs')
-        <div class="space-y-8">
-            {{-- ----------------------------------------------------------------- --}}
-            {{-- SECTION 1: MAINTENANCE WORK ORDERS & REPAIR LOGS                   --}}
-            {{-- ----------------------------------------------------------------- --}}
-            <div>
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-                    <div>
-                        <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                            <i class="fas fa-wrench text-blue-600"></i>
-                            <span>Maintenance Work Orders & Repair Logs</span>
-                            <span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800 font-semibold">
-                                {{ $maintenances->total() }}
-                            </span>
-                        </h2>
-                        <p class="text-xs text-gray-500 mt-0.5">Track work orders, corrective repairs, servicing logs, and expense receipts.</p>
-                    </div>
+        <div>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
+                        <i class="fas fa-wrench text-blue-600"></i>
+                        <span>Maintenance Work Orders & Repair Logs</span>
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800 font-semibold">
+                            {{ $maintenances->total() }}
+                        </span>
+                    </h2>
+                    <p class="text-xs text-gray-500 mt-0.5">Track work orders, corrective repairs, servicing logs, and scheduled preventive routines.</p>
+                </div>
+                <div class="flex items-center gap-2 self-start sm:self-auto">
+                    <button 
+                        type="button" 
+                        onclick="openAddScheduleModal()"
+                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
+                    >
+                        <i class="fas fa-calendar-plus"></i>
+                        <span>Add Schedule</span>
+                    </button>
                     <button 
                         type="button" 
                         onclick="openCreateMaintenanceModal()"
-                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors self-start sm:self-auto"
+                        class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors"
                     >
                         <i class="fas fa-plus"></i>
                         <span>Log Maintenance</span>
                     </button>
                 </div>
+            </div>
 
-                {{-- Search & Filters for Logs --}}
-                <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                    <div class="flex-1">
-                        <form action="{{ route('maintenance.index') }}" method="GET" id="searchLogForm">
-                            <input type="hidden" name="tab" value="logs">
-                            @if(request('type'))<input type="hidden" name="type" value="{{ request('type') }}">@endif
-                            @if(request('priority'))<input type="hidden" name="priority" value="{{ request('priority') }}">@endif
-                            @if(request('status') && !in_array(request('status'), ['due_overdue', 'Monitoring Only', 'Maintenance Due', 'Overdue'], true))<input type="hidden" name="status" value="{{ request('status') }}">@endif
-                            @if(request('schedule_search'))<input type="hidden" name="schedule_search" value="{{ request('schedule_search') }}">@endif
-                            @if(request('asset_type'))<input type="hidden" name="asset_type" value="{{ request('asset_type') }}">@endif
-                            @if(request('interval_type'))<input type="hidden" name="interval_type" value="{{ request('interval_type') }}">@endif
-                            @if(request('schedule_status'))<input type="hidden" name="schedule_status" value="{{ request('schedule_status') }}">@endif
-                            <x-search-bar name="search" value="{{ request('search') }}" placeholder="Search work orders by technician, notes, or asset..." />
-                        </form>
-                    </div>
+            {{-- Search & Filters for Merged Maintenance Logs --}}
+            <div class="flex flex-col sm:flex-row gap-4 mb-4">
+                <div class="flex-1">
+                    <form action="{{ route('maintenance.index') }}" method="GET" id="searchLogForm">
+                        <input type="hidden" name="tab" value="logs">
+                        @if(request('type'))<input type="hidden" name="type" value="{{ request('type') }}">@endif
+                        @if(request('priority'))<input type="hidden" name="priority" value="{{ request('priority') }}">@endif
+                        @if(request('status'))<input type="hidden" name="status" value="{{ request('status') }}">@endif
+                        <x-search-bar name="search" value="{{ request('search') }}" placeholder="Search work orders, schedules, tasks, technician, or asset..." />
+                    </form>
+                </div>
 
-                    {{-- Type Filter --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                            <span>{{ request('type') ? ucfirst(request('type')) : 'Maintenance Type' }}</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
-                            <a href="{{ route('maintenance.index', array_merge(request()->except('type', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !request('type') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Types</a>
-                            @foreach($maintenanceTypes as $t)
-                                <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'type' => $t])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('type') === $t ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ ucfirst($t) }}</a>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Status Filter --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ (request('status') && !in_array(request('status'), ['due_overdue', 'Monitoring Only', 'Maintenance Due', 'Overdue'], true)) ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                            <span>{{ (request('status') && !in_array(request('status'), ['due_overdue', 'Monitoring Only', 'Maintenance Due', 'Overdue'], true)) ? ucfirst(str_replace('_', ' ', request('status'))) : 'Status' }}</span>
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
-                            <a href="{{ route('maintenance.index', array_merge(request()->except('status', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ (!request('status') || in_array(request('status'), ['due_overdue', 'Monitoring Only', 'Maintenance Due', 'Overdue'], true)) ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Statuses</a>
-                            @foreach($maintenanceStatuses as $st)
-                                <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'status' => $st])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('status') === $st ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ ucfirst(str_replace('_', ' ', $st)) }}</a>
-                            @endforeach
-                        </div>
+                {{-- Type Filter --}}
+                <div x-data="{ open: false }" class="relative">
+                    <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
+                        <span>{{ request('type') ? ucfirst(request('type')) : 'Maintenance Type' }}</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                        <a href="{{ route('maintenance.index', array_merge(request()->except('type', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !request('type') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Types</a>
+                        <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'type' => 'preventive'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('type') === 'preventive' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Preventive (Schedules)</a>
+                        @foreach($maintenanceTypes as $t)
+                            <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'type' => $t])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('type') === $t ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ ucfirst($t) }}</a>
+                        @endforeach
                     </div>
                 </div>
 
-                {{-- Maintenance Logs Table --}}
-                <x-card>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type & Priority</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Technician / Assigned</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Parts & Materials</th>
-                            <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Service Dates</th>
-                            <th class="px-5 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-5 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($maintenances as $item)
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-5 py-3.5 align-middle text-left">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
-                                            {{ $item->work_order_number ?? ('WO-' . str_pad($item->id, 5, '0', STR_PAD_LEFT)) }}
-                                        </span>
-                                        @if($item->asset)
-                                            <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
-                                                [{{ $item->asset->code }}]
-                                            </a>
+                {{-- Status Filter --}}
+                <div x-data="{ open: false }" class="relative">
+                    @php
+                        $currentStatus = request('status');
+                        $statusLabels = [
+                            'due_overdue'      => 'Due / Overdue',
+                            'pending'          => 'Pending',
+                            'scheduled'        => 'Scheduled',
+                            'in_progress'      => 'In Progress',
+                            'completed'        => 'Completed',
+                            'Monitoring Only'  => 'Monitoring Only',
+                            'Maintenance Due'  => 'Maintenance Due',
+                            'Overdue'          => 'Overdue',
+                        ];
+                    @endphp
+                    <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ $currentStatus ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
+                        <span>{{ $currentStatus ? ($statusLabels[$currentStatus] ?? ucfirst(str_replace('_', ' ', $currentStatus))) : 'Status' }}</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                        <a href="{{ route('maintenance.index', array_merge(request()->except('status', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !$currentStatus ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Statuses</a>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <div class="px-4 py-1 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Work Order Statuses</div>
+                        @foreach($maintenanceStatuses as $st)
+                            <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'status' => $st])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentStatus === $st ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ ucfirst(str_replace('_', ' ', $st)) }}</a>
+                        @endforeach
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <div class="px-4 py-1 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Schedule Statuses</div>
+                        <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'status' => 'due_overdue'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentStatus === 'due_overdue' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Due / Overdue</a>
+                        @foreach($scheduleStatuses as $s)
+                            <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'status' => $s])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentStatus === $s ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ $s }}</a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Merged Maintenance Table --}}
+            <x-card>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b border-gray-200">
+                            <tr>
+                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
+                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type & Priority</th>
+                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Task & Assigned</th>
+                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Parts & Details</th>
+                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Service Dates</th>
+                                <th class="px-5 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                                <th class="px-5 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @forelse($maintenances as $item)
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    {{-- Work Order / Asset Column --}}
+                                    <td class="px-5 py-3.5 align-middle text-left">
+                                        @if(!empty($item->is_schedule))
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-mono text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
+                                                    SCHED-{{ str_pad($item->id, 4, '0', STR_PAD_LEFT) }}
+                                                </span>
+                                                @if($item->asset)
+                                                    <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
+                                                        [{{ $item->asset->code }}]
+                                                    </a>
+                                                @endif
+                                            </div>
+                                            <p class="text-sm font-bold text-gray-900">{{ $item->asset->name ?? 'Unknown Asset' }}</p>
+                                            <p class="text-[11px] text-gray-400">{{ $item->asset_type ?: ($item->asset->category->name ?? 'Preventive Schedule') }}</p>
+                                        @else
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                                                    {{ $item->work_order_number ?? ('WO-' . str_pad($item->id, 5, '0', STR_PAD_LEFT)) }}
+                                                </span>
+                                                @if($item->asset)
+                                                    <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
+                                                        [{{ $item->asset->code }}]
+                                                    </a>
+                                                @endif
+                                            </div>
+                                            <p class="text-sm font-bold text-gray-900">{{ $item->asset->name ?? 'Unknown Asset' }}</p>
+                                            <p class="text-[11px] text-gray-400">{{ $item->asset->category->name ?? 'Uncategorized' }}</p>
                                         @endif
-                                    </div>
-                                    <p class="text-sm font-bold text-gray-900">{{ $item->asset->name ?? 'Unknown Asset' }}</p>
-                                    <p class="text-[11px] text-gray-400">{{ $item->asset->category->name ?? 'Uncategorized' }}</p>
-                                </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap">
-                                    <div class="space-y-1">
-                                        <x-badge variant="info" size="sm">{{ ucfirst($item->type) }}</x-badge>
-                                        @php
-                                            $priBadge = match($item->priority ?? 'medium') {
-                                                'urgent' => 'bg-rose-100 text-rose-800',
-                                                'high'   => 'bg-amber-100 text-amber-800',
-                                                'low'    => 'bg-blue-100 text-blue-800',
-                                                default  => 'bg-gray-100 text-gray-800',
-                                            };
-                                        @endphp
-                                        <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase rounded {{ $priBadge }}">
-                                            {{ $item->priority ?? 'medium' }}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="px-5 py-3.5 whitespace-nowrap text-sm text-gray-700">
-                                    <p class="font-medium text-gray-900">{{ $item->assignedUser?->name ?? $item->technician ?? 'Unassigned' }}</p>
-                                    @if($item->assignedUser && $item->technician && $item->technician !== $item->assignedUser->name)
-                                        <p class="text-xs text-gray-400">Shop: {{ $item->technician }}</p>
-                                    @endif
-                                </td>
-                                <td class="px-5 py-3.5 text-xs">
-                                    @if($item->parts_used)
-                                        <p class="font-medium text-gray-800 truncate max-w-[160px]" title="{{ $item->parts_used }}">
-                                            <i class="fas fa-puzzle-piece text-gray-400 mr-1"></i>{{ $item->parts_used }}
-                                        </p>
-                                    @else
-                                        <span class="text-gray-400 italic">None specified</span>
-                                    @endif
-                                    @if($item->receipts && $item->receipts->isNotEmpty())
-                                        <div class="mt-1">
-                                            <x-receipt-list :receipts="$item->receipts" compact />
-                                        </div>
-                                    @endif
-                                </td>
-                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-xs text-gray-600 text-left">
-                                    <div>Sched: {{ $item->scheduled_date ? \Carbon\Carbon::parse($item->scheduled_date)->format('M d, Y') : 'N/A' }}</div>
-                                    @if($item->completed_at)
-                                        <div class="text-emerald-700 font-medium">Done: {{ $item->completed_at->format('M d, Y') }}</div>
-                                    @endif
-                                </td>
-                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
-                                    @php
-                                        $mColor = match($item->status) {
-                                            'completed'   => 'success',
-                                            'in_progress' => 'warning',
-                                            'scheduled'   => 'info',
-                                            'pending'     => 'secondary',
-                                            default       => 'secondary'
-                                        };
-                                    @endphp
-                                    <x-badge variant="{{ $mColor }}" size="sm">{{ ucfirst(str_replace('_', ' ', $item->status)) }}</x-badge>
-                                </td>
-                                <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-1.5">
-                                        <button 
-                                            type="button" 
-                                            onclick='openEditMaintenanceModal(@json($item))'
-                                            class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
-                                            title="Edit Work Order"
-                                        >
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Work Order: {{ addslashes($item->title ?? 'Maintenance Log') }}', 'This maintenance work order record will be permanently deleted.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-12 text-center">
-                                    <x-empty-state icon="fas fa-wrench" title="No maintenance logs found" description="Create a work order or complete a preventive schedule to log maintenance." />
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="px-6 py-4 border-t border-gray-200">
-                {{ $maintenances->links() }}
-            </div>
-        </x-card>
-    </div>
+                                    </td>
 
-    {{-- ----------------------------------------------------------------- --}}
-    {{-- SECTION 2: PREVENTIVE SCHEDULES & MAINTENANCE ROUTINES            --}}
-    {{-- ----------------------------------------------------------------- --}}
-    <div class="pt-6 border-t border-gray-200">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-            <div>
-                <h2 class="text-base font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-calendar-check text-indigo-600"></i>
-                    <span>Preventive Schedules & Maintenance Routines</span>
-                    <span class="px-2 py-0.5 text-xs rounded-full bg-indigo-100 text-indigo-800 font-semibold">
-                        {{ $schedules->total() }}
-                    </span>
-                </h2>
-                <p class="text-xs text-gray-500 mt-0.5">Recurring maintenance plans, calibration cadences, and automated health intervals.</p>
-            </div>
-            <button 
-                type="button" 
-                onclick="openAddScheduleModal()"
-                class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors self-start sm:self-auto"
-            >
-                <i class="fas fa-plus"></i>
-                <span>Add Schedule</span>
-            </button>
+                                    {{-- Type & Priority Column --}}
+                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                        @if(!empty($item->is_schedule))
+                                            <div class="space-y-1">
+                                                <x-badge variant="primary" size="sm">Preventive</x-badge>
+                                                <div>
+                                                    <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                                                        <i class="fas fa-repeat text-[9px]"></i>
+                                                        {{ $item->interval_type }} ({{ $item->interval_days }}d)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @else
+                                            <div class="space-y-1">
+                                                <x-badge variant="info" size="sm">{{ ucfirst($item->type) }}</x-badge>
+                                                @php
+                                                    $priBadge = match($item->priority ?? 'medium') {
+                                                        'urgent' => 'bg-rose-100 text-rose-800',
+                                                        'high'   => 'bg-amber-100 text-amber-800',
+                                                        'low'    => 'bg-blue-100 text-blue-800',
+                                                        default  => 'bg-gray-100 text-gray-800',
+                                                    };
+                                                @endphp
+                                                <div>
+                                                    <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase rounded {{ $priBadge }}">
+                                                        {{ $item->priority ?? 'medium' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </td>
+
+                                    {{-- Task & Assigned Column --}}
+                                    <td class="px-5 py-3.5 whitespace-nowrap text-sm text-gray-700">
+                                        @if(!empty($item->is_schedule))
+                                            <p class="font-medium text-gray-900">{{ $item->maintenance_task }}</p>
+                                            <p class="text-xs text-indigo-600 italic">
+                                                <i class="fas fa-calendar-check mr-1"></i>Scheduled Routine
+                                            </p>
+                                        @else
+                                            <p class="font-medium text-gray-900">{{ $item->assignedUser?->name ?? $item->technician ?? 'Unassigned' }}</p>
+                                            @if($item->assignedUser && $item->technician && $item->technician !== $item->assignedUser->name)
+                                                <p class="text-xs text-gray-400">Shop: {{ $item->technician }}</p>
+                                            @endif
+                                        @endif
+                                    </td>
+
+                                    {{-- Parts & Details Column --}}
+                                    <td class="px-5 py-3.5 text-xs">
+                                        @if(!empty($item->is_schedule))
+                                            <span class="text-gray-500 italic">Interval cadence routine</span>
+                                        @else
+                                            @if($item->parts_used)
+                                                <p class="font-medium text-gray-800 truncate max-w-[160px]" title="{{ $item->parts_used }}">
+                                                    <i class="fas fa-puzzle-piece text-gray-400 mr-1"></i>{{ $item->parts_used }}
+                                                </p>
+                                            @else
+                                                <span class="text-gray-400 italic">None specified</span>
+                                            @endif
+                                            @if($item->receipts && $item->receipts->isNotEmpty())
+                                                <div class="mt-1">
+                                                    <x-receipt-list :receipts="$item->receipts" compact />
+                                                </div>
+                                            @endif
+                                        @endif
+                                    </td>
+
+                                    {{-- Service Dates Column --}}
+                                    <td class="px-5 py-3.5 align-middle whitespace-nowrap text-xs text-gray-600 text-left">
+                                        @if(!empty($item->is_schedule))
+                                            <div>Last: {{ $item->last_maintenance_date ? \Carbon\Carbon::parse($item->last_maintenance_date)->format('M d, Y') : 'N/A' }}</div>
+                                            <div class="font-semibold text-gray-800">Due: {{ $item->next_due_date ? \Carbon\Carbon::parse($item->next_due_date)->format('M d, Y') : 'N/A' }}</div>
+                                        @else
+                                            <div>Sched: {{ $item->scheduled_date ? \Carbon\Carbon::parse($item->scheduled_date)->format('M d, Y') : 'N/A' }}</div>
+                                            @if($item->completed_at)
+                                                <div class="text-emerald-700 font-medium">Done: {{ $item->completed_at->format('M d, Y') }}</div>
+                                            @endif
+                                        @endif
+                                    </td>
+
+                                    {{-- Status Column --}}
+                                    <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
+                                        @if(!empty($item->is_schedule))
+                                            @php
+                                                $schedColor = match($item->status) {
+                                                    'Monitoring Only' => 'success',
+                                                    'Maintenance Due' => 'warning',
+                                                    'Overdue'         => 'danger',
+                                                    default           => 'secondary'
+                                                };
+                                            @endphp
+                                            <x-badge variant="{{ $schedColor }}" size="sm">{{ $item->status }}</x-badge>
+                                        @else
+                                            @php
+                                                $mColor = match($item->status) {
+                                                    'completed'   => 'success',
+                                                    'in_progress' => 'warning',
+                                                    'scheduled'   => 'info',
+                                                    'pending'     => 'secondary',
+                                                    default       => 'secondary'
+                                                };
+                                            @endphp
+                                            <x-badge variant="{{ $mColor }}" size="sm">{{ ucfirst(str_replace('_', ' ', $item->status)) }}</x-badge>
+                                        @endif
+                                    </td>
+
+                                    {{-- Actions Column --}}
+                                    <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
+                                        <div class="flex items-center justify-end gap-1.5">
+                                            @if(!empty($item->is_schedule))
+                                                <button 
+                                                    type="button" 
+                                                    onclick="openCompleteScheduleModal({{ $item->id }}, '{{ addslashes($item->maintenance_task) }}')"
+                                                    class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors"
+                                                    title="Record Completion"
+                                                >
+                                                    <i class="fas fa-check-circle"></i>
+                                                </button>
+                                                <button 
+                                                    type="button" 
+                                                    onclick='openEditScheduleModal(@json($item))'
+                                                    class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                                                    title="Edit Schedule"
+                                                >
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form action="{{ route('maintenance-schedules.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Schedule: {{ addslashes($item->maintenance_task ?? 'Maintenance Schedule') }}', 'This planned maintenance routine will be deleted.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <button 
+                                                    type="button" 
+                                                    onclick='openEditMaintenanceModal(@json($item))'
+                                                    class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+                                                    title="Edit Work Order"
+                                                >
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <form action="{{ route('maintenance.destroy', $item) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Work Order: {{ addslashes($item->title ?? 'Maintenance Log') }}', 'This maintenance work order record will be permanently deleted.');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center">
+                                        <x-empty-state icon="fas fa-wrench" title="No maintenance records found" description="Create a work order or add a preventive schedule to log maintenance." />
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                <div class="px-6 py-4 border-t border-gray-200">
+                    {{ $maintenances->links() }}
+                </div>
+            </x-card>
         </div>
-
-        {{-- Search & Filters for Schedules --}}
-        <div class="flex flex-col sm:flex-row gap-4 mb-4">
-            <div class="flex-1">
-                <form action="{{ route('maintenance.index') }}" method="GET" id="searchScheduleForm">
-                    <input type="hidden" name="tab" value="logs">
-                    @if(request('asset_type'))<input type="hidden" name="asset_type" value="{{ request('asset_type') }}">@endif
-                    @if(request('interval_type'))<input type="hidden" name="interval_type" value="{{ request('interval_type') }}">@endif
-                    @if(request('schedule_status'))<input type="hidden" name="schedule_status" value="{{ request('schedule_status') }}">@endif
-                    @if(request('search'))<input type="hidden" name="search" value="{{ request('search') }}">@endif
-                    @if(request('type'))<input type="hidden" name="type" value="{{ request('type') }}">@endif
-                    <x-search-bar name="schedule_search" value="{{ request('schedule_search') ?? (request('tab') === 'schedules' ? request('search') : '') }}" placeholder="Search schedules by task, asset, or asset type..." />
-                </form>
-            </div>
-
-            {{-- Asset Type Filter --}}
-            <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('asset_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <span>{{ request('asset_type') ?: 'Asset Type' }}</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
-                    <a href="{{ route('maintenance.index', array_merge(request()->except('asset_type', 'schedules_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !request('asset_type') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Types</a>
-                    @foreach($assetTypes as $type)
-                        <a href="{{ route('maintenance.index', array_merge(request()->except('schedules_page'), ['tab' => 'logs', 'asset_type' => $type])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('asset_type') === $type ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ $type }}</a>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Interval Filter --}}
-            <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('interval_type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <span>{{ request('interval_type') ?: 'Interval' }}</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
-                    <a href="{{ route('maintenance.index', array_merge(request()->except('interval_type', 'schedules_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !request('interval_type') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Intervals</a>
-                    @foreach($intervalTypes as $interval)
-                        <a href="{{ route('maintenance.index', array_merge(request()->except('schedules_page'), ['tab' => 'logs', 'interval_type' => $interval])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('interval_type') === $interval ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ $interval }}</a>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Schedule Status Filter --}}
-            <div x-data="{ open: false }" class="relative">
-                @php
-                    $currentStatusVal = request('schedule_status') ?? (in_array(request('status'), ['due_overdue', 'Monitoring Only', 'Maintenance Due', 'Overdue'], true) ? request('status') : null);
-                @endphp
-                <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ $currentStatusVal ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
-                    <span>{{ $currentStatusVal === 'due_overdue' ? 'Due / Overdue' : ($currentStatusVal ?: 'Status') }}</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
-                    <a href="{{ route('maintenance.index', array_merge(request()->except('schedule_status', 'status', 'schedules_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !$currentStatusVal ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Statuses</a>
-                    <a href="{{ route('maintenance.index', array_merge(request()->except('schedule_status', 'status', 'schedules_page'), ['tab' => 'logs', 'schedule_status' => 'due_overdue'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentStatusVal === 'due_overdue' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Due / Overdue</a>
-                    @foreach($scheduleStatuses as $s)
-                        <a href="{{ route('maintenance.index', array_merge(request()->except('schedule_status', 'status', 'schedules_page'), ['tab' => 'logs', 'schedule_status' => $s])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentStatusVal === $s ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ $s }}</a>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
-        {{-- Schedules Table --}}
-        <x-card>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset</th>
-                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Maintenance Task</th>
-                            <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Interval</th>
-                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Last Done</th>
-                            <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Next Due Date</th>
-                            <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                        @forelse($schedules as $schedule)
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 align-middle text-left">
-                                    <div class="flex items-start gap-2">
-                                        <div class="mt-0.5 text-blue-600">
-                                            <i class="fas fa-box"></i>
-                                        </div>
-                                        <div>
-                                            <span class="inline-block px-2 py-0.5 text-xs font-mono font-semibold rounded bg-gray-100 text-gray-700 border border-gray-200 mb-0.5">
-                                                {{ $schedule->asset->code ?? 'N/A' }}
-                                            </span>
-                                            <p class="text-sm font-semibold text-gray-900">{{ $schedule->asset->name ?? 'Unknown' }}</p>
-                                            <p class="text-xs text-gray-500">{{ $schedule->asset_type }}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 align-middle text-left text-sm font-medium text-gray-900">
-                                    {{ $schedule->maintenance_task }}
-                                </td>
-                                <td class="px-6 py-4 align-middle whitespace-nowrap text-center text-sm text-gray-600">
-                                    <span class="inline-flex items-center gap-1">
-                                        <i class="fas fa-repeat text-xs text-gray-400"></i>
-                                        {{ $schedule->interval_type }} ({{ $schedule->interval_days }}d)
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 align-middle whitespace-nowrap text-left text-sm text-gray-600">
-                                    {{ $schedule->last_maintenance_date ? \Carbon\Carbon::parse($schedule->last_maintenance_date)->format('M d, Y') : 'N/A' }}
-                                </td>
-                                <td class="px-6 py-4 align-middle whitespace-nowrap text-left text-sm">
-                                    <span class="font-medium text-gray-800">
-                                        {{ $schedule->next_due_date ? \Carbon\Carbon::parse($schedule->next_due_date)->format('M d, Y') : 'N/A' }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
-                                    @php
-                                        $schedColor = match($schedule->status) {
-                                            'Monitoring Only' => 'success',
-                                            'Maintenance Due' => 'warning',
-                                            'Overdue'         => 'danger',
-                                            default           => 'secondary'
-                                        };
-                                    @endphp
-                                    <x-badge variant="{{ $schedColor }}" size="sm">{{ $schedule->status }}</x-badge>
-                                </td>
-                                <td class="px-6 py-4 align-middle whitespace-nowrap text-right text-sm">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <button 
-                                            type="button" 
-                                            onclick="openCompleteScheduleModal({{ $schedule->id }}, '{{ addslashes($schedule->maintenance_task) }}')"
-                                            class="p-2 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors"
-                                            title="Record Completion"
-                                        >
-                                            <i class="fas fa-check-circle"></i>
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            onclick='openEditScheduleModal(@json($schedule))'
-                                            class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors"
-                                            title="Edit Schedule"
-                                        >
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <form action="{{ route('maintenance-schedules.destroy', $schedule) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Schedule: {{ addslashes($schedule->maintenance_task ?? 'Maintenance Schedule') }}', 'This planned maintenance routine will be deleted.');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="p-2 rounded-lg hover:bg-red-50 text-red-600 transition-colors" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-12 text-center">
-                                    <x-empty-state icon="fas fa-calendar-check" title="No schedules found" description="Create recurring maintenance schedules to monitor equipment health." />
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            <div class="px-6 py-4 border-t border-gray-200">
-                {{ $schedules->links() }}
-            </div>
-        </x-card>
-    </div>
-</div>
     @else
         <div>
             {{-- ----------------------------------------------------------------- --}}

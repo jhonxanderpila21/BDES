@@ -55,9 +55,9 @@ class MaintenanceController extends Controller
         $assets = Asset::with(['type', 'category'])->orderBy('name')->get();
         $users = User::orderBy('name')->get();
 
-        // 1. Preventive Schedules Data (merged into inspections)
-        $schedulesQuery = MaintenanceSchedule::with(['asset.type', 'asset.category']);
-        if ($request->filled('schedule_search') || ($request->filled('search') && $activeTab === 'inspections')) {
+        // 1. Preventive Schedules Data
+        $schedulesQuery = MaintenanceSchedule::with(['asset.type', 'asset.category', 'receipts']);
+        if ($request->filled('schedule_search') || ($request->filled('search') && $activeTab === 'logs')) {
             $search = $request->get('schedule_search', $request->search);
             $schedulesQuery->where(function ($q) use ($search) {
                 $q->where('maintenance_task', 'like', "%{$search}%")
@@ -74,16 +74,26 @@ class MaintenanceController extends Controller
         if ($request->filled('interval_type')) {
             $schedulesQuery->where('interval_type', $request->interval_type);
         }
+        if ($request->filled('type') && !in_array($request->type, ['preventive', 'routine'], true)) {
+            $schedulesQuery->whereRaw('1 = 0');
+        }
         if ($request->filled('schedule_status')) {
             $schedulesQuery->where('status', $request->schedule_status);
-        } elseif ($request->filled('status') && in_array($request->status, ['due_overdue', 'due', 'overdue', 'Monitoring Only'], true)) {
+        } elseif ($request->filled('status')) {
             if ($request->status === 'due_overdue') {
                 $schedulesQuery->whereIn('status', [
                     MaintenanceScheduleService::STATUS_DUE,
                     MaintenanceScheduleService::STATUS_OVERDUE,
                 ]);
-            } else {
+            } elseif (in_array($request->status, ['due', 'overdue', 'Monitoring Only'], true)) {
                 $schedulesQuery->where('status', $request->status);
+            } elseif ($request->status === 'active') {
+                $schedulesQuery->whereIn('status', [
+                    MaintenanceScheduleService::STATUS_OK,
+                    MaintenanceScheduleService::STATUS_DUE,
+                ]);
+            } elseif (in_array($request->status, ['completed', 'pending'], true)) {
+                $schedulesQuery->whereRaw('1 = 0');
             }
         }
         $schedules = $schedulesQuery->latest('id')->paginate(10, ['*'], 'schedules_page')->withQueryString();
@@ -92,7 +102,7 @@ class MaintenanceController extends Controller
         $scheduleStatuses = MaintenanceScheduleService::statuses();
 
         // 2. Maintenance Logs & Work Orders Tab Data
-        $maintenancesQuery = Maintenance::with(['asset.category', 'assignedUser', 'receipts']);
+        $maintenancesQuery = Maintenance::with(['asset.category', 'asset.type', 'assignedUser', 'receipts']);
         if ($request->filled('search') && $activeTab === 'logs') {
             $search = $request->search;
             $maintenancesQuery->where(function ($q) use ($search) {
@@ -112,14 +122,45 @@ class MaintenanceController extends Controller
         if ($request->filled('priority')) {
             $maintenancesQuery->where('priority', $request->priority);
         }
-        if ($request->filled('status') && $activeTab === 'logs' && !in_array($request->status, ['due_overdue', 'Monitoring Only', 'Maintenance Due', 'Overdue'], true)) {
+        if ($request->filled('status') && $activeTab === 'logs') {
             if ($request->status === 'active') {
                 $maintenancesQuery->whereIn('status', ['in_progress', 'scheduled']);
-            } else {
+            } elseif ($request->status === 'due_overdue') {
+                $maintenancesQuery->whereRaw('1 = 0');
+            } elseif (!in_array($request->status, ['Monitoring Only', 'Maintenance Due', 'Overdue'], true)) {
                 $maintenancesQuery->where('status', $request->status);
+            } else {
+                $maintenancesQuery->whereRaw('1 = 0');
             }
         }
-        $maintenances = $maintenancesQuery->latest('id')->paginate(10, ['*'], 'logs_page')->withQueryString();
+
+        // Merge Work Orders and Schedules into unified collection for the maintenance table
+        $workOrders = $maintenancesQuery->latest('id')->get()->map(function ($m) {
+            $m->is_schedule = false;
+            $m->sort_date = $m->scheduled_date ? \Carbon\Carbon::parse($m->scheduled_date)->timestamp : $m->created_at->timestamp;
+            return $m;
+        });
+
+        $scheduleItems = $schedulesQuery->latest('id')->get()->map(function ($s) {
+            $s->is_schedule = true;
+            $s->sort_date = $s->next_due_date ? \Carbon\Carbon::parse($s->next_due_date)->timestamp : $s->created_at->timestamp;
+            return $s;
+        });
+
+        $mergedCollection = $workOrders->concat($scheduleItems)->sortByDesc('sort_date')->values();
+        $page = (int) $request->get('logs_page', 1);
+        $perPage = 10;
+        $maintenances = new \Illuminate\Pagination\LengthAwarePaginator(
+            $mergedCollection->forPage($page, $perPage)->values(),
+            $mergedCollection->count(),
+            $perPage,
+            $page,
+            [
+                'path' => route('maintenance.index'),
+                'pageName' => 'logs_page',
+                'query' => $request->query(),
+            ]
+        );
         $maintenanceTypes = ['routine', 'preventive', 'repair', 'inspection', 'overhaul', 'emergency'];
         $maintenanceStatuses = ['scheduled', 'in_progress', 'completed', 'pending'];
         $priorityLevels = ['low', 'medium', 'high', 'urgent'];
