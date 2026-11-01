@@ -213,4 +213,16 @@ class RegressionTest extends TestCase
             'email' => 'cruz.juan2@bdes.gov',
         ]);
     }
+
+    /**
+     * Test that Account Settings page does not display the delete account button or modal.
+     */
+    public function test_account_settings_page_hides_delete_account_option(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('profile.edit'));
+        $response->assertOk();
+        $response->assertDontSee('Delete Account');
+        $response->assertDontSee('Confirm Account Deletion');
+        $response->assertDontSee('deletion_password');
+    }
 }
