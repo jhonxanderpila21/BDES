@@ -102,17 +102,6 @@ class OperationalRequirementSeeder extends Seeder
                 ],
             ],
 
-            'Fire Extinguisher' => [
-                [
-                    'requirement_type' => 'ABC Dry Chemical Refill',
-                    'unit'             => 'Kilograms',
-                    'current_level'    => 35.00,
-                    'maximum_capacity' => 50.00,
-                    'minimum_level'    => 15.00,
-                    'description'      => 'Monoammonium phosphate dry chemical extinguishing agent for Class A, B, and C fires.',
-                ],
-            ],
-
             'Defibrillator (AED)' => [
                 [
                     'requirement_type' => 'Replacement Lithium Battery Pack',

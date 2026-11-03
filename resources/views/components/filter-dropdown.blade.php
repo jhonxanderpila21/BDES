@@ -12,7 +12,6 @@
         aria-haspopup="true"
         class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors {{ $class }}"
     >
-        <i class="fas fa-filter"></i>
         <span>{{ $label }}</span>
         <i class="fas fa-chevron-down text-xs transition-transform" :class="{'rotate-180': open}"></i>
     </button>

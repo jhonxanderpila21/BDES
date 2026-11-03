@@ -57,7 +57,7 @@ class AssetSalvageController extends Controller
 
         $categories = AssetCategory::orderBy('name')->get();
 
-        return view('admin.financials.salvage', compact(
+        return view('asset-financials.salvage', compact(
             'assets',
             'categories',
             'totalSalvageValue',
@@ -72,9 +72,25 @@ class AssetSalvageController extends Controller
      */
     public function update(Request $request, Asset $asset)
     {
+        // Enforce capitalization threshold: Items below threshold cannot have a salvage value
+        if (!$asset->is_capitalized_ppe) {
+            $thresholdFormatted = number_format(\App\Services\PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD, 2);
+            return redirect()->back()->with('error', "Items with acquisition cost below ₱{$thresholdFormatted} are classified as Semi-Expendable Property and cannot have a salvage value record.");
+        }
+
+        if ($request->has('salvage_value') && is_string($request->salvage_value)) {
+            $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
+            $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
+        }
+        if ($request->has('salvage_notes')) {
+            $request->merge(['salvage_notes' => strip_tags(trim($request->salvage_notes))]);
+        }
+
         $validated = $request->validate([
             'salvage_value' => 'nullable|numeric|min:0|lte:' . ($asset->acquisition_cost ?? 999999999),
             'salvage_notes' => 'nullable|string|max:1000',
+        ], [
+            'salvage_value.lte' => 'The salvage value cannot exceed the original acquisition cost.',
         ]);
 
         $asset->update([
@@ -107,6 +123,7 @@ class AssetSalvageController extends Controller
                 'Asset Code',
                 'Asset Name',
                 'Category',
+                'COA Classification',
                 'Acquisition Cost (PHP)',
                 'Calculated Salvage Value (PHP)',
                 'Salvage Determination Method',
@@ -116,14 +133,19 @@ class AssetSalvageController extends Controller
             ]);
 
             foreach ($assets as $asset) {
-                $method = ($asset->salvage_value !== null && $asset->salvage_value > 0)
-                    ? 'Custom Fixed Valuation'
-                    : 'COA Standard 10% Residual';
+                if (!$asset->is_capitalized_ppe) {
+                    $method = 'COA Semi-Expendable (₱0.00 Non-Salvageable)';
+                } else {
+                    $method = ($asset->salvage_value !== null && $asset->salvage_value > 0)
+                        ? 'Custom Appraised Valuation'
+                        : 'COA Standard 10% Residual';
+                }
 
                 fputcsv($handle, [
                     $asset->code,
                     $asset->name,
                     $asset->category?->name ?? 'Uncategorized',
+                    $asset->coa_classification,
                     number_format($asset->acquisition_cost, 2, '.', ''),
                     number_format($asset->calculated_salvage_value, 2, '.', ''),
                     $method,

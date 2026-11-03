@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @extends('layouts.admin')
 
 @section('title', 'Assets - BDES')
@@ -1187,3 +1188,6 @@
         </script>
     @endpush
 @endsection
+=======
+@include('asset-management.assets.index')
+>>>>>>> origin/demo

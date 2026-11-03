@@ -7,17 +7,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attachment extends Model
 {
+    use \App\Models\Concerns\HasReceipts, \App\Traits\Archivable;
+
     protected $fillable = [
         'name',
         'type',
         'asset_type_id',
         'asset_id',
         'quantity',
+        'unit_cost',
         'condition',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
+        'unit_cost' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

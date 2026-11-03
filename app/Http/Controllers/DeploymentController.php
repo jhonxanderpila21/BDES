@@ -21,7 +21,14 @@ class DeploymentController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Deployment::with(['asset.category', 'returnRecord.receivedByUser', 'approvedByUser', 'user']);
+        $query = Deployment::with([
+            'asset.category',
+            'asset.type',
+            'returnRecord.receivedByUser',
+            'approvedByUser',
+            'user',
+            'receipts',
+        ]);
 
         // Search
         if ($request->filled('search')) {
@@ -63,16 +70,76 @@ class DeploymentController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Active deployments for quick return modal
+        $activeDeployments = Deployment::with(['asset.category', 'asset.type', 'approvedByUser'])
+            ->where('status', '!=', 'returned')
+            ->orderBy('id', 'desc')
+            ->get();
+
         $locations = Location::orderBy('name')->get();
         $users = User::orderBy('name')->get();
 
-        return view('admin.deployment.index', compact(
+        return view('asset-operations.deployment.index', compact(
             'deployments',
             'statusCounts',
             'availableAssets',
+            'activeDeployments',
             'locations',
             'users'
         ));
+    }
+
+    /**
+     * Authorize that the current user can manage deployments.
+     */
+    protected function authorizeEditor(Request $request): void
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * Show the form for creating a new deployment (redirect to index for modal).
+     */
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index');
+    }
+
+    /**
+     * Display the specified deployment.
+     */
+    public function show(Request $request, Deployment $deployment)
+    {
+        $deployment->load([
+            'asset.category',
+            'asset.type',
+            'returnRecord.receivedByUser',
+            'approvedByUser',
+            'user',
+            'receipts',
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($deployment);
+        }
+
+        return redirect()->route('deployment.index', [
+            'search' => $deployment->asset->code ?? $deployment->destination,
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified deployment (redirect to index for modal).
+     */
+    public function edit(Request $request, Deployment $deployment)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index');
     }
 
     /**
@@ -80,40 +147,70 @@ class DeploymentController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('create', Deployment::class);
 
-        $validated = $request->validate([
+        // Normalize text inputs
+        $input = $request->all();
+        foreach (['destination', 'assigned_team', 'responsible_person', 'purpose', 'borrower_name', 'borrower_contact', 'borrower_address', 'borrower_id_type', 'borrower_id_number'] as $f) {
+            if (isset($input[$f])) {
+                $input[$f] = strip_tags(trim($input[$f]));
+            }
+        }
+        $request->merge($input);
+
+        $rules = array_merge([
             'asset_id'             => [
                 'required',
                 Rule::exists('assets', 'id')->where('status', 'available'),
             ],
+            'borrower_type'        => ['nullable', 'in:personnel,resident'],
             'destination'          => ['required', 'string', 'max:255'],
             'assigned_team'        => ['nullable', 'string', 'max:255'],
             'responsible_person'   => ['nullable', 'string', 'max:255'],
+            'borrower_name'        => ['nullable', 'string', 'max:255'],
+            'borrower_contact'     => ['nullable', 'string', 'max:50'],
+            'borrower_address'     => ['nullable', 'string', 'max:255'],
+            'borrower_id_type'     => ['nullable', 'string', 'max:50'],
+            'borrower_id_number'   => ['nullable', 'string', 'max:100'],
             'condition_before'     => ['nullable', 'in:excellent,good,fair,poor'],
             'approved_by'          => ['nullable', 'exists:users,id'],
             'deployment_date'      => ['required', 'date'],
             'expected_return_date' => ['nullable', 'date', 'after_or_equal:deployment_date'],
             'purpose'              => ['nullable', 'string'],
-        ], [
+        ], \App\Services\ReceiptService::rules());
+
+        $messages = array_merge([
             'asset_id.exists' => 'The selected asset is either not found or already deployed/unavailable.',
-        ]);
+            'expected_return_date.after_or_equal' => 'The expected return date must be on or after the deployment date.',
+        ], \App\Services\ReceiptService::messages());
+
+        $validated = $request->validate($rules, $messages);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
 
         $validated['status'] = 'active';
+        $validated['borrower_type'] = $validated['borrower_type'] ?? 'personnel';
+
+        if ($validated['borrower_type'] === 'resident' && !empty($validated['borrower_name'])) {
+            $validated['responsible_person'] = $validated['borrower_name'];
+            $validated['assigned_team'] = 'Resident Borrower';
+        }
+
         if (empty($validated['approved_by'])) {
             $validated['approved_by'] = auth()->id();
         }
         if (empty($validated['responsible_person'])) {
-            $validated['responsible_person'] = $validated['assigned_team'] ?? 'Field Response Team';
+            $validated['responsible_person'] = !empty($validated['assigned_team']) ? $validated['assigned_team'] : (auth()->user()?->name ?? 'Field Response Team');
         }
 
-        DB::transaction(function () use ($validated) {
+        DB::transaction(function () use ($validated, $request) {
             $asset = Asset::find($validated['asset_id']);
             if (empty($validated['condition_before']) && $asset) {
                 $validated['condition_before'] = $asset->condition;
             }
 
             $deployment = Deployment::create($validated);
+            \App\Services\ReceiptService::attachFromRequest($deployment, $request);
 
             if ($asset) {
                 if (AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_DEPLOYED)) {
@@ -145,10 +242,29 @@ class DeploymentController extends Controller
      */
     public function returnAsset(Request $request, Deployment $deployment)
     {
+        $this->authorizeEditor($request);
         Gate::authorize('return', $deployment);
 
-        $validated = $request->validate([
-            'return_date'         => ['required', 'date'],
+        // Normalize text inputs
+        $input = $request->all();
+        if (isset($input['returned_by'])) {
+            $input['returned_by'] = strip_tags(trim($input['returned_by']));
+        }
+        if (isset($input['damage_notes'])) {
+            $input['damage_notes'] = strip_tags(trim($input['damage_notes']));
+        }
+        if (isset($input['missing_accessories'])) {
+            $input['missing_accessories'] = strip_tags(trim($input['missing_accessories']));
+        }
+        if (isset($input['actual_location'])) {
+            $input['actual_location'] = strip_tags(trim($input['actual_location']));
+        }
+        $request->merge($input);
+
+        $depDate = $deployment->deployment_date ? \Carbon\Carbon::parse($deployment->deployment_date)->toDateString() : null;
+
+        $rules = array_merge([
+            'return_date'         => array_merge(['required', 'date'], $depDate ? ['after_or_equal:' . $depDate] : []),
             'returned_by'         => ['nullable', 'string', 'max:255'],
             'received_by'         => ['nullable', 'exists:users,id'],
             'condition'           => ['required', 'in:excellent,good,fair,poor'],
@@ -156,13 +272,23 @@ class DeploymentController extends Controller
             'missing_accessories' => ['nullable', 'string'],
             'actual_location'     => ['nullable', 'string', 'max:255'],
             'status'              => ['required', 'in:received,damage_noted,incomplete_accessories'],
-        ]);
+        ], \App\Services\ReceiptService::rules());
+
+        $messages = array_merge([
+            'return_date.after_or_equal' => "The return date cannot precede the deployment date ({$depDate}).",
+        ], \App\Services\ReceiptService::messages());
+
+        $validated = $request->validate($rules, $messages);
+        unset($validated['receipts'], $validated['receipt_reference_number']);
 
         if (empty($validated['received_by'])) {
             $validated['received_by'] = auth()->id();
         }
+        if (empty($validated['returned_by'])) {
+            $validated['returned_by'] = $deployment->responsible_person ?? ($deployment->assigned_team ?? auth()->user()?->name);
+        }
 
-        DB::transaction(function () use ($validated, $deployment) {
+        DB::transaction(function () use ($validated, $deployment, $request) {
             // Create or update return record linked to deployment
             $returnRecord = $deployment->returnRecord()->updateOrCreate(
                 ['deployment_id' => $deployment->id],
@@ -178,6 +304,8 @@ class DeploymentController extends Controller
                     'status'              => $validated['status'],
                 ]
             );
+
+            \App\Services\ReceiptService::attachFromRequest($deployment, $request);
 
             // Transition deployment status to returned
             $deployment->update(['status' => 'returned']);
@@ -225,34 +353,33 @@ class DeploymentController extends Controller
      */
     public function update(Request $request, Deployment $deployment)
     {
+        $this->authorizeEditor($request);
+        Gate::authorize('update', $deployment);
+
         $validated = $request->validate([
             'destination'          => ['required', 'string', 'max:255'],
             'assigned_team'        => ['nullable', 'string', 'max:255'],
             'responsible_person'   => ['nullable', 'string', 'max:255'],
             'deployment_date'      => ['required', 'date'],
-            'expected_return_date' => ['nullable', 'date'],
+            'expected_return_date' => ['nullable', 'date', 'after_or_equal:deployment_date'],
             'purpose'              => ['nullable', 'string'],
-            'status'               => ['required', 'in:active,pending_return,returned'],
+            'status'               => ['nullable', 'string', 'in:active,pending_return,returned'],
+        ], [
+            'expected_return_date.after_or_equal' => 'The expected return date must be on or after the deployment date.',
         ]);
 
-        DB::transaction(function () use ($validated, $deployment) {
-            $oldStatus = $deployment->status;
-            $deployment->update($validated);
+        // Status is managed exclusively via the deployment dispatch and return verification flows.
+        // It cannot be changed via edit, preserving returned status and asset consistency.
+        unset($validated['status']);
 
-            $asset = $deployment->asset;
-            if ($asset) {
-                if ($validated['status'] === 'returned' && $oldStatus !== 'returned') {
-                    $asset->update(['status' => 'available']);
-                } elseif ($validated['status'] !== 'returned' && $oldStatus === 'returned') {
-                    $asset->update(['status' => 'deployed']);
-                }
-            }
+        DB::transaction(function () use ($validated, $deployment) {
+            $deployment->update($validated);
 
             AuditTrailService::log('updated', $deployment, "Deployment #{$deployment->id} details updated.");
         });
 
         return redirect()->route('deployment.index')
-            ->with('success', 'Deployment record updated successfully!');
+            ->with('success', 'Deployment details updated successfully!');
     }
 
     /**
@@ -260,6 +387,7 @@ class DeploymentController extends Controller
      */
     public function destroy(Deployment $deployment)
     {
+        $this->authorizeEditor(request());
         Gate::authorize('delete', $deployment);
 
         DB::transaction(function () use ($deployment) {

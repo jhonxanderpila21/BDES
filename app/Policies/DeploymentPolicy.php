@@ -56,6 +56,18 @@ class DeploymentPolicy
     }
 
     /**
+     * Determine whether the user can update the deployment.
+     */
+    public function update(User $user, Deployment $deployment): bool
+    {
+        if ($user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
+        return $user->hasRole('inventory_officer', 'bdrrmc_officer');
+    }
+
+    /**
      * Determine whether the user can delete the deployment record.
      */
     public function delete(User $user, Deployment $deployment): bool

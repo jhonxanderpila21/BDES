@@ -63,20 +63,25 @@ class ReportTest extends TestCase
         $response->assertSee('12,500.00');
     }
 
-    public function test_all_ten_standard_reports_load_successfully(): void
+    public function test_all_standard_reports_load_successfully(): void
     {
         $types = array_keys(ReportController::reportTypes());
 
-        $this->assertCount(10, $types);
+        $this->assertCount(9, $types);
 
         foreach ($types as $type) {
             $response = $this->actingAs($this->user)->get(route('reports.index', ['type' => $type]));
             $response->assertOk();
             $response->assertViewHas('selectedType', $type);
         }
+
+        // Legacy active_deployments maps to merged deployment_history
+        $legacyResponse = $this->actingAs($this->user)->get(route('reports.index', ['type' => 'active_deployments']));
+        $legacyResponse->assertOk();
+        $legacyResponse->assertViewHas('selectedType', 'deployment_history');
     }
 
-    public function test_all_ten_standard_reports_can_be_streamed_as_csv(): void
+    public function test_all_standard_reports_can_be_streamed_as_csv(): void
     {
         $types = array_keys(ReportController::reportTypes());
 

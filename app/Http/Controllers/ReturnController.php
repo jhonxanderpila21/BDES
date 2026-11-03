@@ -11,34 +11,81 @@ use Illuminate\Validation\Rule;
 
 class ReturnController extends Controller
 {
+    /**
+     * Authorize that the current user can manage returns.
+     */
+    protected function authorizeEditor(Request $request): void
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
     public function index(Request $request)
     {
         return redirect()->route('deployment.index', array_merge(['status' => 'returned'], $request->all()));
     }
 
+    public function create(Request $request)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index', ['status' => 'returned']);
+    }
+
+    public function show(Request $request, AssetReturn $return)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($return->load('asset', 'deployment'));
+        }
+
+        return redirect()->route('deployment.index', [
+            'status' => 'returned',
+            'search' => $return->asset->code ?? $return->returned_by,
+        ]);
+    }
+
+    public function edit(Request $request, AssetReturn $return)
+    {
+        $this->authorizeEditor($request);
+
+        return redirect()->route('deployment.index', ['status' => 'returned']);
+    }
+
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $this->authorizeEditor($request);
+
+        $activeDeployment = Deployment::where('asset_id', $request->asset_id)
+            ->whereIn('status', ['active', 'pending_return'])
+            ->latest('id')
+            ->first();
+
+        $depDate = $activeDeployment && $activeDeployment->deployment_date
+            ? \Carbon\Carbon::parse($activeDeployment->deployment_date)->toDateString()
+            : null;
+
+        $rules = [
             'asset_id' => [
                 'required',
                 Rule::exists('assets', 'id')->where('status', 'deployed'),
             ],
-            'returned_by' => 'nullable|string|max:255',
-            'return_date' => 'required|date',
-            'condition' => 'required|in:excellent,good,fair,poor',
-            'damage_notes' => 'nullable|string',
+            'returned_by'         => 'nullable|string|max:255',
+            'return_date'         => array_merge(['required', 'date'], $depDate ? ['after_or_equal:' . $depDate] : []),
+            'condition'           => 'required|in:excellent,good,fair,poor',
+            'damage_notes'        => 'nullable|string',
             'missing_accessories' => 'nullable|string',
-            'actual_location' => 'nullable|string|max:255',
-            'status' => 'required|in:received,damage_noted,incomplete_accessories',
-        ]);
+            'actual_location'     => 'nullable|string|max:255',
+            'status'              => 'required|in:received,damage_noted,incomplete_accessories',
+        ];
 
-        DB::transaction(function () use ($validated) {
-            // Find and link active deployment if one exists
-            $activeDeployment = Deployment::where('asset_id', $validated['asset_id'])
-                ->whereIn('status', ['active', 'pending_return'])
-                ->latest()
-                ->first();
+        $messages = [
+            'return_date.after_or_equal' => "The return date cannot precede the deployment date ({$depDate}).",
+        ];
 
+        $validated = $request->validate($rules, $messages);
+
+        DB::transaction(function () use ($validated, $activeDeployment) {
             if ($activeDeployment) {
                 $validated['deployment_id'] = $activeDeployment->id;
                 $activeDeployment->update(['status' => 'returned']);
@@ -60,6 +107,7 @@ class ReturnController extends Controller
 
     public function update(Request $request, AssetReturn $return)
     {
+        $this->authorizeEditor($request);
         $validated = $request->validate([
             'asset_id' => 'required|exists:assets,id',
             'returned_by' => 'nullable|string|max:255',
@@ -99,6 +147,7 @@ class ReturnController extends Controller
 
     public function destroy(AssetReturn $return)
     {
+        $this->authorizeEditor(request());
         DB::transaction(function () use ($return) {
             $asset = $return->asset;
             $return->delete();

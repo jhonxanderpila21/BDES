@@ -133,7 +133,7 @@ class MaintenanceScheduleTest extends TestCase
         $response = $this->actingAs($this->user)->delete(route('maintenance-schedules.destroy', $schedule));
 
         $response->assertRedirect(route('maintenance-schedules.index'));
-        $this->assertDatabaseMissing('maintenance_schedules', ['id' => $schedule->id]);
+        $this->assertSoftDeleted('maintenance_schedules', ['id' => $schedule->id]);
     }
 
     public function test_complete_marks_schedule_done_and_creates_history(): void

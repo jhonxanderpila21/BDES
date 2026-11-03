@@ -51,7 +51,7 @@ class AssetDepreciationController extends Controller
 
         $categories = AssetCategory::orderBy('name')->get();
 
-        return view('admin.financials.depreciation', compact(
+        return view('asset-financials.depreciation', compact(
             'assets',
             'categories',
             'totalAcquisitionCost',
@@ -66,9 +66,22 @@ class AssetDepreciationController extends Controller
      */
     public function update(Request $request, Asset $asset)
     {
+        // Enforce capitalization threshold: Items below threshold cannot have depreciation or salvage value
+        if (!$asset->is_capitalized_ppe) {
+            $thresholdFormatted = number_format(\App\Services\PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD, 2);
+            return redirect()->back()->with('error', "Items with acquisition cost below ₱{$thresholdFormatted} are classified as Semi-Expendable Property and cannot have a depreciation schedule or salvage value.");
+        }
+
+        if ($request->has('salvage_value') && is_string($request->salvage_value)) {
+            $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
+            $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
+        }
+
         $validated = $request->validate([
             'useful_life_years' => 'required|integer|min:1|max:50',
             'salvage_value'     => 'nullable|numeric|min:0|lte:' . ($asset->acquisition_cost ?? 999999999),
+        ], [
+            'salvage_value.lte' => 'The salvage value cannot exceed the original acquisition cost.',
         ]);
 
         $asset->update($validated);
@@ -98,6 +111,7 @@ class AssetDepreciationController extends Controller
                 'Asset Code',
                 'Asset Name',
                 'Category',
+                'COA Classification',
                 'Purchase Date',
                 'Acquisition Cost (PHP)',
                 'Useful Life (Years)',
@@ -115,6 +129,7 @@ class AssetDepreciationController extends Controller
                     $asset->code,
                     $asset->name,
                     $asset->category?->name ?? 'Uncategorized',
+                    $asset->coa_classification,
                     $asset->purchase_date?->format('Y-m-d') ?? 'N/A',
                     number_format($asset->acquisition_cost, 2, '.', ''),
                     $asset->effective_useful_life,

@@ -7,11 +7,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Location extends Model
 {
+    use \App\Traits\Archivable;
+
     protected $fillable = [
         'name',
         'type',
         'address',
         'storage_capacity',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

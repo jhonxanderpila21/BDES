@@ -13,10 +13,10 @@ class AssetAccessorySeeder extends Seeder
      */
     public function run(): void
     {
-        $gen001 = Asset::where('code', 'GEN-001')->first();
-        $med001 = Asset::where('code', 'MED-001')->first(); // Assuming AED or similar
-        $com001 = Asset::where('code', 'COM-001')->first(); // Radio
-        $res001 = Asset::where('code', 'RES-001')->first(); // Rescue
+        $gen001 = Asset::where('code', 'GEN-001')->first() ?? Asset::first();
+        $med001 = Asset::where('code', 'AED-001')->orWhere('code', 'FAK-001')->first() ?? Asset::first();
+        $com001 = Asset::where('code', 'RAD-001')->orWhere('code', 'RAD-002')->first() ?? Asset::first();
+        $res001 = Asset::where('code', 'ROP-001')->orWhere('code', 'FE-001')->first() ?? Asset::first();
 
         $accessories = [
             // AED Pads / Medical Equipment / Qty 5 / ₱500 → Available
@@ -54,8 +54,14 @@ class AssetAccessorySeeder extends Seeder
         ];
 
         foreach ($accessories as $acc) {
-            if ($acc['asset_id']) {
-                AssetAccessory::create($acc);
+            if (!empty($acc['asset_id'])) {
+                AssetAccessory::updateOrCreate(
+                    [
+                        'asset_id' => $acc['asset_id'],
+                        'accessory_name' => $acc['accessory_name'],
+                    ],
+                    $acc
+                );
             }
         }
     }

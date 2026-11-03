@@ -125,7 +125,7 @@ class AssetLifecycleTest extends TestCase
 
         $response = $this->actingAs($this->admin)->delete(route('assets.destroy', $unlinked));
         $response->assertRedirect();
-        $this->assertDatabaseMissing('assets', ['id' => $unlinked->id]);
+        $this->assertSoftDeleted('assets', ['id' => $unlinked->id]);
     }
 
     public function test_safe_delete_retires_rather_than_deleting_asset_with_linked_history(): void

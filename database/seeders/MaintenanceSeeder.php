@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Asset;
 use App\Models\Maintenance;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class MaintenanceSeeder extends Seeder
@@ -13,9 +13,14 @@ class MaintenanceSeeder extends Seeder
      */
     public function run(): void
     {
+        $gen002 = Asset::where('code', 'GEN-002')->first();
+        $saw001 = Asset::where('code', 'SAW-001')->first();
+        $bot001 = Asset::where('code', 'BOT-001')->first();
+        $veh001 = Asset::where('code', 'VEH-001')->first();
+
         $maintenances = [
             [
-                'asset_id' => 4, // Yamaha 3kVA Generator
+                'asset_id' => $gen002?->id, // Yamaha 3kVA Generator
                 'type' => 'routine',
                 'technician' => 'Mang Kanor (In-house)',
                 'scheduled_date' => now()->subDays(1),
@@ -24,7 +29,7 @@ class MaintenanceSeeder extends Seeder
                 'status' => 'in_progress',
             ],
             [
-                'asset_id' => 9, // Stihl Chainsaw
+                'asset_id' => $saw001?->id, // Stihl Chainsaw
                 'type' => 'repair',
                 'technician' => 'Hardware City Repair Services',
                 'scheduled_date' => now()->subWeeks(2),
@@ -33,7 +38,7 @@ class MaintenanceSeeder extends Seeder
                 'status' => 'pending',
             ],
             [
-                'asset_id' => 13, // Rescue Boat
+                'asset_id' => $bot001?->id, // Rescue Boat
                 'type' => 'preventive',
                 'technician' => 'Marine Services Corp.',
                 'scheduled_date' => now()->addWeeks(2),
@@ -42,7 +47,7 @@ class MaintenanceSeeder extends Seeder
                 'status' => 'scheduled',
             ],
             [
-                'asset_id' => 14, // Patrol Multicab
+                'asset_id' => $veh001?->id, // Patrol Multicab
                 'type' => 'routine',
                 'technician' => 'AutoFix Shop',
                 'scheduled_date' => now()->subMonths(3),
@@ -53,7 +58,9 @@ class MaintenanceSeeder extends Seeder
         ];
 
         foreach ($maintenances as $maintenance) {
-            Maintenance::create($maintenance);
+            if (!empty($maintenance['asset_id'])) {
+                Maintenance::create($maintenance);
+            }
         }
     }
 }

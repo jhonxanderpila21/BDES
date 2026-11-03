@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @extends('layouts.admin')
 
 @section('title', 'Maintenance & Inspection - BDES')
@@ -1191,3 +1192,6 @@
         </script>
     @endpush
 @endsection
+=======
+@include('asset-operations.maintenance.index')
+>>>>>>> origin/demo

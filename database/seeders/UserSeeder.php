@@ -16,10 +16,12 @@ class UserSeeder extends Seeder
     {
         $users = [
             // ==========================================
-            // ADMINISTRATOR & EXECUTIVE ACCOUNTS (Admin)
+            // 1. ADMIN ROLE (Full Governance & Settings)
             // ==========================================
             [
                 'name'              => 'System Administrator',
+                'first_name'        => 'System',
+                'last_name'         => 'Administrator',
                 'username'          => 'admin',
                 'email'             => 'admin@bdes.gov',
                 'role'              => 'administrator',
@@ -27,30 +29,14 @@ class UserSeeder extends Seeder
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ],
-            [
-                'name'              => 'Hon. Barangay Captain',
-                'username'          => 'captain',
-                'email'             => 'captain@bdes.gov',
-                'role'              => 'barangay_captain',
-                'password'          => Hash::make('password'),
-                'is_active'         => true,
-                'email_verified_at' => now(),
-            ],
 
             // ==========================================
-            // BDRRMC OPERATIONAL STAFF & OFFICERS (Member)
+            // 2. INVENTORY ROLE (Operations, Deployments)
             // ==========================================
             [
-                'name'              => 'BDRRMC Officer Member',
-                'username'          => 'member',
-                'email'             => 'member@bdes.gov',
-                'role'              => 'bdrrmc_officer',
-                'password'          => Hash::make('password'),
-                'is_active'         => true,
-                'email_verified_at' => now(),
-            ],
-            [
-                'name'              => 'Inventory & Logistics Officer',
+                'name'              => 'BDRRMC Inventory Officer',
+                'first_name'        => 'Inventory',
+                'last_name'         => 'Officer',
                 'username'          => 'inventory',
                 'email'             => 'inventory@bdes.gov',
                 'role'              => 'inventory_officer',
@@ -58,8 +44,14 @@ class UserSeeder extends Seeder
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ],
+
+            // ==========================================
+            // 3. MAINTENANCE ROLE (Repairs, Inspections)
+            // ==========================================
             [
-                'name'              => 'Maintenance Specialist',
+                'name'              => 'Maintenance Officer',
+                'first_name'        => 'Maintenance',
+                'last_name'         => 'Officer',
                 'username'          => 'maintenance',
                 'email'             => 'maintenance@bdes.gov',
                 'role'              => 'maintenance_officer',
@@ -67,8 +59,14 @@ class UserSeeder extends Seeder
                 'is_active'         => true,
                 'email_verified_at' => now(),
             ],
+
+            // ==========================================
+            // 4. STAFF FOR VIEWING ROLE (Read-Only)
+            // ==========================================
             [
                 'name'              => 'Barangay Staff Member',
+                'first_name'        => 'Barangay',
+                'last_name'         => 'Staff',
                 'username'          => 'staff',
                 'email'             => 'staff@bdes.gov',
                 'role'              => 'viewer',
@@ -77,6 +75,10 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
             ],
         ];
+
+        // Migrate any legacy roles to modern 4-tier roles
+        User::where('role', 'bdrrmc_officer')->update(['role' => 'inventory_officer']);
+        User::where('role', 'barangay_captain')->update(['role' => 'administrator']);
 
         foreach ($users as $userData) {
             User::updateOrCreate(

@@ -8,6 +8,9 @@ use App\Models\AssetType;
 use App\Models\Location;
 use App\Services\AssetLifecycleService;
 use App\Services\AuditTrailService;
+use App\Services\PhilippineAccountingStandardService;
+use App\Services\ReceiptService;
+use App\Services\SkuGenerator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -82,7 +85,17 @@ class AssetController extends Controller
         $assets = $assetsQuery->orderBy($sortBy, $sortDir)->paginate(10, ['*'], 'assets_page')->withQueryString();
 
         // 2. Asset Categories Tab Data
-        $categoriesQuery = AssetCategory::withCount('assets');
+        $categoriesQuery = AssetCategory::with([
+            'assets' => function ($q) {
+                $q->select('id', 'name', 'code', 'category_id', 'type_id', 'location_id', 'status', 'condition', 'acquisition_cost')
+                  ->with(['type:id,name', 'location:id,name']);
+            }
+        ])->withCount([
+            'assets',
+            'assets as available_assets_count' => function ($q) {
+                $q->where('status', 'available');
+            }
+        ]);
         if ($request->filled('search') && $activeTab === 'categories') {
             $search = $request->search;
             $categoriesQuery->where(function ($q) use ($search) {
@@ -96,7 +109,18 @@ class AssetController extends Controller
         $categoriesList = $categoriesQuery->orderBy('name')->paginate(10, ['*'], 'categories_page')->withQueryString();
 
         // 3. Asset Types Tab Data
-        $typesQuery = AssetType::with('category')->withCount('assets');
+        $typesQuery = AssetType::with([
+            'category',
+            'assets' => function ($q) {
+                $q->select('id', 'name', 'code', 'category_id', 'type_id', 'location_id', 'status', 'condition', 'acquisition_cost')
+                  ->with(['category:id,name', 'location:id,name']);
+            }
+        ])->withCount([
+            'assets',
+            'assets as available_assets_count' => function ($q) {
+                $q->where('status', 'available');
+            }
+        ]);
         if ($request->filled('search') && $activeTab === 'types') {
             $search = $request->search;
             $typesQuery->where(function ($q) use ($search) {
@@ -111,7 +135,7 @@ class AssetController extends Controller
         }
         $typesList = $typesQuery->orderBy('name')->paginate(10, ['*'], 'types_page')->withQueryString();
 
-        return view('admin.assets.index', compact(
+        return view('asset-management.assets.index', compact(
             'activeTab',
             'metrics',
             'assets',
@@ -130,6 +154,8 @@ class AssetController extends Controller
      */
     public function create()
     {
+        Gate::authorize('create', Asset::class);
+
         return redirect()->route('assets.index', ['tab' => 'assets']);
     }
 
@@ -140,10 +166,33 @@ class AssetController extends Controller
     {
         Gate::authorize('create', Asset::class);
 
-        $validated = $request->validate([
+        // Normalize inputs to get expected values
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['serial_number'])) {
+            $input['serial_number'] = strtoupper(trim(strip_tags($input['serial_number'])));
+        }
+        if (isset($input['manufacturer'])) {
+            $input['manufacturer'] = strip_tags(trim($input['manufacturer']));
+        }
+        if (isset($input['acquisition_cost']) && is_string($input['acquisition_cost'])) {
+            $input['acquisition_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['acquisition_cost']));
+            if ($input['acquisition_cost'] === '') {
+                $input['acquisition_cost'] = null;
+            }
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        $request->merge($input);
+
+        $rules = array_merge([
             'name'             => ['required', 'string', 'max:255'],
             'category_id'      => ['required', 'exists:asset_categories,id'],
             'type_id'          => ['nullable', 'exists:asset_types,id'],
+            'quantity'         => ['nullable', 'integer', 'min:1', 'max:100'],
             'serial_number'    => ['nullable', 'string', 'max:255'],
             'manufacturer'     => ['nullable', 'string', 'max:255'],
             'purchase_date'    => ['nullable', 'date'],
@@ -153,28 +202,76 @@ class AssetController extends Controller
             'condition'        => ['required', 'in:excellent,good,fair,poor'],
             'status'           => ['required', 'in:available,deployed,under_maintenance,out_of_service,lost,retired'],
             'notes'            => ['nullable', 'string'],
-        ]);
+        ], ReceiptService::rules());
 
-        $asset = DB::transaction(function () use ($validated) {
-            do {
-                $validated['code'] = 'AST-' . Str::upper(Str::random(8));
-            } while (Asset::where('code', $validated['code'])->exists());
+        $validated = $request->validate($rules, ReceiptService::messages());
 
-            $created = Asset::create($validated);
+        $quantity = (int) ($validated['quantity'] ?? 1);
+        if ($quantity < 1) $quantity = 1;
 
-            AuditTrailService::log(
-                'created',
-                $created,
-                "Asset [{$created->name}] ({$created->code}) registered into inventory.",
-                null,
-                $created->only(['name', 'code', 'status', 'condition', 'category_id', 'location_id', 'acquisition_cost'])
+        // Automate Philippine Government Standard accounting parameters (COA Circular No. 2022-004 & GAM for LGUs)
+        $category = AssetCategory::find($validated['category_id']);
+        $type = !empty($validated['type_id']) ? AssetType::find($validated['type_id']) : null;
+        $validated = PhilippineAccountingStandardService::applyCoaAccountingParameters(
+            $validated,
+            $category?->name,
+            $type?->name
+        );
+
+        unset($validated['quantity'], $validated['receipts'], $validated['receipt_reference_number']);
+
+        $baseSerial = $validated['serial_number'] ?? null;
+
+        $createdAssets = DB::transaction(function () use ($validated, $quantity, $category, $type, $baseSerial, $request) {
+            $skus = SkuGenerator::generateBatch(
+                $quantity,
+                $validated['category_id'] ?? null,
+                $validated['type_id'] ?? null,
+                $validated['name'] ?? null
             );
+            $assets = [];
 
-            return $created;
+            foreach ($skus as $index => $sku) {
+                $recordData = $validated;
+                $recordData['code'] = $sku;
+
+                if (!empty($baseSerial)) {
+                    $recordData['serial_number'] = $quantity > 1 ? "{$baseSerial}-" . ($index + 1) : $baseSerial;
+                }
+
+                $asset = Asset::create($recordData);
+
+                if ($index === 0) {
+                    ReceiptService::attachFromRequest($asset, $request);
+                    $asset->load('receipts');
+                } elseif (!empty($assets[0]) && $assets[0]->receipts->isNotEmpty()) {
+                    ReceiptService::linkExisting($assets[0]->receipts, $asset);
+                }
+
+                AuditTrailService::log(
+                    'created',
+                    $asset,
+                    "Asset [{$asset->name}] ({$asset->code}) registered into inventory.",
+                    null,
+                    $asset->only(['name', 'code', 'status', 'condition', 'category_id', 'location_id', 'acquisition_cost'])
+                );
+
+                $assets[] = $asset;
+            }
+
+            return $assets;
         });
 
+        $count = count($createdAssets);
+        $first = $createdAssets[0] ?? null;
+        $skuList = collect($createdAssets)->pluck('code')->implode(', ');
+
+        $message = $count > 1
+            ? "Successfully registered {$count} assets: {$skuList}!"
+            : "Asset [{$first?->name}] ({$first?->code}) registered successfully!";
+
         return redirect()->route('assets.index', ['tab' => 'assets'])
-            ->with('success', "Asset [{$asset->name}] ({$asset->code}) registered successfully!");
+            ->with('success', $message);
     }
 
     /**
@@ -182,6 +279,8 @@ class AssetController extends Controller
      */
     public function show(Asset $asset)
     {
+        $isAdmin = auth()->user()?->isAdmin();
+
         $asset->load([
             'category',
             'type',
@@ -194,10 +293,30 @@ class AssetController extends Controller
             'returns.receivedByUser',
             'attachments',
             'accessories',
+            'assetNeeds',
             'documents.uploader',
+            'auditLogs' => function ($q) use ($isAdmin) {
+                if (!$isAdmin) {
+                    $q->where('user_id', auth()->id());
+                }
+            },
             'auditLogs.user',
             'reportedAssets'
         ]);
+
+        $operationalRequirements = collect();
+        if ($asset->type_id) {
+            $operationalRequirements = \App\Models\OperationalRequirement::where('asset_type_id', $asset->type_id)
+                ->with(['assetType.assets.location'])
+                ->get();
+        }
+        if ($asset->assetNeeds && $asset->assetNeeds->isNotEmpty()) {
+            $needNames = $asset->assetNeeds->pluck('requirement')->toArray();
+            $matchedReqs = \App\Models\OperationalRequirement::whereIn('requirement_type', $needNames)
+                ->with(['assetType.assets.location'])
+                ->get();
+            $operationalRequirements = $operationalRequirements->concat($matchedReqs)->unique('id')->values();
+        }
 
         $stats = [
             'total_maintenance_cost' => $asset->maintenance->sum('cost') ?? 0,
@@ -208,9 +327,10 @@ class AssetController extends Controller
             'active_deployment'      => $asset->deployments->where('status', 'deployed')->sortByDesc('id')->first(),
         ];
 
-        return view('admin.assets.show', [
+        return view('asset-management.assets.show', [
             'asset' => $asset,
             'stats' => $stats,
+            'operationalRequirements' => $operationalRequirements,
         ]);
     }
 
@@ -219,6 +339,8 @@ class AssetController extends Controller
      */
     public function edit(Asset $asset)
     {
+        Gate::authorize('update', $asset);
+
         return redirect()->route('assets.index', ['tab' => 'assets']);
     }
 
@@ -229,15 +351,40 @@ class AssetController extends Controller
     {
         Gate::authorize('update', $asset);
 
+        // Normalize inputs to get expected values
+        $input = $request->all();
+        if (isset($input['code'])) {
+            $input['code'] = strtoupper(trim(strip_tags($input['code'])));
+        }
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['serial_number'])) {
+            $input['serial_number'] = strtoupper(trim(strip_tags($input['serial_number'])));
+        }
+        if (isset($input['manufacturer'])) {
+            $input['manufacturer'] = strip_tags(trim($input['manufacturer']));
+        }
+        if (isset($input['acquisition_cost']) && is_string($input['acquisition_cost'])) {
+            $input['acquisition_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['acquisition_cost']));
+            if ($input['acquisition_cost'] === '') {
+                $input['acquisition_cost'] = null;
+            }
+        }
+        if (isset($input['notes'])) {
+            $input['notes'] = strip_tags(trim($input['notes']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
-            'code'             => 'required|unique:assets,code,' . $asset->id,
+            'code'             => 'required|string|max:50|unique:assets,code,' . $asset->id,
             'name'             => 'required|string|max:255',
             'category_id'      => 'required|exists:asset_categories,id',
             'type_id'          => 'nullable|exists:asset_types,id',
             'serial_number'    => 'nullable|string|max:255',
             'manufacturer'     => 'nullable|string|max:255',
             'purchase_date'    => 'nullable|date',
-            'acquisition_cost' => 'nullable|numeric',
+            'acquisition_cost' => 'nullable|numeric|min:0|max:9999999999.99',
             'warranty_expiry'  => 'nullable|date',
             'location_id'      => 'required|exists:locations,id',
             'condition'        => 'required|in:excellent,good,fair,poor',
@@ -260,6 +407,21 @@ class AssetController extends Controller
                 $validated['retirement_date']   = now()->toDateString();
                 $validated['retirement_reason'] = $validated['notes'] ?? 'Decommissioned via asset profile update.';
                 $validated['retired_by']        = auth()->id();
+            }
+        }
+
+        // Enforce accounting adjustments upon cost update
+        if (isset($validated['acquisition_cost'])) {
+            $newCost = (float) $validated['acquisition_cost'];
+            if ($newCost < PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) {
+                $validated['salvage_value'] = 0.00;
+                $validated['salvage_notes'] = 'Semi-Expendable Property (< ₱20,000.00 threshold). Non-depreciable; residual value set to ₱0.00.';
+            } elseif (($asset->acquisition_cost === null || (float) $asset->acquisition_cost < PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) && $newCost >= PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD) {
+                // Newly capitalized asset: assign standard 10% residual value if not present
+                if (empty($asset->salvage_value) || (float) $asset->salvage_value <= 0) {
+                    $validated['salvage_value'] = round($newCost * PhilippineAccountingStandardService::DEFAULT_RESIDUAL_RATE, 2);
+                    $validated['salvage_notes'] = 'Capitalized PPE (₱20,000.00+ threshold). Standard 10% residual value applied per COA Circular No. 2003-007.';
+                }
             }
         }
 

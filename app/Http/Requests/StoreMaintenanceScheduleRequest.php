@@ -13,7 +13,11 @@ class StoreMaintenanceScheduleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+        return $user->isAdmin() || $user->hasRole('maintenance_officer', 'bdrrmc_officer');
     }
 
     /**
@@ -21,12 +25,20 @@ class StoreMaintenanceScheduleRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'asset_id' => ['required', 'exists:assets,id'],
             'maintenance_task' => ['required', 'string', 'max:255'],
             'interval_type' => ['required', Rule::in(MaintenanceScheduleService::intervalTypes())],
             'interval_days' => ['required', 'integer', 'min:1'],
             'last_maintenance_date' => ['required', 'date', 'before_or_equal:today'],
-        ];
+        ], \App\Services\ReceiptService::rules());
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return \App\Services\ReceiptService::messages();
     }
 }

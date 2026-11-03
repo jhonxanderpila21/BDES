@@ -11,7 +11,25 @@ class UpdateAssetAccessoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        $user = $this->user();
+        if ($user && ($user->isViewer() || $user->hasRole('viewer', 'staff'))) {
+            return false;
+        }
+
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $unitCost = $this->unit_cost;
+        if (is_string($unitCost)) {
+            $unitCost = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $unitCost));
+        }
+
+        $this->merge([
+            'accessory_name' => strip_tags(trim($this->accessory_name ?? '')),
+            'unit_cost'      => $unitCost,
+        ]);
     }
 
     /**

@@ -5,25 +5,52 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, \App\Traits\Archivable;
+
+    public const DEFAULT_TEMP_PASSWORD = 'TempPass_123';
 
     /**
      * The attributes that are mass assignable.
      */
     protected $fillable = [
         'name',
+        'first_name',
+        'middle_name',
+        'last_name',
+        'suffix',
         'username',
         'email',
         'password',
         'role',
         'is_active',
+        'deleted_by',
+        'deletion_reason',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->first_name || $user->last_name) {
+                $parts = array_filter([
+                    $user->first_name,
+                    $user->middle_name,
+                    $user->last_name,
+                ]);
+                $fullName = implode(' ', $parts);
+                if ($user->suffix) {
+                    $fullName .= ' ' . $user->suffix;
+                }
+                $user->name = trim($fullName);
+            }
+        });
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -31,6 +58,13 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    /**
+     * Default attribute values (mirrors DB defaults so new in-memory models are consistent).
+     */
+    protected $attributes = [
+        'is_active' => true,
     ];
 
     /**
@@ -69,5 +103,47 @@ class User extends Authenticatable
     public function isMember(): bool
     {
         return !$this->isAdmin();
+    }
+
+    /**
+     * Check if the user is an Inventory & Equipment Officer.
+     */
+    public function isInventoryOfficer(): bool
+    {
+        return $this->hasRole('inventory_officer', 'bdrrmc_officer');
+    }
+
+    /**
+     * Check if the user is a Maintenance Officer.
+     */
+    public function isMaintenanceOfficer(): bool
+    {
+        return $this->hasRole('maintenance_officer');
+    }
+
+    /**
+     * Check if the user is a read-only viewer / staff member.
+     */
+    public function isViewer(): bool
+    {
+        return $this->hasRole('viewer', 'staff');
+    }
+
+    /**
+     * Reported assets this user is assigned to.
+     */
+    public function assignedReportedAssets(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(ReportedAsset::class, 'reported_asset_user', 'user_id', 'reported_asset_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Maintenance work orders this user is assigned to.
+     */
+    public function assignedMaintenances(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Maintenance::class, 'maintenance_user', 'user_id', 'maintenance_id')
+            ->withTimestamps();
     }
 }

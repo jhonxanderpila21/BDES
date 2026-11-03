@@ -13,7 +13,22 @@ class UpdateReportedAssetRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        $user = $this->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'location'      => strip_tags(trim($this->location ?? '')),
+            'description'   => strip_tags(trim($this->description ?? '')),
+            'action'        => strip_tags(trim($this->action ?? '')),
+            'reported_date' => $this->filled('reported_date') ? $this->reported_date : ($this->route('reported_asset')?->reported_date?->format('Y-m-d') ?? now()->format('Y-m-d')),
+        ]);
     }
 
     /**
@@ -27,8 +42,10 @@ class UpdateReportedAssetRequest extends FormRequest
             'location'      => ['required', 'string', 'max:255'],
             'description'   => ['nullable', 'string'],
             'action'        => ['nullable', 'string', 'max:255'],
-            'reported_date' => ['required', 'date', 'before_or_equal:today'],
+            'reported_date' => ['nullable', 'date', 'before_or_equal:today'],
             'resolved_date' => ['nullable', 'date', 'after_or_equal:reported_date'],
+            'personnel'     => ['nullable', 'array'],
+            'personnel.*'   => ['exists:users,id'],
         ];
     }
 }

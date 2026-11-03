@@ -16,20 +16,65 @@ class AssetCategoryController extends Controller
     }
 
     /**
+     * Show the form for creating a new asset category.
+     */
+    public function create(Request $request)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'categories']);
+    }
+
+    /**
      * Store a newly created asset category in storage.
      */
     public function store(Request $request)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['description'])) {
+            $input['description'] = strip_tags(trim($input['description']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name'        => 'required|string|max:255|unique:asset_categories,name',
             'description' => 'nullable|string',
             'status'      => 'in:active,inactive',
         ]);
 
-        AssetCategory::create($validated);
+        $created = AssetCategory::create($validated);
+
+        if ($request->input('return_to') === 'assets') {
+            return redirect()->route('assets.index', [
+                'tab'                  => 'assets',
+                'reopen_add_asset'     => 1,
+                'selected_category_id' => $created->id,
+            ])->with('success', 'Category created successfully!');
+        }
 
         return redirect()->route('assets.index', ['tab' => 'categories'])
             ->with('success', 'Category created successfully!');
+    }
+
+    /**
+     * Show the form for editing the specified asset category.
+     */
+    public function edit(Request $request, AssetCategory $assetCategory)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'categories']);
     }
 
     /**
@@ -37,6 +82,19 @@ class AssetCategoryController extends Controller
      */
     public function update(Request $request, AssetCategory $assetCategory)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $input = $request->all();
+        if (isset($input['name'])) {
+            $input['name'] = strip_tags(trim($input['name']));
+        }
+        if (isset($input['description'])) {
+            $input['description'] = strip_tags(trim($input['description']));
+        }
+        $request->merge($input);
+
         $validated = $request->validate([
             'name'        => 'required|string|max:255|unique:asset_categories,name,' . $assetCategory->id,
             'description' => 'nullable|string',
@@ -52,8 +110,12 @@ class AssetCategoryController extends Controller
     /**
      * Remove the specified asset category from storage.
      */
-    public function destroy(AssetCategory $assetCategory)
+    public function destroy(Request $request, AssetCategory $assetCategory)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $assetCategory->delete();
 
         return redirect()->route('assets.index', ['tab' => 'categories'])

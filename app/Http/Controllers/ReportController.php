@@ -21,53 +21,48 @@ class ReportController extends Controller
     {
         return [
             'inventory' => [
-                'title'       => 'Comprehensive Master Asset Inventory',
-                'description' => 'Complete register of all barangay disaster equipment with location, cost, and status.',
+                'title'       => 'Master Asset Inventory',
+                'description' => 'Complete list of all barangay disaster assets with location, cost, condition, and status.',
                 'icon'        => 'clipboard-list',
             ],
             'readiness' => [
-                'title'       => 'Deployment Readiness & Available Assets',
-                'description' => 'Assets immediately ready for disaster dispatch and emergency operations.',
+                'title'       => 'Ready-to-Deploy Assets',
+                'description' => 'Emergency equipment in good or excellent condition ready for immediate field dispatch.',
                 'icon'        => 'check-circle',
             ],
-            'active_deployments' => [
-                'title'       => 'Current Active Field Deployments',
-                'description' => 'Assets currently deployed in the field with responsible custodians and stations.',
+            'deployment_history' => [
+                'title'       => 'Deployments & Returns History',
+                'description' => 'Active field deployments and returned equipment with return dates and condition ratings.',
                 'icon'        => 'truck',
             ],
-            'deployment_history' => [
-                'title'       => 'Deployment History & Return Compliance',
-                'description' => 'Full log of past missions, return timestamps, and return condition assessments.',
-                'icon'        => 'clock',
-            ],
             'maintenance_overdue' => [
-                'title'       => 'Maintenance Schedule & Work Orders',
-                'description' => 'Pending, overdue, and scheduled preventive maintenance tasks and work orders.',
+                'title'       => 'Maintenance & Work Orders',
+                'description' => 'Scheduled, pending, and in-progress preventive maintenance work orders.',
                 'icon'        => 'wrench',
             ],
             'maintenance_expenses' => [
-                'title'       => 'Maintenance Cost & Expense Summary',
-                'description' => 'Breakdown of repair expenditures, spare parts consumed, and service charges.',
+                'title'       => 'Maintenance Repair Costs',
+                'description' => 'Summary of repair expenses, replacement parts used, and completed maintenance costs.',
                 'icon'        => 'currency-dollar',
             ],
             'inspections' => [
-                'title'       => 'Physical Asset Condition & Inspection Ratings',
-                'description' => 'Quality ratings, safety findings, and scheduled re-inspection timelines.',
+                'title'       => 'Equipment Inspections',
+                'description' => 'Physical inspection findings, pass/fail ratings, and scheduled next inspection dates.',
                 'icon'        => 'shield-check',
             ],
             'high_risk' => [
-                'title'       => 'High-Risk / Damaged / Out-of-Service Assets',
-                'description' => 'Equipment requiring urgent rehabilitation, replacement, or write-off.',
+                'title'       => 'Damaged & High-Risk Assets',
+                'description' => 'Damaged, lost, or out-of-service equipment requiring urgent repair or replacement.',
                 'icon'        => 'exclamation-triangle',
             ],
             'decommissioned' => [
-                'title'       => 'Decommissioned & Retired Assets Register',
-                'description' => 'Assets retired from active duty with authorization signatures and justifications.',
+                'title'       => 'Retired & Disposed Assets',
+                'description' => 'Assets officially decommissioned or retired from service with authorization records.',
                 'icon'        => 'archive',
             ],
             'audit_trail' => [
-                'title'       => 'Audit Trail & Custody Movement History',
-                'description' => 'Immutable audit log of user actions, status transitions, and data modifications.',
+                'title'       => 'Activity Audit Trail',
+                'description' => 'Full activity log of user actions, custody transitions, and system changes.',
                 'icon'        => 'fingerprint',
             ],
         ];
@@ -80,14 +75,18 @@ class ReportController extends Controller
     {
         $types = static::reportTypes();
         $selectedType = $request->get('type', 'inventory');
+        if ($selectedType === 'active_deployments') {
+            $selectedType = 'deployment_history';
+        }
         if (!array_key_exists($selectedType, $types)) {
             $selectedType = 'inventory';
         }
 
         $categories = AssetCategory::orderBy('name')->get();
         $data = $this->fetchReportData($selectedType, $request, 25);
+        $summary = $this->getReportSummary($selectedType);
 
-        return view('admin.reports.index', compact('types', 'selectedType', 'categories', 'data'));
+        return view('tracking-and-reporting.reports.index', compact('types', 'selectedType', 'categories', 'data', 'summary'));
     }
 
     /**
@@ -97,6 +96,9 @@ class ReportController extends Controller
     {
         $types = static::reportTypes();
         $selectedType = $request->get('type', 'inventory');
+        if ($selectedType === 'active_deployments') {
+            $selectedType = 'deployment_history';
+        }
         if (!array_key_exists($selectedType, $types)) {
             $selectedType = 'inventory';
         }
@@ -134,12 +136,7 @@ class ReportController extends Controller
                 ->orderBy('name')
                 ->paginate($limit)->withQueryString(),
 
-            'active_deployments' => Deployment::with(['asset.category', 'user'])
-                ->where('status', 'deployed')
-                ->latest('deployment_date')
-                ->paginate($limit)->withQueryString(),
-
-            'deployment_history' => Deployment::with(['asset', 'user', 'returnRecord.receivedByUser'])
+            'deployment_history', 'active_deployments' => Deployment::with(['asset.category', 'user', 'returnRecord.receivedByUser'])
                 ->latest('deployment_date')
                 ->paginate($limit)->withQueryString(),
 
@@ -210,31 +207,23 @@ class ReportController extends Controller
                 });
                 break;
 
-            case 'active_deployments':
-                fputcsv($handle, ['Asset Code', 'Asset Name', 'Deployed By', 'Responsible Person', 'Destination', 'Purpose', 'Deployment Date', 'Expected Return']);
-                Deployment::with(['asset', 'user'])->where('status', 'deployed')->chunk(200, function ($deps) use ($handle) {
-                    foreach ($deps as $d) {
-                        fputcsv($handle, [
-                            $d->asset?->code ?? 'N/A', $d->asset?->name ?? 'N/A', $d->user?->name ?? 'N/A',
-                            $d->responsible_person ?? 'N/A', $d->location, $d->purpose,
-                            $d->deployment_date?->format('Y-m-d') ?? 'N/A',
-                            $d->expected_return_date?->format('Y-m-d') ?? 'N/A'
-                        ]);
-                    }
-                });
-                break;
-
             case 'deployment_history':
-                fputcsv($handle, ['Asset Code', 'Asset Name', 'Destination', 'Deployed Date', 'Expected Return', 'Status', 'Returned On', 'Condition Upon Return', 'Received By']);
-                Deployment::with(['asset', 'returnRecord.receivedByUser'])->chunk(200, function ($deps) use ($handle) {
+            case 'active_deployments':
+                fputcsv($handle, ['Asset Code', 'Asset Name', 'Deployed By', 'Responsible / Borrower', 'Destination', 'Purpose', 'Deployment Date', 'Expected Return', 'Status', 'Returned Date', 'Return Condition', 'Received By']);
+                Deployment::with(['asset', 'user', 'returnRecord.receivedByUser'])->chunk(200, function ($deps) use ($handle) {
                     foreach ($deps as $d) {
                         $ret = $d->returnRecord;
                         fputcsv($handle, [
-                            $d->asset?->code ?? 'N/A', $d->asset?->name ?? 'N/A', $d->location,
+                            $d->asset?->code ?? 'N/A',
+                            $d->asset?->name ?? 'N/A',
+                            $d->user?->name ?? 'N/A',
+                            $d->responsible_person ?? 'N/A',
+                            $d->location,
+                            $d->purpose ?? 'N/A',
                             $d->deployment_date?->format('Y-m-d') ?? 'N/A',
                             $d->expected_return_date?->format('Y-m-d') ?? 'N/A',
-                            ucfirst($d->status),
-                            $ret?->return_date?->format('Y-m-d') ?? ($d->status === 'returned' ? 'Yes' : 'Pending'),
+                            $d->status === 'deployed' ? 'Active in Field' : ucfirst($d->status),
+                            $ret?->return_date?->format('Y-m-d') ?? ($d->status === 'returned' ? 'Returned' : 'In Field'),
                             $ret?->condition ?? 'N/A',
                             $ret?->receivedByUser?->name ?? 'N/A',
                         ]);
@@ -331,6 +320,226 @@ class ReportController extends Controller
                 });
                 break;
         }
+    }
+
+    /**
+     * Get 3 highlight summary metrics for the given report type.
+     */
+    protected function getReportSummary(string $type): array
+    {
+        return match ($type) {
+            'inventory' => [
+                [
+                    'label'   => 'Total Assets',
+                    'value'   => number_format(Asset::count()),
+                    'icon'    => 'fas fa-boxes-stacked',
+                    'color'   => 'blue',
+                    'subtext' => 'All registered barangay equipment',
+                ],
+                [
+                    'label'   => 'Total Valuation',
+                    'value'   => '₱' . number_format((float) Asset::sum('acquisition_cost'), 2),
+                    'icon'    => 'fas fa-peso-sign',
+                    'color'   => 'emerald',
+                    'subtext' => 'Combined acquisition cost',
+                ],
+                [
+                    'label'   => 'Asset Categories',
+                    'value'   => number_format(AssetCategory::count()),
+                    'icon'    => 'fas fa-tags',
+                    'color'   => 'indigo',
+                    'subtext' => 'Distinct classification groups',
+                ],
+            ],
+            'readiness' => [
+                [
+                    'label'   => 'Ready-to-Deploy Assets',
+                    'value'   => number_format(Asset::where('status', 'available')->whereIn('condition', ['excellent', 'good'])->count()),
+                    'icon'    => 'fas fa-circle-check',
+                    'color'   => 'emerald',
+                    'subtext' => 'Available in good / excellent state',
+                ],
+                [
+                    'label'   => 'Available in Storage',
+                    'value'   => number_format(Asset::where('status', 'available')->count()),
+                    'icon'    => 'fas fa-warehouse',
+                    'color'   => 'blue',
+                    'subtext' => 'Stationed and ready for assignment',
+                ],
+                [
+                    'label'   => 'Readiness Rate',
+                    'value'   => (Asset::count() > 0 ? round((Asset::where('status', 'available')->whereIn('condition', ['excellent', 'good'])->count() / Asset::count()) * 100, 1) : 100) . '%',
+                    'icon'    => 'fas fa-gauge-high',
+                    'color'   => 'indigo',
+                    'subtext' => 'Fleet readiness percentage',
+                ],
+            ],
+            'deployment_history', 'active_deployments' => [
+                [
+                    'label'   => 'Active Deployments',
+                    'value'   => number_format(Deployment::where('status', 'active')->count()),
+                    'icon'    => 'fas fa-truck-fast',
+                    'color'   => 'amber',
+                    'subtext' => 'Assets currently in field operations',
+                ],
+                [
+                    'label'   => 'Returned Equipment',
+                    'value'   => number_format(Deployment::where('status', 'returned')->count()),
+                    'icon'    => 'fas fa-rotate-left',
+                    'color'   => 'emerald',
+                    'subtext' => 'Safely returned and checked in',
+                ],
+                [
+                    'label'   => 'Total Deployments',
+                    'value'   => number_format(Deployment::count()),
+                    'icon'    => 'fas fa-clipboard-list',
+                    'color'   => 'blue',
+                    'subtext' => 'Lifetime deployment records',
+                ],
+            ],
+            'maintenance_overdue' => [
+                [
+                    'label'   => 'Open Work Orders',
+                    'value'   => number_format(Maintenance::whereIn('status', ['pending', 'in_progress'])->count()),
+                    'icon'    => 'fas fa-wrench',
+                    'color'   => 'amber',
+                    'subtext' => 'Pending or actively in-service',
+                ],
+                [
+                    'label'   => 'In-Progress Repairs',
+                    'value'   => number_format(Maintenance::where('status', 'in_progress')->count()),
+                    'icon'    => 'fas fa-screwdriver-wrench',
+                    'color'   => 'blue',
+                    'subtext' => 'Currently being repaired by staff',
+                ],
+                [
+                    'label'   => 'Completed Restorations',
+                    'value'   => number_format(Maintenance::where('status', 'completed')->count()),
+                    'icon'    => 'fas fa-circle-check',
+                    'color'   => 'emerald',
+                    'subtext' => 'Successfully restored to service',
+                ],
+            ],
+            'maintenance_expenses' => [
+                [
+                    'label'   => 'Total Repair Cost',
+                    'value'   => '₱' . number_format((float) Maintenance::where('status', 'completed')->sum('cost'), 2),
+                    'icon'    => 'fas fa-peso-sign',
+                    'color'   => 'emerald',
+                    'subtext' => 'Cumulative completed repair costs',
+                ],
+                [
+                    'label'   => 'Completed Repairs',
+                    'value'   => number_format(Maintenance::where('status', 'completed')->count()),
+                    'icon'    => 'fas fa-clipboard-check',
+                    'color'   => 'blue',
+                    'subtext' => 'Finished work orders',
+                ],
+                [
+                    'label'   => 'Average Cost / Repair',
+                    'value'   => '₱' . number_format(Maintenance::where('status', 'completed')->count() > 0 ? ((float) Maintenance::where('status', 'completed')->sum('cost') / Maintenance::where('status', 'completed')->count()) : 0, 2),
+                    'icon'    => 'fas fa-calculator',
+                    'color'   => 'purple',
+                    'subtext' => 'Average per completed order',
+                ],
+            ],
+            'inspections' => [
+                [
+                    'label'   => 'Total Inspections',
+                    'value'   => number_format(Inspection::count()),
+                    'icon'    => 'fas fa-clipboard-check',
+                    'color'   => 'blue',
+                    'subtext' => 'Total equipment checks conducted',
+                ],
+                [
+                    'label'   => 'Passed Inspections',
+                    'value'   => number_format(Inspection::where('result', 'passed')->count()),
+                    'icon'    => 'fas fa-shield-check',
+                    'color'   => 'emerald',
+                    'subtext' => 'Verified fit for disaster duty',
+                ],
+                [
+                    'label'   => 'Failed / Flagged',
+                    'value'   => number_format(Inspection::where('result', 'failed')->count()),
+                    'icon'    => 'fas fa-triangle-exclamation',
+                    'color'   => 'rose',
+                    'subtext' => 'Flagged for repairs or replacement',
+                ],
+            ],
+            'high_risk' => [
+                [
+                    'label'   => 'Out of Service / Lost',
+                    'value'   => number_format(Asset::whereIn('status', ['out_of_service', 'lost'])->count()),
+                    'icon'    => 'fas fa-ban',
+                    'color'   => 'rose',
+                    'subtext' => 'Unavailable for emergency dispatch',
+                ],
+                [
+                    'label'   => 'Poor Condition Assets',
+                    'value'   => number_format(Asset::where('condition', 'poor')->count()),
+                    'icon'    => 'fas fa-triangle-exclamation',
+                    'color'   => 'amber',
+                    'subtext' => 'Critical wear requiring attention',
+                ],
+                [
+                    'label'   => 'Total High-Risk Items',
+                    'value'   => number_format(Asset::where(function ($q) {
+                        $q->whereIn('status', ['out_of_service', 'lost'])
+                          ->orWhere('condition', 'poor');
+                    })->count()),
+                    'icon'    => 'fas fa-radiation',
+                    'color'   => 'purple',
+                    'subtext' => 'Requiring urgent administrative action',
+                ],
+            ],
+            'decommissioned' => [
+                [
+                    'label'   => 'Retired Assets',
+                    'value'   => number_format(Asset::where('status', 'retired')->count()),
+                    'icon'    => 'fas fa-box-archive',
+                    'color'   => 'gray',
+                    'subtext' => 'Officially decommissioned assets',
+                ],
+                [
+                    'label'   => 'Disposed Valuation',
+                    'value'   => '₱' . number_format((float) Asset::where('status', 'retired')->sum('acquisition_cost'), 2),
+                    'icon'    => 'fas fa-peso-sign',
+                    'color'   => 'blue',
+                    'subtext' => 'Original acquisition value of retired units',
+                ],
+                [
+                    'label'   => 'Disposed This Year',
+                    'value'   => number_format(Asset::where('status', 'retired')->whereYear('retirement_date', now()->year)->count()),
+                    'icon'    => 'fas fa-calendar-xmark',
+                    'color'   => 'amber',
+                    'subtext' => 'Decommissioned in ' . now()->year,
+                ],
+            ],
+            'audit_trail' => [
+                [
+                    'label'   => 'Total Audit Events',
+                    'value'   => number_format(AuditLog::count()),
+                    'icon'    => 'fas fa-list-check',
+                    'color'   => 'blue',
+                    'subtext' => 'Immutable system logs recorded',
+                ],
+                [
+                    'label'   => 'Activity Logged Today',
+                    'value'   => number_format(AuditLog::whereDate('created_at', today())->count()),
+                    'icon'    => 'fas fa-clock',
+                    'color'   => 'emerald',
+                    'subtext' => 'Events within the last 24 hours',
+                ],
+                [
+                    'label'   => 'Active Audited Users',
+                    'value'   => number_format(AuditLog::distinct('user_id')->count('user_id')),
+                    'icon'    => 'fas fa-users-gear',
+                    'color'   => 'indigo',
+                    'subtext' => 'Users who performed recorded actions',
+                ],
+            ],
+            default => [],
+        };
     }
 }
 

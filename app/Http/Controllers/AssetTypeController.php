@@ -16,10 +16,30 @@ class AssetTypeController extends Controller
     }
 
     /**
+     * Show the form for creating a new asset type.
+     */
+    public function create(Request $request)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'types']);
+    }
+
+    /**
      * Store a newly created asset type in storage.
      */
     public function store(Request $request)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($request->has('name')) {
+            $request->merge(['name' => strip_tags(trim($request->name))]);
+        }
+
         $validated = $request->validate([
             'category_id'                       => 'nullable|exists:asset_categories,id',
             'name'                              => 'required|string|max:255',
@@ -42,10 +62,30 @@ class AssetTypeController extends Controller
             $validated[$cb] = $request->boolean($cb);
         }
 
-        AssetType::create($validated);
+        $created = AssetType::create($validated);
+
+        if ($request->input('return_to') === 'assets') {
+            return redirect()->route('assets.index', [
+                'tab'              => 'assets',
+                'reopen_add_asset' => 1,
+                'selected_type_id' => $created->id,
+            ])->with('success', 'Asset type created successfully!');
+        }
 
         return redirect()->route('assets.index', ['tab' => 'types'])
             ->with('success', 'Asset type created successfully!');
+    }
+
+    /**
+     * Show the form for editing the specified asset type.
+     */
+    public function edit(Request $request, AssetType $assetType)
+    {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return redirect()->route('assets.index', ['tab' => 'types']);
     }
 
     /**
@@ -53,6 +93,14 @@ class AssetTypeController extends Controller
      */
     public function update(Request $request, AssetType $assetType)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if ($request->has('name')) {
+            $request->merge(['name' => strip_tags(trim($request->name))]);
+        }
+
         $validated = $request->validate([
             'category_id'                       => 'nullable|exists:asset_categories,id',
             'name'                              => 'required|string|max:255',
@@ -83,8 +131,12 @@ class AssetTypeController extends Controller
     /**
      * Remove the specified asset type from storage.
      */
-    public function destroy(AssetType $assetType)
+    public function destroy(Request $request, AssetType $assetType)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $assetType->delete();
 
         return redirect()->route('assets.index', ['tab' => 'types'])

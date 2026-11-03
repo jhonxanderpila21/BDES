@@ -13,7 +13,22 @@ class StoreReportedAssetRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        $user = $this->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            return false;
+        }
+
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'location'      => strip_tags(trim($this->location ?? '')),
+            'description'   => strip_tags(trim($this->description ?? '')),
+            'action'        => strip_tags(trim($this->action ?? '')),
+            'reported_date' => $this->filled('reported_date') ? $this->reported_date : now()->format('Y-m-d'),
+        ]);
     }
 
     /**
@@ -21,13 +36,24 @@ class StoreReportedAssetRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'asset_id'      => ['required', 'exists:assets,id'],
-            'reported_type' => ['required', Rule::in(ReportedAssetService::reportedTypes())],
-            'location'      => ['required', 'string', 'max:255'],
-            'description'   => ['nullable', 'string'],
-            'action'        => ['nullable', 'string', 'max:255'],
-            'reported_date' => ['required', 'date', 'before_or_equal:today'],
-        ];
+        return array_merge([
+            'asset_id'            => ['required', 'exists:assets,id'],
+            'reported_type'       => ['required', Rule::in(ReportedAssetService::reportedTypes())],
+            'location'            => ['required', 'string', 'max:255'],
+            'description'         => ['nullable', 'string'],
+            'action'              => ['nullable', 'string', 'max:255'],
+            'reported_date'       => ['nullable', 'date', 'before_or_equal:today'],
+            'personnel'           => ['nullable', 'array'],
+            'personnel.*'         => ['exists:users,id'],
+            'confirm_immediately' => ['nullable', 'boolean'],
+        ], \App\Services\ReceiptService::rules());
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     */
+    public function messages(): array
+    {
+        return \App\Services\ReceiptService::messages();
     }
 }

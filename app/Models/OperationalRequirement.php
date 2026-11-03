@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OperationalRequirement extends Model
 {
+    use \App\Models\Concerns\HasReceipts, \App\Traits\Archivable;
+
     protected $table = 'operational_requirements';
 
     protected $fillable = [
@@ -17,6 +19,8 @@ class OperationalRequirement extends Model
         'maximum_capacity',
         'minimum_level',
         'description',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [
@@ -27,12 +31,42 @@ class OperationalRequirement extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $appends = ['using_assets'];
+
     /**
      * Get the asset type this requirement applies to
      */
     public function assetType(): BelongsTo
     {
         return $this->belongsTo(AssetType::class, 'asset_type_id');
+    }
+
+    /**
+     * Get all assets using or requiring this operational supply
+     */
+    public function getUsingAssetsAttribute()
+    {
+        $assetsFromType = collect();
+        if ($this->relationLoaded('assetType') && $this->assetType) {
+            $assetsFromType = $this->assetType->relationLoaded('assets')
+                ? $this->assetType->assets
+                : $this->assetType->assets()->with('location:id,name')->get();
+        } elseif ($this->asset_type_id) {
+            $assetsFromType = Asset::where('type_id', $this->asset_type_id)->with('location:id,name')->get();
+        }
+
+        $assetsFromNeeds = AssetNeed::where('requirement', 'like', '%' . $this->requirement_type . '%')
+            ->with(['asset.location:id,name'])
+            ->get()
+            ->pluck('asset')
+            ->filter();
+
+        return $assetsFromType->concat($assetsFromNeeds)->unique('id')->values();
+    }
+
+    public function restocks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(OperationalRequirementRestock::class, 'operational_requirement_id')->latest();
     }
 
     public function isLowStock(): bool

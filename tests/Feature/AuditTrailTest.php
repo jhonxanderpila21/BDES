@@ -17,6 +17,7 @@ class AuditTrailTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+    private User $staff;
     private AssetCategory $category;
     private Location $location;
 
@@ -26,6 +27,12 @@ class AuditTrailTest extends TestCase
 
         $this->user = User::factory()->create([
             'role'      => 'administrator',
+            'is_active' => true,
+        ]);
+
+        $this->staff = User::factory()->create([
+            'name'      => 'Staff Member Ana',
+            'role'      => 'viewer',
             'is_active' => true,
         ]);
 
@@ -189,4 +196,292 @@ class AuditTrailTest extends TestCase
         $exportResponse->assertOk();
         $this->assertEquals('text/csv; charset=UTF-8', $exportResponse->headers->get('content-type'));
     }
+
+    public function test_non_admin_only_sees_own_account_audit_logs_and_admin_has_full_access(): void
+    {
+        $officer = User::factory()->create([
+            'name'      => 'Officer Juan',
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'updated',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 1,
+            'description'    => 'Admin confidential system configuration update.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $officer->id,
+            'event'          => 'created',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 2,
+            'description'    => 'Officer Juan registered new field equipment.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        // 1. Non-admin accessing index sees ONLY their own log
+        $officerResponse = $this->actingAs($officer)->get(route('asset-history.index'));
+        $officerResponse->assertOk();
+        $officerResponse->assertSee('Officer Juan registered new field equipment.');
+        $officerResponse->assertDontSee('Admin confidential system configuration update.');
+
+        // 2. Non-admin cannot bypass scoping by supplying ?user_id=
+        $bypassAttempt = $this->actingAs($officer)->get(route('asset-history.index', ['user_id' => $this->user->id]));
+        $bypassAttempt->assertOk();
+        $bypassAttempt->assertSee('Officer Juan registered new field equipment.');
+        $bypassAttempt->assertDontSee('Admin confidential system configuration update.');
+
+        // 3. Admin has full access to view both logs
+        $adminResponse = $this->actingAs($this->user)->get(route('asset-history.index'));
+        $adminResponse->assertOk();
+        $adminResponse->assertSee('Officer Juan registered new field equipment.');
+        $adminResponse->assertSee('Admin confidential system configuration update.');
+
+        // 4. Admin can filter by specific user
+        $filteredResponse = $this->actingAs($this->user)->get(route('asset-history.index', ['user_id' => $officer->id]));
+        $filteredResponse->assertOk();
+        $filteredResponse->assertSee('Officer Juan registered new field equipment.');
+        $filteredResponse->assertDontSee('Admin confidential system configuration update.');
+    }
+
+    public function test_asset_show_scopes_audit_logs_to_account_for_non_admin(): void
+    {
+        $officer = User::factory()->create([
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        $asset = Asset::create([
+            'name'             => 'Rescue Raft Alpha',
+            'code'             => 'RRF-001',
+            'category_id'      => $this->category->id,
+            'location_id'      => $this->location->id,
+            'condition'        => 'good',
+            'status'           => 'available',
+            'acquisition_cost' => 25000,
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'created',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => $asset->id,
+            'description'    => 'Admin created this asset.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $officer->id,
+            'event'          => 'updated',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => $asset->id,
+            'description'    => 'Officer Juan inspected this asset.',
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        // Non-admin sees only their own log on the asset
+        $officerShow = $this->actingAs($officer)->get(route('assets.show', $asset));
+        $officerShow->assertOk();
+        $officerShow->assertSee('Officer Juan inspected this asset.');
+        $officerShow->assertDontSee('Admin created this asset.');
+
+        // Admin sees both logs
+        $adminShow = $this->actingAs($this->user)->get(route('assets.show', $asset));
+        $adminShow->assertOk();
+        $adminShow->assertSee('Officer Juan inspected this asset.');
+        $adminShow->assertSee('Admin created this asset.');
+    }
+
+    public function test_staff_can_view_audit_events_from_all_users_with_full_details_and_read_only_badge(): void
+    {
+        $officer = User::factory()->create([
+            'name'      => 'Officer Marco',
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        $otherStaff = User::factory()->create([
+            'name'      => 'Staff Elena',
+            'role'      => 'viewer',
+            'is_active' => true,
+        ]);
+
+        // Audit log 1: Created by Admin
+        $adminLog = AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'created',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 101,
+            'description'    => 'Administrator registered emergency generator #101.',
+            'created_at'     => now(),
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        // Audit log 2: Created by Inventory Officer
+        $officerLog = AuditLog::create([
+            'user_id'        => $officer->id,
+            'event'          => 'status_changed',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 102,
+            'description'    => 'Officer Marco changed status of water pump #102 to deployed.',
+            'created_at'     => now(),
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        // Audit log 3: Created by Other Staff
+        $staffLog = AuditLog::create([
+            'user_id'        => $otherStaff->id,
+            'event'          => 'updated',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 103,
+            'description'    => 'Staff Elena verified serial tag for rescue boat #103.',
+            'created_at'     => now(),
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        $response = $this->actingAs($this->staff)->get(route('asset-history.index'));
+        $response->assertOk();
+
+        // 1. Staff can view audit records from all users (Admin, Officer, Staff)
+        $response->assertSee('Administrator registered emergency generator #101.');
+        $response->assertSee('Officer Marco changed status of water pump #102 to deployed.');
+        $response->assertSee('Staff Elena verified serial tag for rescue boat #103.');
+
+        // 2. Details: Timestamp, Actor/User, Action Event, Target Entity, Description
+        $response->assertSee($adminLog->created_at->format('Y-m-d H:i:s'));
+        $response->assertSee($this->user->name);
+        $response->assertSee('CREATED');
+        $response->assertSee('Asset');
+        $response->assertSee('STATUS CHANGED');
+        $response->assertSee($officer->name);
+        $response->assertSee($otherStaff->name);
+
+        // 3. UI badges & no "My Account" restriction
+        $response->assertSee('Read-Only Staff Access');
+        $response->assertSee('All System Records');
+        $response->assertDontSee('Account-Specific Access');
+        $response->assertDontSee('(My Account)');
+    }
+
+    public function test_staff_sees_system_wide_summary_cards_reflecting_visible_records(): void
+    {
+        $officer = User::factory()->create([
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        // Create 2 logs today, 1 status change
+        AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'created',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 1,
+            'description'    => 'Admin created record.',
+            'created_at'     => now(),
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        AuditLog::create([
+            'user_id'        => $officer->id,
+            'event'          => 'status_changed',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 2,
+            'description'    => 'Officer transitioned status.',
+            'created_at'     => now(),
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        $response = $this->actingAs($this->staff)->get(route('asset-history.index'));
+        $response->assertOk();
+
+        // Metric cards should reflect full system metrics for staff
+        $response->assertSee('Total Audit Events');
+        $response->assertDontSee('My Audit Events');
+        $response->assertSee('Logged Today');
+        $response->assertSee('Status Transitions');
+        $response->assertSee('Active Actors');
+        $response->assertDontSee('Account Role');
+    }
+
+    public function test_staff_can_search_and_use_all_filters(): void
+    {
+        $officer = User::factory()->create([
+            'name'      => 'Officer Marco',
+            'role'      => 'inventory_officer',
+            'is_active' => true,
+        ]);
+
+        $log1 = AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'created',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 10,
+            'description'    => 'Chainsaw inspection unit initialized.',
+            'created_at'     => now()->subDays(5),
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        $log2 = AuditLog::create([
+            'user_id'        => $officer->id,
+            'event'          => 'status_changed',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => 20,
+            'description'    => 'Generator fuel level validated.',
+            'created_at'     => now(),
+            'ip_address'     => '127.0.0.1',
+        ]);
+
+        // 1. Keyword Search
+        $searchResponse = $this->actingAs($this->staff)->get(route('asset-history.index', ['search' => 'Chainsaw']));
+        $searchResponse->assertOk();
+        $searchResponse->assertSee('Chainsaw inspection unit initialized.');
+        $searchResponse->assertDontSee('Generator fuel level validated.');
+
+        // 2. Event Type Filter
+        $eventResponse = $this->actingAs($this->staff)->get(route('asset-history.index', ['event' => 'status_changed']));
+        $eventResponse->assertOk();
+        $eventResponse->assertSee('Generator fuel level validated.');
+        $eventResponse->assertDontSee('Chainsaw inspection unit initialized.');
+
+        // 3. Actor / User Filter
+        $userResponse = $this->actingAs($this->staff)->get(route('asset-history.index', ['user_id' => $officer->id]));
+        $userResponse->assertOk();
+        $userResponse->assertSee('Generator fuel level validated.');
+        $userResponse->assertDontSee('Chainsaw inspection unit initialized.');
+
+        // 4. Date Range Filter
+        $dateResponse = $this->actingAs($this->staff)->get(route('asset-history.index', [
+            'date_from' => now()->toDateString(),
+            'date_to'   => now()->toDateString(),
+        ]));
+        $dateResponse->assertOk();
+        $dateResponse->assertSee('Generator fuel level validated.');
+        $dateResponse->assertDontSee('Chainsaw inspection unit initialized.');
+    }
+
+    public function test_staff_cannot_export_audit_log_and_export_button_is_hidden(): void
+    {
+        // 1. In UI, Staff does not see "Export Audit Log"
+        $staffIndexResponse = $this->actingAs($this->staff)->get(route('asset-history.index'));
+        $staffIndexResponse->assertOk();
+        $staffIndexResponse->assertDontSee('Export Audit Log');
+
+        // 2. Direct backend access to export route is forbidden (403) for Staff
+        $staffExportResponse = $this->actingAs($this->staff)->get(route('asset-history.export'));
+        $staffExportResponse->assertForbidden();
+
+        // 3. Admin can see button and can export
+        $adminIndexResponse = $this->actingAs($this->user)->get(route('asset-history.index'));
+        $adminIndexResponse->assertOk();
+        $adminIndexResponse->assertSee('Export Audit Log');
+
+        $adminExportResponse = $this->actingAs($this->user)->get(route('asset-history.export'));
+        $adminExportResponse->assertOk();
+        $this->assertEquals('text/csv; charset=UTF-8', $adminExportResponse->headers->get('content-type'));
+    }
 }
+

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class AssetType extends Model
 {
+    use \App\Traits\Archivable;
+
     protected $fillable = [
         'category_id',
         'name',
@@ -18,6 +20,8 @@ class AssetType extends Model
         'has_accessories',
         'has_attachments',
         'requires_operational_requirements',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!-- Sidebar Navigation -->
 <aside 
     :style="sidebarOpen ? 'width: ' + sidebarWidth + 'px;' : 'width: 0px;'"
@@ -292,3 +293,6 @@
     class="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-30"
     x-transition
 ></div>
+=======
+@include('partials.sidebar')
+>>>>>>> origin/demo

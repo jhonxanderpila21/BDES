@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @extends('layouts.admin')
 
 @section('title', 'Attachments and Accessories - BDES')
@@ -680,3 +681,6 @@
         </script>
     @endpush
 @endsection
+=======
+@include('asset-management.components-parts.index')
+>>>>>>> origin/demo

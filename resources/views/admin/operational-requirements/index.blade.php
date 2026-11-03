@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @extends('layouts.admin')
 
 @section('title', 'Operational Requirements - BDES')
@@ -150,3 +151,6 @@
         </script>
     @endpush
 @endsection
+=======
+@include('asset-management.operational-requirements.index')
+>>>>>>> origin/demo

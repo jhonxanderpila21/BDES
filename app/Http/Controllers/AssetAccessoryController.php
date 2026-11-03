@@ -24,15 +24,35 @@ class AssetAccessoryController extends Controller
      */
     public function store(StoreAssetAccessoryRequest $request)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validated();
         
         $asset = Asset::with('type')->findOrFail($validated['asset_id']);
         $validated['asset_type'] = $asset->type->name ?? 'Unknown';
 
-        AssetAccessory::create($validated);
+        $accessory = AssetAccessory::create($validated);
+        \App\Services\ReceiptService::attachFromRequest($accessory, $request);
 
         return redirect()->route('asset-accessories.index')
-            ->with('success', 'Asset accessory created successfully!');
+            ->with('success', 'Asset accessory created successfully with supporting documents!');
+    }
+
+    /**
+     * Display the specified asset accessory.
+     */
+    public function show(Request $request, AssetAccessory $assetAccessory)
+    {
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json($assetAccessory->load(['asset', 'receipts']));
+        }
+
+        return redirect()->route('attachments.index', [
+            'tab' => 'accessories',
+            'view_accessory_id' => $assetAccessory->id,
+        ]);
     }
 
     /**
@@ -40,6 +60,10 @@ class AssetAccessoryController extends Controller
      */
     public function update(UpdateAssetAccessoryRequest $request, AssetAccessory $assetAccessory)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validated();
 
         $asset = Asset::with('type')->findOrFail($validated['asset_id']);
@@ -54,8 +78,12 @@ class AssetAccessoryController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(AssetAccessory $assetAccessory)
+    public function destroy(Request $request, AssetAccessory $assetAccessory)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $assetAccessory->delete();
 
         return redirect()->route('asset-accessories.index')
@@ -67,6 +95,10 @@ class AssetAccessoryController extends Controller
      */
     public function adjustQuantity(Request $request, AssetAccessory $assetAccessory)
     {
+        if ($request->user() && ($request->user()->isViewer() || $request->user()->hasRole('viewer', 'staff'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $validated = $request->validate([
             'action' => 'required|in:add,subtract',
             'amount' => 'required|integer|min:1',

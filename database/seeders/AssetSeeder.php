@@ -70,7 +70,10 @@ class AssetSeeder extends Seeder
                 'status' => 'under_maintenance',
                 'notes' => 'Currently undergoing oil change',
             ],
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/demo
             [
                 'code' => 'AED-001',
                 'name' => 'Zoll AED Plus',
@@ -197,7 +200,10 @@ class AssetSeeder extends Seeder
                 'status' => 'deployed',
                 'notes' => 'Plate No. ABC-1234',
             ],
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/demo
         ];
 
         foreach ($assets as $asset) {

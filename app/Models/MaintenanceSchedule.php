@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models;/*  */
 
 use App\Services\MaintenanceScheduleService;
 use Carbon\Carbon;
@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MaintenanceSchedule extends Model
 {
+    use \App\Models\Concerns\HasReceipts, \App\Traits\Archivable;
+
     protected $fillable = [
         'asset_id',
         'asset_type',
@@ -16,6 +18,8 @@ class MaintenanceSchedule extends Model
         'interval_type',
         'interval_days',
         'last_maintenance_date',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [
@@ -68,7 +72,7 @@ class MaintenanceSchedule extends Model
     /**
      * Mark the maintenance as completed.
      */
-    public function markAsCompleted(Carbon $date, ?string $technician = null, ?string $notes = null): Maintenance
+    public function markAsCompleted(Carbon $date, ?string $technician = null, ?string $notes = null, ?float $cost = null): Maintenance
     {
         // 1. Update this schedule
         $this->last_maintenance_date = $date->copy();
@@ -82,6 +86,8 @@ class MaintenanceSchedule extends Model
             'scheduled_date' => $date->format('Y-m-d'),
             'notes' => trim("Completed preventive maintenance: {$this->maintenance_task}\n{$notes}"),
             'status' => 'completed',
+            'completed_at' => $date,
+            'cost' => $cost > 0 ? $cost : null,
         ]);
     }
 

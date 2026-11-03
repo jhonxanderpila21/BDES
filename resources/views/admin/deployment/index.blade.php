@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 @extends('layouts.admin')
 
 @section('title', 'Deployments & Returns - BDES')
@@ -594,3 +595,6 @@
         </script>
     @endpush
 @endsection
+=======
+@include('asset-operations.deployment.index')
+>>>>>>> origin/demo

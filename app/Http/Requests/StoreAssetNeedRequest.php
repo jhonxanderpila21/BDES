@@ -13,6 +13,10 @@ class StoreAssetNeedRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        if ($this->user() && ($this->user()->isViewer() || $this->user()->hasRole('viewer', 'staff'))) {
+            return false;
+        }
+
         return true;
     }
 
@@ -21,14 +25,14 @@ class StoreAssetNeedRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'asset_id'         => ['required', 'exists:assets,id'],
             'requirement'      => ['required', 'string', 'max:255'],
             'unit'             => ['required', Rule::in(AssetNeedStatusService::units())],
             'maximum_capacity' => ['required', 'numeric', 'min:0.01'],
             'minimum_level'    => ['required', 'numeric', 'min:0', 'lt:maximum_capacity'],
             'current_level'    => ['required', 'numeric', 'min:0', 'lte:maximum_capacity'],
-        ];
+        ], \App\Services\ReceiptService::rules());
     }
 
     /**
@@ -36,9 +40,28 @@ class StoreAssetNeedRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
+        return array_merge([
             'minimum_level.lt'  => 'The minimum level must be less than the maximum capacity.',
             'current_level.lte' => 'The current level cannot exceed the maximum capacity.',
-        ];
+        ], \App\Services\ReceiptService::messages());
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->asset_id) {
+                $asset = \App\Models\Asset::with('type')->find($this->asset_id);
+                if ($asset) {
+                    $typeName = strtolower($asset->type->name ?? '');
+                    $assetName = strtolower($asset->name ?? '');
+                    if (str_contains($typeName, 'fire extinguisher') || str_contains($assetName, 'fire extinguisher')) {
+                        $validator->errors()->add('asset_id', 'Fire extinguishers cannot have operational supplies or refill specifications assigned.');
+                    }
+                }
+            }
+        });
     }
 }

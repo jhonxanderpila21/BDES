@@ -3,7 +3,7 @@
 @section('title', 'Account Settings - BDES')
 
 @section('content')
-<div class="space-y-6" x-data="{ deleteModal: {{ $errors->userDeletion->isNotEmpty() ? 'true' : 'false' }} }">
+<div class="space-y-6">
     {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -13,24 +13,10 @@
             </h1>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Administration'],
                 ['label' => 'Account Settings']
             ]" />
         </div>
     </div>
-
-    {{-- Session Feedback Alerts --}}
-    @if(session('status') === 'profile-updated')
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3">
-            <i class="fas fa-circle-check text-emerald-600 text-lg"></i>
-            <p class="text-sm font-medium">Your profile information has been successfully updated.</p>
-        </div>
-    @elseif(session('status') === 'password-updated')
-        <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex items-center gap-3">
-            <i class="fas fa-circle-check text-emerald-600 text-lg"></i>
-            <p class="text-sm font-medium">Your account password has been updated securely.</p>
-        </div>
-    @endif
 
     {{-- Executive Profile Banner --}}
     <div class="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 rounded-2xl p-6 text-white shadow-md relative overflow-hidden">
@@ -147,24 +133,83 @@
                     @method('PATCH')
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {{-- Name --}}
+                        {{-- First Name --}}
                         <div>
-                            <label for="name" class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                                Full Name <span class="text-red-500">*</span>
+                            <label for="first_name" class="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                                First Name <span class="text-red-500">*</span>
                             </label>
                             <input
-                                id="name"
-                                name="name"
+                                id="first_name"
+                                name="first_name"
                                 type="text"
-                                value="{{ old('name', $user->name) }}"
+                                value="{{ old('first_name', $user->first_name) }}"
                                 required
-                                class="w-full px-3.5 py-2 text-sm border @error('name') border-red-300 ring-1 ring-red-300 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                class="w-full px-3.5 py-2 text-sm border @error('first_name') border-red-300 ring-1 ring-red-300 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
-                            @error('name')
+                            @error('first_name')
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        {{-- Middle Name --}}
+                        <div>
+                            <label for="middle_name" class="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                                Middle Name (Optional)
+                            </label>
+                            <input
+                                id="middle_name"
+                                name="middle_name"
+                                type="text"
+                                value="{{ old('middle_name', $user->middle_name) }}"
+                                class="w-full px-3.5 py-2 text-sm border @error('middle_name') border-red-300 ring-1 ring-red-300 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                            @error('middle_name')
+                                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {{-- Last Name --}}
+                        <div class="md:col-span-2">
+                            <label for="last_name" class="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                                Last Name <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                id="last_name"
+                                name="last_name"
+                                type="text"
+                                value="{{ old('last_name', $user->last_name) }}"
+                                required
+                                class="w-full px-3.5 py-2 text-sm border @error('last_name') border-red-300 ring-1 ring-red-300 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                            @error('last_name')
+                                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Suffix --}}
+                        <div>
+                            <label for="suffix" class="block text-xs font-semibold text-gray-700 uppercase mb-1">
+                                Suffix (Optional)
+                            </label>
+                            <select
+                                id="suffix"
+                                name="suffix"
+                                class="w-full px-3.5 py-2 text-sm border @error('suffix') border-red-300 ring-1 ring-red-300 @else border-gray-300 @enderror rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            >
+                                <option value="">None</option>
+                                @foreach(['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $sfx)
+                                    <option value="{{ $sfx }}" {{ old('suffix', $user->suffix) === $sfx ? 'selected' : '' }}>{{ $sfx }}</option>
+                                @endforeach
+                            </select>
+                            @error('suffix')
+                                <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {{-- Username --}}
                         <div>
                             <label for="username" class="block text-xs font-semibold text-gray-700 uppercase mb-1">
@@ -182,7 +227,6 @@
                                 <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                    </div>
 
                     {{-- Email --}}
                     <div>
@@ -201,8 +245,9 @@
                             <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                         @enderror
                     </div>
+                </div>
 
-                    <div class="flex items-center justify-end pt-3 border-t border-gray-100">
+                <div class="flex items-center justify-end pt-3 border-t border-gray-100">
                         <button
                             type="submit"
                             class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-semibold shadow-sm transition flex items-center gap-2"
@@ -292,89 +337,6 @@
                 </form>
             </x-card>
 
-            {{-- Danger Zone / Account Deletion --}}
-            <div class="bg-rose-50/50 border border-rose-200 rounded-2xl p-6 shadow-sm space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3 class="text-base font-bold text-rose-900 flex items-center gap-2">
-                            <i class="fas fa-triangle-exclamation text-rose-600"></i>
-                            Delete Account
-                        </h3>
-                        <p class="text-xs text-rose-700 mt-1">
-                            Permanently delete your user profile and remove your credentials from the system.
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        @click="deleteModal = true"
-                        class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 text-sm font-semibold shadow-sm transition whitespace-nowrap"
-                    >
-                        Delete Account
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Delete Account Modal --}}
-    <div
-        x-show="deleteModal"
-        x-cloak
-        class="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-50 flex items-center justify-center p-4"
-        x-transition
-    >
-        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4" @click.outside="deleteModal = false">
-            <div class="flex items-center justify-between border-b border-gray-200 pb-3">
-                <h3 class="text-base font-bold text-gray-900 flex items-center gap-2 text-rose-600">
-                    <i class="fas fa-triangle-exclamation"></i>
-                    Confirm Account Deletion
-                </h3>
-                <button @click="deleteModal = false" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-gray-600 leading-relaxed">
-                Are you sure you want to delete your account? Once deleted, all resources and data linked to your account will be permanently removed. Please enter your current password to confirm.
-            </p>
-
-            <form method="POST" action="{{ route('profile.destroy') }}" class="space-y-4">
-                @csrf
-                @method('DELETE')
-
-                <div>
-                    <label for="deletion_password" class="block text-xs font-semibold text-gray-700 uppercase mb-1">
-                        Confirm With Password
-                    </label>
-                    <input
-                        id="deletion_password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter your current password"
-                        required
-                        class="w-full px-3.5 py-2 text-sm border @if($errors->userDeletion->has('password')) border-red-300 ring-1 ring-red-300 @else border-gray-300 @endif rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    >
-                    @if($errors->userDeletion->has('password'))
-                        <p class="text-xs text-red-600 mt-1">{{ $errors->userDeletion->first('password') }}</p>
-                    @endif
-                </div>
-
-                <div class="flex items-center justify-end gap-2 pt-3 border-t border-gray-200">
-                    <button
-                        type="button"
-                        @click="deleteModal = false"
-                        class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="submit"
-                        class="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 text-sm font-semibold shadow-sm transition"
-                    >
-                        Confirm Delete
-                    </button>
-                </div>
-            </form>
         </div>
     </div>
 </div>

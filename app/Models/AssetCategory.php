@@ -8,12 +8,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AssetCategory extends Model
 {
-    use SoftDeletes;
+    use \App\Traits\Archivable;
 
     protected $fillable = [
         'name',
         'description',
         'status',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

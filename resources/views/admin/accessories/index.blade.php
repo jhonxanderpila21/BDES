@@ -1,1 +1,1 @@
-@include('admin.attachments.index')
+@include('asset-management.accessories.index')
