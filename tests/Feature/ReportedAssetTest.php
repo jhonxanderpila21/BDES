@@ -153,7 +153,7 @@ class ReportedAssetTest extends TestCase
         $response = $this->actingAs($this->user)->delete(route('reported-assets.destroy', $report));
 
         $response->assertRedirect(route('reported-assets.index'));
-        $this->assertDatabaseMissing('reported_assets', ['id' => $report->id]);
+        $this->assertSoftDeleted('reported_assets', ['id' => $report->id]);
     }
 
     public function test_change_status_valid_transition_succeeds(): void

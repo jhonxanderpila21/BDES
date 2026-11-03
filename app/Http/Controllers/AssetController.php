@@ -135,7 +135,7 @@ class AssetController extends Controller
         }
         $typesList = $typesQuery->orderBy('name')->paginate(10, ['*'], 'types_page')->withQueryString();
 
-        return view('admin.assets.index', compact(
+        return view('asset-management.assets.index', compact(
             'activeTab',
             'metrics',
             'assets',
@@ -327,7 +327,7 @@ class AssetController extends Controller
             'active_deployment'      => $asset->deployments->where('status', 'deployed')->sortByDesc('id')->first(),
         ];
 
-        return view('admin.assets.show', [
+        return view('asset-management.assets.show', [
             'asset' => $asset,
             'stats' => $stats,
             'operationalRequirements' => $operationalRequirements,

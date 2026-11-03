@@ -445,7 +445,7 @@ class AssetReadOnlyStaffTest extends TestCase
         // Admin deletes Type
         $resTypeDelete = $this->actingAs($this->admin)->delete(route('asset-types.destroy', $newType));
         $resTypeDelete->assertRedirect();
-        $this->assertDatabaseMissing('asset_types', ['id' => $newType->id]);
+        $this->assertSoftDeleted('asset_types', ['id' => $newType->id]);
 
         // Admin deletes Category
         $resCatDelete = $this->actingAs($this->admin)->delete(route('asset-categories.destroy', $newCategory));

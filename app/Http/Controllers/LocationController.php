@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Asset;
 use App\Models\Location;
+use App\Services\AuditTrailService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class LocationController extends Controller
 {
@@ -45,9 +48,12 @@ class LocationController extends Controller
             'total_capacity'     => Location::sum('storage_capacity'),
         ];
 
-        return view('admin.locations.index', [
-            'locations' => $locations,
-            'stats'     => $stats,
+        $allLocations = Location::withCount('assets')->orderBy('name')->get(['id', 'name', 'type', 'storage_capacity']);
+
+        return view('tracking-and-reporting.locations.index', [
+            'locations'    => $locations,
+            'allLocations' => $allLocations,
+            'stats'        => $stats,
         ]);
     }
 
@@ -169,5 +175,85 @@ class LocationController extends Controller
 
         return redirect()->route('locations.index')
             ->with('success', 'Location deleted successfully!');
+    }
+
+    /**
+     * Relocate one or more assets to another facility.
+     */
+    public function relocateAsset(Request $request)
+    {
+        $user = $request->user();
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            abort(403, 'Unauthorized action. Read-only users cannot relocate assets.');
+        }
+
+        // Support both single asset_id and array asset_ids
+        if ($request->has('asset_id') && !$request->has('asset_ids')) {
+            $request->merge(['asset_ids' => [$request->input('asset_id')]]);
+        }
+
+        $validated = $request->validate([
+            'asset_ids'        => 'required|array|min:1',
+            'asset_ids.*'      => 'required|exists:assets,id',
+            'location_id'      => 'required|exists:locations,id',
+            'notes'            => 'nullable|string|max:500',
+            'return_to_source' => 'nullable|boolean',
+        ]);
+
+        $newLocation = Location::findOrFail($validated['location_id']);
+        $notes = trim($validated['notes'] ?? '');
+        $notesSuffix = $notes !== '' ? " Reason: {$notes}" : '';
+
+        $relocatedCount = 0;
+        $relocatedCodes = [];
+        $firstSourceLocationId = null;
+
+        DB::transaction(function () use ($validated, $newLocation, $notesSuffix, $user, &$relocatedCount, &$relocatedCodes, &$firstSourceLocationId) {
+            $assets = Asset::with('location')->whereIn('id', $validated['asset_ids'])->get();
+
+            foreach ($assets as $asset) {
+                if ($asset->location_id == $newLocation->id) {
+                    continue;
+                }
+
+                $oldLocation = $asset->location;
+                if (!$firstSourceLocationId && $oldLocation) {
+                    $firstSourceLocationId = $oldLocation->id;
+                }
+
+                $oldLocationName = $oldLocation ? $oldLocation->name : 'Unassigned';
+                $oldValues = ['location_id' => $asset->location_id];
+
+                $asset->update(['location_id' => $newLocation->id]);
+                $newValues = ['location_id' => $newLocation->id];
+
+                AuditTrailService::log(
+                    'location_changed',
+                    $asset,
+                    "Asset [{$asset->code} - {$asset->name}] relocated from '{$oldLocationName}' to '{$newLocation->name}'.{$notesSuffix}",
+                    $oldValues,
+                    $newValues,
+                    $user->id
+                );
+
+                $relocatedCount++;
+                $relocatedCodes[] = $asset->code;
+            }
+        });
+
+        if ($relocatedCount === 0) {
+            return redirect()->back()->with('warning', "Selected asset(s) are already stored at {$newLocation->name}.");
+        }
+
+        $codesStr = count($relocatedCodes) <= 3 
+            ? implode(', ', $relocatedCodes) 
+            : count($relocatedCodes) . ' assets';
+
+        $returnLocationId = (!empty($validated['return_to_source']) && $firstSourceLocationId)
+            ? $firstSourceLocationId
+            : $newLocation->id;
+
+        return redirect()->route('locations.index', ['view_location' => $returnLocationId])
+            ->with('success', "Asset ({$codesStr}) successfully relocated to {$newLocation->name}!");
     }
 }

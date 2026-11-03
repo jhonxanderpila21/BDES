@@ -12,7 +12,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, \App\Traits\Archivable;
 
     public const DEFAULT_TEMP_PASSWORD = 'TempPass_123';
 
@@ -30,6 +30,8 @@ class User extends Authenticatable
         'password',
         'role',
         'is_active',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected static function booted(): void
@@ -125,5 +127,23 @@ class User extends Authenticatable
     public function isViewer(): bool
     {
         return $this->hasRole('viewer', 'staff');
+    }
+
+    /**
+     * Reported assets this user is assigned to.
+     */
+    public function assignedReportedAssets(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(ReportedAsset::class, 'reported_asset_user', 'user_id', 'reported_asset_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Maintenance work orders this user is assigned to.
+     */
+    public function assignedMaintenances(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Maintenance::class, 'maintenance_user', 'user_id', 'maintenance_id')
+            ->withTimestamps();
     }
 }

@@ -24,6 +24,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AssetDepreciationController;
 use App\Http\Controllers\AssetSalvageController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ArchivedRecordController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,13 +47,14 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
         Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password')->middleware('throttle:10,1');
         Route::get('/roles', function () {
-            return view('admin.roles.index');
+            return view('administration.roles.index');
         })->name('roles.index');
     });
 
     // Asset Configuration
     Route::resource('asset-categories', AssetCategoryController::class);
     Route::resource('asset-types', AssetTypeController::class);
+    Route::post('/locations/relocate-asset', [LocationController::class, 'relocateAsset'])->name('locations.relocate-asset');
     Route::resource('locations', LocationController::class);
 
     // Asset Management
@@ -87,10 +89,14 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('maintenance-schedules', MaintenanceScheduleController::class)->except(['create', 'edit']);
 
     // Reported Assets
+    Route::post('reported-assets/{reported_asset}/confirm', [ReportedAssetController::class, 'confirmReport'])->name('reported-assets.confirm');
+    Route::post('reported-assets/{reported_asset}/assign-personnel', [ReportedAssetController::class, 'assignPersonnel'])->name('reported-assets.assign-personnel');
     Route::post('reported-assets/{reported_asset}/change-status', [ReportedAssetController::class, 'changeStatus'])->name('reported-assets.change-status');
     Route::resource('reported-assets', ReportedAssetController::class);
 
     // Maintenance & Inspection Hub
+    Route::post('maintenance/{maintenance}/confirm', [MaintenanceController::class, 'confirmMaintenance'])->name('maintenance.confirm');
+    Route::post('maintenance/{maintenance}/assign-personnel', [MaintenanceController::class, 'assignPersonnel'])->name('maintenance.assign-personnel');
     Route::post('maintenance/{maintenance}/complete', [MaintenanceController::class, 'complete'])->name('maintenance.complete');
     Route::resource('maintenance', MaintenanceController::class);
     Route::resource('inspection', InspectionController::class);
@@ -112,6 +118,12 @@ Route::middleware(['auth'])->group(function () {
         // Reports Center (Admin Only)
         Route::get('/reports/export', [ReportController::class, 'export'])->name('reports.export')->middleware('throttle:60,1');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+        // Centralized Archived Records (Admin Only)
+        Route::get('/archived-records', [ArchivedRecordController::class, 'index'])->name('archived-records.index');
+        Route::get('/archived-records/{module}/{id}', [ArchivedRecordController::class, 'show'])->name('archived-records.show');
+        Route::post('/archived-records/{module}/{id}/restore', [ArchivedRecordController::class, 'restore'])->name('archived-records.restore');
+        Route::delete('/archived-records/{module}/{id}/force-delete', [ArchivedRecordController::class, 'forceDelete'])->name('archived-records.force-delete');
     });
 
     // Asset History & Audit Trail (Accessible to Members & Admins)

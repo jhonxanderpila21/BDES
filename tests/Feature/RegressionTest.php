@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Asset;
+use App\Models\AssetAccessory;
 use App\Models\AssetCategory;
 use App\Models\AssetNeed;
 use App\Models\AssetType;
@@ -224,5 +225,50 @@ class RegressionTest extends TestCase
         $response->assertDontSee('Delete Account');
         $response->assertDontSee('Confirm Account Deletion');
         $response->assertDontSee('deletion_password');
+    }
+
+    /**
+     * Test that Asset Components and Parts merges attachments and accessories into a unified table.
+     */
+    public function test_asset_components_and_parts_merged_view_and_navigation(): void
+    {
+        $attachment = Attachment::create([
+            'name'      => 'Multi-Purpose Rescue Harness',
+            'type'      => 'Harness',
+            'asset_id'  => $this->generatorAsset->id,
+            'quantity'  => 3,
+            'unit_cost' => 1200,
+            'condition' => 'excellent',
+        ]);
+
+        $accessory = AssetAccessory::create([
+            'accessory_name' => 'Carburetor Maintenance Kit',
+            'asset_id'       => $this->generatorAsset->id,
+            'asset_type'     => 'Generator',
+            'quantity'       => 5,
+            'unit_cost'      => 450,
+            'status'         => 'Available',
+        ]);
+
+        // 1. Unified Hub view displays both items together
+        $response = $this->actingAs($this->admin)->get(route('attachments.index'));
+        $response->assertOk();
+        $response->assertSee('Asset Components and Parts');
+        $response->assertSee('Components & Parts', false);
+        $response->assertSee('Multi-Purpose Rescue Harness');
+        $response->assertSee('Carburetor Maintenance Kit');
+        $response->assertDontSee('Asset Attachments');
+        $response->assertDontSee('Asset Accessories');
+
+        // 2. Tab switching filters appropriately
+        $attTab = $this->actingAs($this->admin)->get(route('attachments.index', ['tab' => 'attachments']));
+        $attTab->assertOk();
+        $attTab->assertSee('Multi-Purpose Rescue Harness');
+        $attTab->assertDontSee('Carburetor Maintenance Kit');
+
+        $accTab = $this->actingAs($this->admin)->get(route('attachments.index', ['tab' => 'accessories']));
+        $accTab->assertOk();
+        $accTab->assertSee('Carburetor Maintenance Kit');
+        $accTab->assertDontSee('Multi-Purpose Rescue Harness');
     }
 }

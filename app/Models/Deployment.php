@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Deployment extends Model
 {
-    use HasReceipts;
+    use HasReceipts, \App\Traits\Archivable;
     protected $fillable = [
         'asset_id',
         'destination',
@@ -27,6 +27,8 @@ class Deployment extends Model
         'condition_before',
         'status',
         'approved_by',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             AttachmentSeeder::class,
             ReportedAssetSeeder::class,
             AssetHistorySeeder::class,
+            ArchivedRecordsSeeder::class,
         ]);
     }
 }

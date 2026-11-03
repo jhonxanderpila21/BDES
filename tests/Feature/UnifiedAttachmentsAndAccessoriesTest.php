@@ -80,13 +80,14 @@ class UnifiedAttachmentsAndAccessoriesTest extends TestCase
         $response = $this->actingAs($this->user)->get(route('attachments.index'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.attachments.index');
-        $response->assertViewHas('activeTab', 'attachments');
+        $response->assertViewIs('asset-management.components-parts.index');
+        $response->assertViewHas('activeTab', 'all');
         $response->assertViewHas('metrics');
-        $response->assertSee('Attachments and Accessories');
-        $response->assertSee('Asset Attachments');
-        $response->assertSee('Asset Accessories');
+        $response->assertSee('Asset Components and Parts');
         $response->assertSee('High-Pressure Fire Hose 30m');
+        $response->assertSee('Spare Spark Plug Kit');
+        $response->assertDontSee('Asset Attachments');
+        $response->assertDontSee('Asset Accessories');
     }
 
     public function test_tab_switching_between_attachments_and_accessories(): void
@@ -140,7 +141,7 @@ class UnifiedAttachmentsAndAccessoriesTest extends TestCase
         $response = $this->actingAs($this->user)->get(route('asset-accessories.index'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.attachments.index');
+        $response->assertViewIs('asset-management.components-parts.index');
         $response->assertViewHas('activeTab', 'accessories');
         $response->assertSee('Carburetor Gasket');
     }
@@ -188,7 +189,7 @@ class UnifiedAttachmentsAndAccessoriesTest extends TestCase
         // 3. Delete
         $deleteResponse = $this->actingAs($this->user)->delete(route('attachments.destroy', $attachment));
         $deleteResponse->assertRedirect(route('attachments.index', ['tab' => 'attachments']));
-        $this->assertDatabaseMissing('attachments', ['id' => $attachment->id]);
+        $this->assertSoftDeleted('attachments', ['id' => $attachment->id]);
     }
 
     public function test_accessory_crud_and_adjust_quantity_in_unified_hub(): void

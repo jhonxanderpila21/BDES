@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Asset extends Model
 {
-    use \App\Models\Concerns\HasReceipts;
+    use \App\Models\Concerns\HasReceipts, \App\Traits\Archivable;
 
     protected $fillable = [
         'code',
@@ -31,6 +31,8 @@ class Asset extends Model
         'retirement_date',
         'retirement_reason',
         'retired_by',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

@@ -57,7 +57,7 @@ class AssetSalvageController extends Controller
 
         $categories = AssetCategory::orderBy('name')->get();
 
-        return view('admin.financials.salvage', compact(
+        return view('asset-financials.salvage', compact(
             'assets',
             'categories',
             'totalSalvageValue',

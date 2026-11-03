@@ -7,11 +7,12 @@ use App\Services\ReportedAssetService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReportedAsset extends Model
 {
-    use HasReceipts;
+    use HasReceipts, \App\Traits\Archivable;
     protected $fillable = [
         'asset_id',
         'asset_category',
@@ -19,16 +20,21 @@ class ReportedAsset extends Model
         'reported_by',
         'reported_type',
         'status',
+        'confirmed_at',
+        'confirmed_by',
         'location',
         'description',
         'action',
         'reported_date',
         'resolved_date',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [
         'reported_date' => 'date',
         'resolved_date' => 'date',
+        'confirmed_at'  => 'datetime',
         'created_at'    => 'datetime',
         'updated_at'    => 'datetime',
     ];
@@ -82,6 +88,30 @@ class ReportedAsset extends Model
     public function statusHistories(): HasMany
     {
         return $this->hasMany(ReportedAssetStatusHistory::class, 'reported_asset_id');
+    }
+
+    /**
+     * Get the personnel assigned to work on this report.
+     */
+    public function assignedPersonnel(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'reported_asset_user', 'reported_asset_id', 'user_id')->withTimestamps();
+    }
+
+    /**
+     * Get the user who confirmed this report.
+     */
+    public function confirmedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'confirmed_by');
+    }
+
+    /**
+     * Check if the report has been confirmed.
+     */
+    public function isConfirmed(): bool
+    {
+        return !is_null($this->confirmed_at);
     }
 
     // ─── Status Transition ───

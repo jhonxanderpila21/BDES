@@ -79,7 +79,7 @@ class DeploymentController extends Controller
         $locations = Location::orderBy('name')->get();
         $users = User::orderBy('name')->get();
 
-        return view('admin.deployment.index', compact(
+        return view('asset-operations.deployment.index', compact(
             'deployments',
             'statusCounts',
             'availableAssets',

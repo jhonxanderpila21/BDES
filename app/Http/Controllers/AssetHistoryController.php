@@ -81,7 +81,7 @@ class AssetHistoryController extends Controller
 
         $users = $canViewAllLogs ? User::orderBy('name')->get() : collect([$currentUser]);
 
-        return view('admin.asset-history.index', compact('logs', 'metrics', 'users', 'isAdmin', 'isViewer'));
+        return view('tracking-and-reporting.asset-history.index', compact('logs', 'metrics', 'users', 'isAdmin', 'isViewer'));
     }
 
     /**

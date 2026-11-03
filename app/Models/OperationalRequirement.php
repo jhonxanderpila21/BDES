@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class OperationalRequirement extends Model
 {
-    use \App\Models\Concerns\HasReceipts;
+    use \App\Models\Concerns\HasReceipts, \App\Traits\Archivable;
 
     protected $table = 'operational_requirements';
 
@@ -19,6 +19,8 @@ class OperationalRequirement extends Model
         'maximum_capacity',
         'minimum_level',
         'description',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

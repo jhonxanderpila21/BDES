@@ -384,6 +384,6 @@ class OperationalRequirementTest extends TestCase
         // Admin can delete requirement
         $resDelete = $this->actingAs($this->user)->delete(route('operational-requirements.destroy', $requirement));
         $resDelete->assertRedirect(route('operational-requirements.index'));
-        $this->assertDatabaseMissing('operational_requirements', ['id' => $requirement->id]);
+        $this->assertSoftDeleted('operational_requirements', ['id' => $requirement->id]);
     }
 }

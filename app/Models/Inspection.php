@@ -5,10 +5,11 @@ namespace App\Models;
 use App\Models\Concerns\HasReceipts;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Inspection extends Model
 {
-    use HasReceipts;
+    use HasReceipts, \App\Traits\Archivable;
     protected $fillable = [
         'asset_id',
         'inspector',
@@ -17,6 +18,8 @@ class Inspection extends Model
         'findings',
         'next_due_date',
         'status',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [
@@ -32,5 +35,13 @@ class Inspection extends Model
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class, 'asset_id');
+    }
+
+    /**
+     * Work orders originating from this inspection
+     */
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(Maintenance::class, 'inspection_id');
     }
 }

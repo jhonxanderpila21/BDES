@@ -1,1 +1,1 @@
-@include('admin.maintenance.index')
+@include('asset-operations.inspection.index')

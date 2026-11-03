@@ -83,7 +83,7 @@ class DashboardController extends Controller
         // Chart data
         $assetsByCategory = $this->charts->assetsByCategory();
 
-        return view('admin.dashboard.index', compact(
+        return view('dashboard.index', compact(
             'stats',
             'attentionItems',
             'recentAuditLogs',

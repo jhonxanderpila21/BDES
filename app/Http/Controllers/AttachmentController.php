@@ -12,33 +12,46 @@ use Illuminate\Http\Request;
 class AttachmentController extends Controller
 {
     /**
-     * Display a listing of attachments and accessories in the unified hub.
+     * Display a listing of attachments and accessories in the unified Asset Components and Parts hub.
      */
     public function index(Request $request)
     {
-        $activeTab = $request->get('tab');
-        if (!in_array($activeTab, ['attachments', 'accessories'], true)) {
+        $requestedTab = $request->get('tab');
+        if (!in_array($requestedTab, ['all', 'attachments', 'accessories'], true)) {
             $activeTab = ($request->routeIs('asset-accessories.*') || $request->routeIs('accessories.*'))
                 ? 'accessories'
-                : 'attachments';
+                : 'all';
+        } else {
+            $activeTab = $requestedTab;
         }
 
         // Global High-Level Metrics
+        $totalAttachments = Attachment::count();
+        $totalAttachmentItems = (int) Attachment::sum('quantity');
+        $totalAccessories = AssetAccessory::count();
+        $availableAccessories = AssetAccessory::where('status', 'Available')->count();
+        $availableAttachments = Attachment::where('quantity', '>', 0)->count();
+        $totalAccessoriesUnits = (int) AssetAccessory::sum('quantity');
+        $totalInventoryValue = AssetAccessory::all()->sum('total_value');
+
         $metrics = [
-            'total_attachments'      => Attachment::count(),
-            'total_attachment_items' => Attachment::sum('quantity') ?: 0,
-            'total_accessories'      => AssetAccessory::count(),
-            'available_accessories'  => AssetAccessory::where('status', 'Available')->count(),
-            'total_inventory_value'  => AssetAccessory::all()->sum('total_value'),
+            'total_components'       => $totalAttachments + $totalAccessories,
+            'total_attachments'      => $totalAttachments,
+            'total_attachment_items' => $totalAttachmentItems,
+            'total_accessories'      => $totalAccessories,
+            'available_accessories'  => $availableAccessories,
+            'available_components'   => $availableAttachments + $availableAccessories,
+            'total_available_units'  => $totalAttachmentItems + $totalAccessoriesUnits,
+            'total_inventory_value'  => $totalInventoryValue,
         ];
 
         // Reference Datasets
         $assets = Asset::with('type')->orderBy('name')->get();
         $assetTypes = AssetType::orderBy('name')->get();
 
-        // 1. Attachments Data
+        // 1. Attachments Data Query
         $attachmentsQuery = Attachment::with(['asset', 'assetType']);
-        if ($request->filled('search') && $activeTab === 'attachments') {
+        if ($request->filled('search')) {
             $search = $request->search;
             $attachmentsQuery->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -49,29 +62,32 @@ class AttachmentController extends Controller
                   });
             });
         }
-        if ($request->filled('type') && $activeTab === 'attachments') {
+        if ($request->filled('type')) {
             $attachmentsQuery->where('type', $request->type);
         }
-        if ($request->filled('condition') && $activeTab === 'attachments') {
+        if ($request->filled('condition')) {
             $attachmentsQuery->where('condition', $request->condition);
         }
-        if ($request->filled('asset_id') && $activeTab === 'attachments') {
+        if ($request->filled('asset_id')) {
             $attachmentsQuery->where('asset_id', $request->asset_id);
         }
-        if ($request->filled('asset_type_id') && $activeTab === 'attachments') {
+        if ($request->filled('asset_type_id')) {
             $attachmentsQuery->where('asset_type_id', $request->asset_type_id);
         }
+        if ($request->filled('status')) {
+            if (strtolower($request->status) === 'available') {
+                $attachmentsQuery->where('quantity', '>', 0);
+            } elseif (strtolower($request->status) === 'not available') {
+                $attachmentsQuery->where('quantity', '<=', 0);
+            }
+        }
+        if ($activeTab === 'accessories') {
+            $attachmentsQuery->whereRaw('1 = 0');
+        }
 
-        // Sorting for Attachments
-        $allowedSorts = ['id', 'name', 'type', 'quantity', 'condition', 'created_at'];
-        $sortBy = ($activeTab === 'attachments' && in_array($request->get('sort_by'), $allowedSorts, true)) ? $request->get('sort_by') : 'id';
-        $sortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-
-        $attachments = $attachmentsQuery->orderBy($sortBy, $sortDir)->paginate(10, ['*'], 'attachments_page')->withQueryString();
-
-        // 2. Accessories Data
+        // 2. Accessories Data Query
         $accessoriesQuery = AssetAccessory::with('asset');
-        if ($request->filled('search') && $activeTab === 'accessories') {
+        if ($request->filled('search')) {
             $search = $request->search;
             $accessoriesQuery->where(function ($q) use ($search) {
                 $q->where('accessory_name', 'like', "%{$search}%")
@@ -82,35 +98,108 @@ class AttachmentController extends Controller
                   });
             });
         }
-        if ($request->filled('asset_type') && $activeTab === 'accessories') {
+        if ($request->filled('asset_type')) {
             $accessoriesQuery->where('asset_type', $request->asset_type);
         }
-        if ($request->filled('status') && $activeTab === 'accessories') {
+        if ($request->filled('type') && $request->type !== 'Accessory') {
+            $accessoriesQuery->whereRaw('1 = 0');
+        }
+        if ($request->filled('condition')) {
+            $accessoriesQuery->whereRaw('1 = 0');
+        }
+        if ($request->filled('status')) {
             $accessoriesQuery->whereRaw('LOWER(status) = ?', [strtolower($request->status)]);
         }
-        if ($request->filled('asset_id') && $activeTab === 'accessories') {
+        if ($request->filled('asset_id')) {
             $accessoriesQuery->where('asset_id', $request->asset_id);
         }
+        if ($activeTab === 'attachments') {
+            $accessoriesQuery->whereRaw('1 = 0');
+        }
 
-        // Sorting for Accessories
-        $allowedAccessorySorts = ['id', 'accessory_name', 'asset_type', 'quantity', 'unit_cost', 'status', 'created_at'];
-        $accSortBy = ($activeTab === 'accessories' && in_array($request->get('sort_by'), $allowedAccessorySorts, true)) ? $request->get('sort_by') : 'id';
-        $accSortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        // Sorting & Pagination handling
+        $sortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $sortBy = $request->get('sort_by');
 
-        $accessories = $accessoriesQuery->orderBy($accSortBy, $accSortDir)->paginate(10, ['*'], 'accessories_page')->withQueryString();
+        if ($activeTab === 'attachments') {
+            $allowedSorts = ['id', 'name', 'type', 'quantity', 'condition', 'created_at'];
+            $sortColumn = in_array($sortBy, $allowedSorts, true) ? $sortBy : 'id';
+            $attachments = $attachmentsQuery->orderBy($sortColumn, $sortDir)->paginate(10, ['*'], 'attachments_page')->withQueryString();
+            $accessories = AssetAccessory::with('asset')->latest('id')->paginate(10, ['*'], 'accessories_page');
+            $items = $attachments;
+        } elseif ($activeTab === 'accessories') {
+            $allowedAccessorySorts = ['id', 'accessory_name', 'asset_type', 'quantity', 'unit_cost', 'status', 'created_at'];
+            $accSortColumn = in_array($sortBy, $allowedAccessorySorts, true) ? $sortBy : 'id';
+            $accessories = $accessoriesQuery->orderBy($accSortColumn, $sortDir)->paginate(10, ['*'], 'accessories_page')->withQueryString();
+            $attachments = Attachment::with(['asset', 'assetType'])->latest('id')->paginate(10, ['*'], 'attachments_page');
+            $items = $accessories;
+        } else {
+            // 'all' tab: Merge both into unified collection
+            $attList = $attachmentsQuery->latest('id')->get()->map(function ($att) {
+                $att->is_accessory = false;
+                $att->display_name = $att->name;
+                $att->classification = $att->type ?: 'Attachment';
+                $att->for_asset_type = $att->assetType->name ?? 'Any';
+                $att->sort_date = $att->created_at ? $att->created_at->timestamp : $att->id;
+                return $att;
+            });
+
+            $accList = $accessoriesQuery->latest('id')->get()->map(function ($acc) {
+                $acc->is_accessory = true;
+                $acc->display_name = $acc->accessory_name;
+                $acc->classification = 'Accessory';
+                $acc->for_asset_type = $acc->asset_type ?: 'Any';
+                $acc->sort_date = $acc->created_at ? $acc->created_at->timestamp : $acc->id;
+                return $acc;
+            });
+
+            $mergedCollection = $attList->concat($accList);
+
+            if ($sortBy === 'name' || $sortBy === 'accessory_name') {
+                $mergedCollection = $sortDir === 'asc'
+                    ? $mergedCollection->sortBy(fn($i) => strtolower($i->display_name))->values()
+                    : $mergedCollection->sortByDesc(fn($i) => strtolower($i->display_name))->values();
+            } elseif ($sortBy === 'quantity') {
+                $mergedCollection = $sortDir === 'asc'
+                    ? $mergedCollection->sortBy('quantity')->values()
+                    : $mergedCollection->sortByDesc('quantity')->values();
+            } else {
+                $mergedCollection = $sortDir === 'asc'
+                    ? $mergedCollection->sortBy('sort_date')->values()
+                    : $mergedCollection->sortByDesc('sort_date')->values();
+            }
+
+            $page = (int) $request->get('page', 1);
+            $perPage = 10;
+            $items = new \Illuminate\Pagination\LengthAwarePaginator(
+                $mergedCollection->forPage($page, $perPage)->values(),
+                $mergedCollection->count(),
+                $perPage,
+                $page,
+                [
+                    'path' => route('attachments.index'),
+                    'pageName' => 'page',
+                    'query' => $request->query(),
+                ]
+            );
+
+            $attachments = Attachment::with(['asset', 'assetType'])->latest('id')->paginate(10, ['*'], 'attachments_page');
+            $accessories = AssetAccessory::with('asset')->latest('id')->paginate(10, ['*'], 'accessories_page');
+        }
 
         // Accessories Supporting Data
         $budgetSummary = AssetAccessory::all()
             ->groupBy('asset_type')
-            ->map(function ($items) {
-                return $items->sum('total_value');
+            ->map(function ($itemGroup) {
+                return $itemGroup->sum('total_value');
             });
         $accessoryAssetTypes = AssetAccessory::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
         $accessoryStatuses = AssetAccessoryService::statuses();
 
-        return view('admin.attachments.index', compact(
+        return view('asset-management.components-parts.index', compact(
             'activeTab',
             'metrics',
+            'items',
             'attachments',
             'accessories',
             'budgetSummary',

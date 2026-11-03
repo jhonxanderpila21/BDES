@@ -34,7 +34,7 @@ class ExpenseController extends Controller
             'query' => $request->query(),
         ]);
 
-        return view('admin.financials.expenses', compact('expenses', 'kpis', 'filters'));
+        return view('asset-financials.expenses', compact('expenses', 'kpis', 'filters'));
     }
 
     /**

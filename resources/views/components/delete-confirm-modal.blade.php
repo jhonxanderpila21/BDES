@@ -46,8 +46,19 @@
 
             {{-- Impact / Warning Note --}}
             <p id="bdes-delete-custom-warning" class="text-xs text-gray-500 mt-3 leading-relaxed">
-                This action is irreversible and will permanently remove this record from the active system.
+                This record will be moved to the centralized Archived Records and hidden from active listings. Authorized administrators can view or restore it later.
             </p>
+
+            {{-- Deletion Reason Input --}}
+            <div id="bdes-delete-reason-wrapper" class="mt-3.5 text-left">
+                <label for="bdes-delete-reason-input" class="block text-[11px] font-semibold text-gray-700 uppercase tracking-wider mb-1">
+                    Reason for Deletion <span class="text-gray-400 font-normal lowercase">(optional)</span>
+                </label>
+                <textarea id="bdes-delete-reason-input"
+                          rows="2"
+                          placeholder="e.g. Broken beyond repair, obsolete, decommissioned..."
+                          class="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-rose-500 resize-none transition-colors"></textarea>
+            </div>
         </div>
 
         {{-- Action Buttons --}}
@@ -130,6 +141,9 @@
             if (confirmBtn) confirmBtn.className = 'w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500';
         }
 
+        const reasonInput = document.getElementById('bdes-delete-reason-input');
+        if (reasonInput) reasonInput.value = '';
+
         window.openModal('bdes-delete-confirm-modal');
 
         // Safety: autofocus the cancel button so accidental Enter presses do not submit
@@ -146,11 +160,11 @@
      */
     window.confirmSecureDelete = function(event, formOrButton, itemName, customWarning = null) {
         return window.confirmSecureAction(event, formOrButton, {
-            title: 'Confirm Permanent Deletion',
+            title: 'Confirm Archive / Deletion',
             itemName: itemName,
-            warning: customWarning || 'This action is irreversible and will permanently remove this record from the active system.',
-            confirmText: 'Yes, Delete Record',
-            iconClass: 'fas fa-trash-can',
+            warning: customWarning || 'This record will be moved to the centralized Archived Records and hidden from active listings. Authorized administrators can restore it later.',
+            confirmText: 'Yes, Archive Record',
+            iconClass: 'fas fa-box-archive',
             isDestructive: true
         });
     };
@@ -159,6 +173,19 @@
         if (pendingActionForm) {
             const formToSubmit = pendingActionForm;
             pendingActionForm = null;
+
+            const reasonInput = document.getElementById('bdes-delete-reason-input');
+            if (reasonInput && reasonInput.value.trim()) {
+                let hiddenReason = formToSubmit.querySelector('input[name="deletion_reason"]');
+                if (!hiddenReason) {
+                    hiddenReason = document.createElement('input');
+                    hiddenReason.type = 'hidden';
+                    hiddenReason.name = 'deletion_reason';
+                    formToSubmit.appendChild(hiddenReason);
+                }
+                hiddenReason.value = reasonInput.value.trim();
+            }
+
             window.closeModal('bdes-delete-confirm-modal');
             formToSubmit.submit();
         }

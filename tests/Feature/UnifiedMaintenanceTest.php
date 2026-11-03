@@ -604,7 +604,7 @@ class UnifiedMaintenanceTest extends TestCase
         // 4. Delete Schedule
         $deleteResponse = $this->actingAs($this->user)->delete(route('maintenance-schedules.destroy', $schedule));
         $deleteResponse->assertRedirect(route('maintenance-schedules.index'));
-        $this->assertDatabaseMissing('maintenance_schedules', [
+        $this->assertSoftDeleted('maintenance_schedules', [
             'id' => $schedule->id,
         ]);
     }

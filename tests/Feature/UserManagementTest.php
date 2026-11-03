@@ -220,7 +220,7 @@ class UserManagementTest extends TestCase
         // 3. Delete Location
         $response = $this->actingAs($this->admin)->delete(route('locations.destroy', $location));
         $response->assertRedirect(route('locations.index'));
-        $this->assertDatabaseMissing('locations', ['id' => $location->id]);
+        $this->assertSoftDeleted('locations', ['id' => $location->id]);
     }
 
     public function test_cannot_delete_location_with_assigned_assets(): void

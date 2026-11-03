@@ -112,7 +112,7 @@ class OperationalRequirementController extends Controller
             'needs_attention'    => $allNeeds->whereIn('status', ['Requires Maintenance', 'Under Maintenance'])->count(),
         ];
 
-        return view('admin.operational-requirements.index', compact(
+        return view('asset-management.operational-requirements.index', compact(
             'activeTab',
             'requirements',
             'assetTypes',

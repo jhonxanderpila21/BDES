@@ -51,7 +51,7 @@ class AssetDepreciationController extends Controller
 
         $categories = AssetCategory::orderBy('name')->get();
 
-        return view('admin.financials.depreciation', compact(
+        return view('asset-financials.depreciation', compact(
             'assets',
             'categories',
             'totalAcquisitionCost',

@@ -195,7 +195,7 @@ class DeploymentAndReturnTest extends TestCase
         $response = $this->actingAs($this->user)->delete(route('deployment.destroy', $deployment));
         $response->assertRedirect(route('deployment.index'));
 
-        $this->assertDatabaseMissing('deployments', ['id' => $deployment->id]);
+        $this->assertSoftDeleted('deployments', ['id' => $deployment->id]);
         $this->assertEquals('available', $this->asset->fresh()->status);
     }
 
@@ -578,7 +578,7 @@ class DeploymentAndReturnTest extends TestCase
         // 5. Admin can delete deployment
         $deleteResponse = $this->actingAs($this->user)->delete(route('deployment.destroy', $deployment));
         $deleteResponse->assertRedirect(route('deployment.index'));
-        $this->assertDatabaseMissing('deployments', ['id' => $deployment->id]);
+        $this->assertSoftDeleted('deployments', ['id' => $deployment->id]);
     }
 }
 

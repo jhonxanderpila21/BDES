@@ -50,7 +50,7 @@ class UserController extends Controller
 
         $users = $query->latest('id')->paginate(10)->withQueryString();
 
-        return view('admin.users.index', compact('users'));
+        return view('administration.users.index', compact('users'));
     }
 
     public function store(Request $request)

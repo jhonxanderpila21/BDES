@@ -420,6 +420,6 @@ class AttachmentReadOnlyStaffTest extends TestCase
         // 6. Admin can delete an attachment
         $resDestroy = $this->actingAs($this->admin)->delete(route('attachments.destroy', $this->attachment));
         $resDestroy->assertRedirect();
-        $this->assertDatabaseMissing('attachments', ['id' => $this->attachment->id]);
+        $this->assertSoftDeleted('attachments', ['id' => $this->attachment->id]);
     }
 }

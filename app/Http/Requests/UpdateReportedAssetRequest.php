@@ -44,6 +44,8 @@ class UpdateReportedAssetRequest extends FormRequest
             'action'        => ['nullable', 'string', 'max:255'],
             'reported_date' => ['nullable', 'date', 'before_or_equal:today'],
             'resolved_date' => ['nullable', 'date', 'after_or_equal:reported_date'],
+            'personnel'     => ['nullable', 'array'],
+            'personnel.*'   => ['exists:users,id'],
         ];
     }
 }

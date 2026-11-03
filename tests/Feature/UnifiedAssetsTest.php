@@ -71,7 +71,7 @@ class UnifiedAssetsTest extends TestCase
         $response = $this->actingAs($this->user)->get(route('assets.index'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.assets.index');
+        $response->assertViewIs('asset-management.assets.index');
         $response->assertViewHas('activeTab', 'assets');
         $response->assertViewHas('metrics');
         $response->assertSee('Asset Inventory');
@@ -102,7 +102,7 @@ class UnifiedAssetsTest extends TestCase
         $response = $this->actingAs($this->user)->get(route('asset-categories.index'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.assets.index');
+        $response->assertViewIs('asset-management.assets.index');
         $response->assertViewHas('activeTab', 'categories');
         $response->assertSee('Communication Gear');
     }
@@ -112,7 +112,7 @@ class UnifiedAssetsTest extends TestCase
         $response = $this->actingAs($this->user)->get(route('asset-types.index'));
 
         $response->assertStatus(200);
-        $response->assertViewIs('admin.assets.index');
+        $response->assertViewIs('asset-management.assets.index');
         $response->assertViewHas('activeTab', 'types');
         $response->assertSee('VHF Handheld Radio');
     }
@@ -172,7 +172,7 @@ class UnifiedAssetsTest extends TestCase
         $response = $this->actingAs($this->user)->delete(route('assets.destroy', $this->asset));
 
         $response->assertRedirect(route('assets.index', ['tab' => 'assets']));
-        $this->assertDatabaseMissing('assets', [
+        $this->assertSoftDeleted('assets', [
             'id' => $this->asset->id,
         ]);
     }
@@ -254,6 +254,6 @@ class UnifiedAssetsTest extends TestCase
         // Destroy
         $destroyResponse = $this->actingAs($this->user)->delete(route('asset-types.destroy', $type));
         $destroyResponse->assertRedirect(route('assets.index', ['tab' => 'types']));
-        $this->assertDatabaseMissing('asset_types', ['id' => $type->id]);
+        $this->assertSoftDeleted('asset_types', ['id' => $type->id]);
     }
 }

@@ -86,7 +86,7 @@ class ReportController extends Controller
         $data = $this->fetchReportData($selectedType, $request, 25);
         $summary = $this->getReportSummary($selectedType);
 
-        return view('admin.reports.index', compact('types', 'selectedType', 'categories', 'data', 'summary'));
+        return view('tracking-and-reporting.reports.index', compact('types', 'selectedType', 'categories', 'data', 'summary'));
     }
 
     /**

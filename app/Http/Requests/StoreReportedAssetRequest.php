@@ -37,12 +37,15 @@ class StoreReportedAssetRequest extends FormRequest
     public function rules(): array
     {
         return array_merge([
-            'asset_id'      => ['required', 'exists:assets,id'],
-            'reported_type' => ['required', Rule::in(ReportedAssetService::reportedTypes())],
-            'location'      => ['required', 'string', 'max:255'],
-            'description'   => ['nullable', 'string'],
-            'action'        => ['nullable', 'string', 'max:255'],
-            'reported_date' => ['nullable', 'date', 'before_or_equal:today'],
+            'asset_id'            => ['required', 'exists:assets,id'],
+            'reported_type'       => ['required', Rule::in(ReportedAssetService::reportedTypes())],
+            'location'            => ['required', 'string', 'max:255'],
+            'description'         => ['nullable', 'string'],
+            'action'              => ['nullable', 'string', 'max:255'],
+            'reported_date'       => ['nullable', 'date', 'before_or_equal:today'],
+            'personnel'           => ['nullable', 'array'],
+            'personnel.*'         => ['exists:users,id'],
+            'confirm_immediately' => ['nullable', 'boolean'],
         ], \App\Services\ReceiptService::rules());
     }
 

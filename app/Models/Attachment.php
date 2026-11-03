@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Attachment extends Model
 {
-    use \App\Models\Concerns\HasReceipts;
+    use \App\Models\Concerns\HasReceipts, \App\Traits\Archivable;
 
     protected $fillable = [
         'name',
@@ -17,6 +17,8 @@ class Attachment extends Model
         'quantity',
         'unit_cost',
         'condition',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

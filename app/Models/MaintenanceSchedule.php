@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MaintenanceSchedule extends Model
 {
-    use \App\Models\Concerns\HasReceipts;
+    use \App\Models\Concerns\HasReceipts, \App\Traits\Archivable;
 
     protected $fillable = [
         'asset_id',
@@ -18,6 +18,8 @@ class MaintenanceSchedule extends Model
         'interval_type',
         'interval_days',
         'last_maintenance_date',
+        'deleted_by',
+        'deletion_reason',
     ];
 
     protected $casts = [

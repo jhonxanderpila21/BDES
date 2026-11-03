@@ -6,6 +6,7 @@ use App\Http\Requests\StoreReportedAssetRequest;
 use App\Http\Requests\UpdateReportedAssetRequest;
 use App\Models\Asset;
 use App\Models\ReportedAsset;
+use App\Models\User;
 use App\Services\ReportedAssetService;
 use Illuminate\Http\Request;
 
@@ -16,7 +17,7 @@ class ReportedAssetController extends Controller
      */
     public function index(Request $request)
     {
-        $query = ReportedAsset::with(['asset', 'reporter']);
+        $query = ReportedAsset::with(['asset', 'reporter', 'assignedPersonnel', 'confirmedByUser']);
 
         // Search
         if ($request->filled('search')) {
@@ -71,15 +72,17 @@ class ReportedAssetController extends Controller
         $statuses = ReportedAssetService::statuses();
         $assets = Asset::with('category')->orderBy('name')->get();
         $locations = \App\Models\Location::orderBy('name')->pluck('name');
+        $personnelOptions = User::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.reported-assets.index', compact(
+        return view('asset-operations.reported-assets.index', compact(
             'reports',
             'statusCounts',
             'assetCategories',
             'reportedTypes',
             'statuses',
             'assets',
-            'locations'
+            'locations',
+            'personnelOptions'
         ));
     }
 
@@ -108,15 +111,102 @@ class ReportedAssetController extends Controller
      */
     public function show(Request $request, ReportedAsset $reportedAsset)
     {
-        $reportedAsset->load(['asset', 'reporter', 'statusHistories.changedByUser', 'receipts']);
+        $reportedAsset->load(['asset', 'reporter', 'statusHistories.changedByUser', 'receipts', 'assignedPersonnel', 'confirmedByUser']);
 
         if ($request->wantsJson()) {
             return response()->json($reportedAsset);
         }
 
         $allowedNext = ReportedAssetService::allowedNextStatuses($reportedAsset->status);
+        $personnelOptions = User::where('is_active', true)->orderBy('name')->get();
 
-        return view('admin.reported-assets.show', compact('reportedAsset', 'allowedNext'));
+        return view('asset-operations.reported-assets.show', compact('reportedAsset', 'allowedNext', 'personnelOptions'));
+    }
+
+    /**
+     * Confirm a reported asset and optionally assign personnel / transition status.
+     */
+    public function confirmReport(Request $request, ReportedAsset $reportedAsset)
+    {
+        $this->authorizeEditor($request);
+
+        $validated = $request->validate([
+            'personnel'   => ['nullable', 'array'],
+            'personnel.*' => ['exists:users,id'],
+            'notes'       => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $reportedAsset->confirmed_at = now();
+        $reportedAsset->confirmed_by = auth()->id();
+
+        // If personnel provided, sync them
+        if ($request->has('personnel')) {
+            $reportedAsset->assignedPersonnel()->sync($validated['personnel'] ?? []);
+        }
+
+        // Automatic status progression if pending or for review
+        $oldStatus = $reportedAsset->status;
+        $newStatus = null;
+        if (in_array($reportedAsset->status, [ReportedAssetService::STATUS_PENDING, ReportedAssetService::STATUS_FOR_REVIEW])) {
+            $newStatus = ReportedAssetService::STATUS_ONGOING;
+            $reportedAsset->status = $newStatus;
+        }
+
+        $reportedAsset->save();
+
+        // Record history log
+        $notesText = 'Report confirmed by ' . auth()->user()->name . '.';
+        if (!empty($validated['notes'])) {
+            $notesText .= ' Notes: ' . $validated['notes'];
+        }
+        if (!empty($validated['personnel'])) {
+            $personnelNames = User::whereIn('id', $validated['personnel'])->pluck('name')->implode(', ');
+            $notesText .= ' Assigned personnel: ' . $personnelNames . '.';
+        }
+
+        $reportedAsset->statusHistories()->create([
+            'from_status' => $oldStatus,
+            'to_status'   => $newStatus ?? $oldStatus,
+            'changed_by'  => auth()->id(),
+            'notes'       => $notesText,
+        ]);
+
+        return redirect()->back()->with('success', 'Report successfully confirmed and personnel assigned.');
+    }
+
+    /**
+     * Assign or update personnel assigned to work on the reported asset.
+     */
+    public function assignPersonnel(Request $request, ReportedAsset $reportedAsset)
+    {
+        $this->authorizeEditor($request);
+
+        $validated = $request->validate([
+            'personnel'   => ['nullable', 'array'],
+            'personnel.*' => ['exists:users,id'],
+            'notes'       => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $personnelIds = $validated['personnel'] ?? [];
+        $reportedAsset->assignedPersonnel()->sync($personnelIds);
+
+        $personnelNames = !empty($personnelIds)
+            ? User::whereIn('id', $personnelIds)->pluck('name')->implode(', ')
+            : 'None';
+
+        $notesText = 'Assigned personnel updated by ' . auth()->user()->name . ': ' . $personnelNames;
+        if (!empty($validated['notes'])) {
+            $notesText .= '. Notes: ' . $validated['notes'];
+        }
+
+        $reportedAsset->statusHistories()->create([
+            'from_status' => $reportedAsset->status,
+            'to_status'   => $reportedAsset->status,
+            'changed_by'  => auth()->id(),
+            'notes'       => $notesText,
+        ]);
+
+        return redirect()->back()->with('success', 'Assigned personnel updated successfully.');
     }
 
     /**
@@ -140,16 +230,29 @@ class ReportedAssetController extends Controller
         $validated['status'] = ReportedAssetService::STATUS_PENDING;
         $validated['reported_date'] = $validated['reported_date'] ?? now()->format('Y-m-d');
 
-        unset($validated['receipts'], $validated['receipt_reference_number']);
+        $personnel = $validated['personnel'] ?? [];
+        $confirmImmediately = $request->boolean('confirm_immediately');
+
+        if ($confirmImmediately) {
+            $validated['confirmed_at'] = now();
+            $validated['confirmed_by'] = auth()->id();
+            $validated['status'] = ReportedAssetService::STATUS_ONGOING;
+        }
+
+        unset($validated['personnel'], $validated['confirm_immediately'], $validated['receipts'], $validated['receipt_reference_number']);
         $report = ReportedAsset::create($validated);
         \App\Services\ReceiptService::attachFromRequest($report, $request);
+
+        if (!empty($personnel)) {
+            $report->assignedPersonnel()->sync($personnel);
+        }
 
         // Log initial status
         $report->statusHistories()->create([
             'from_status' => null,
-            'to_status'   => ReportedAssetService::STATUS_PENDING,
+            'to_status'   => $report->status,
             'changed_by'  => auth()->id(),
-            'notes'       => 'Report created.',
+            'notes'       => $confirmImmediately ? 'Report created and confirmed immediately.' : 'Report created.',
         ]);
 
         return redirect()->route('reported-assets.index')
@@ -164,6 +267,11 @@ class ReportedAssetController extends Controller
         $this->authorizeEditor($request);
 
         $validated = $request->validated();
+        if ($request->has('personnel')) {
+            $reportedAsset->assignedPersonnel()->sync($validated['personnel'] ?? []);
+            unset($validated['personnel']);
+        }
+
         $reportedAsset->update($validated);
 
         return redirect()->route('reported-assets.index')
