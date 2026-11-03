@@ -361,29 +361,25 @@ class DeploymentController extends Controller
             'assigned_team'        => ['nullable', 'string', 'max:255'],
             'responsible_person'   => ['nullable', 'string', 'max:255'],
             'deployment_date'      => ['required', 'date'],
-            'expected_return_date' => ['nullable', 'date'],
+            'expected_return_date' => ['nullable', 'date', 'after_or_equal:deployment_date'],
             'purpose'              => ['nullable', 'string'],
-            'status'               => ['required', 'in:active,pending_return,returned'],
+            'status'               => ['nullable', 'string', 'in:active,pending_return,returned'],
+        ], [
+            'expected_return_date.after_or_equal' => 'The expected return date must be on or after the deployment date.',
         ]);
 
-        DB::transaction(function () use ($validated, $deployment) {
-            $oldStatus = $deployment->status;
-            $deployment->update($validated);
+        // Status is managed exclusively via the deployment dispatch and return verification flows.
+        // It cannot be changed via edit, preserving returned status and asset consistency.
+        unset($validated['status']);
 
-            $asset = $deployment->asset;
-            if ($asset) {
-                if ($validated['status'] === 'returned' && $oldStatus !== 'returned') {
-                    $asset->update(['status' => 'available']);
-                } elseif ($validated['status'] !== 'returned' && $oldStatus === 'returned') {
-                    $asset->update(['status' => 'deployed']);
-                }
-            }
+        DB::transaction(function () use ($validated, $deployment) {
+            $deployment->update($validated);
 
             AuditTrailService::log('updated', $deployment, "Deployment #{$deployment->id} details updated.");
         });
 
         return redirect()->route('deployment.index')
-            ->with('success', 'Deployment record updated successfully!');
+            ->with('success', 'Deployment details updated successfully!');
     }
 
     /**

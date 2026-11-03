@@ -580,5 +580,72 @@ class DeploymentAndReturnTest extends TestCase
         $deleteResponse->assertRedirect(route('deployment.index'));
         $this->assertSoftDeleted('deployments', ['id' => $deployment->id]);
     }
+
+    /**
+     * Test that system strictly forbids returns before the deployment date.
+     */
+    public function test_cannot_return_asset_before_deployment_date(): void
+    {
+        $depDate = now()->subDays(2)->toDateString();
+        $invalidReturnDate = now()->subDays(5)->toDateString();
+
+        $deployment = Deployment::create([
+            'asset_id'        => $this->asset->id,
+            'destination'     => 'Flood Area B',
+            'deployment_date' => $depDate,
+            'status'          => 'active',
+        ]);
+        $this->asset->update(['status' => 'deployed']);
+
+        $response = $this->actingAs($this->user)->post(route('deployment.return', $deployment), [
+            'return_date' => $invalidReturnDate,
+            'condition'   => 'good',
+            'status'      => 'received',
+        ]);
+
+        $response->assertSessionHasErrors('return_date');
+        $this->assertEquals('active', $deployment->fresh()->status);
+        $this->assertEquals('deployed', $this->asset->fresh()->status);
+    }
+
+    /**
+     * Test that editing a deployment preserves its status and cannot change it back from returned.
+     */
+    public function test_editing_deployment_preserves_status_even_when_returned(): void
+    {
+        $deployment = Deployment::create([
+            'asset_id'        => $this->asset->id,
+            'destination'     => 'Original Destination',
+            'deployment_date' => now()->subDays(5)->toDateString(),
+            'status'          => 'returned',
+        ]);
+
+        $response = $this->actingAs($this->user)->put(route('deployment.update', $deployment), [
+            'destination'          => 'Updated Destination Note',
+            'deployment_date'      => now()->subDays(5)->toDateString(),
+            'expected_return_date' => now()->subDays(2)->toDateString(),
+            'purpose'              => 'Updated mission summary',
+            'status'               => 'active', // Should be ignored and stripped
+        ]);
+
+        $response->assertRedirect(route('deployment.index'));
+        $response->assertSessionHas('success');
+
+        $fresh = $deployment->fresh();
+        $this->assertEquals('Updated Destination Note', $fresh->destination);
+        $this->assertEquals('returned', $fresh->status); // Must remain returned!
+    }
+
+    /**
+     * Test that the edit deployment view does not allow editing status.
+     */
+    public function test_edit_modal_no_longer_includes_status_selection_field(): void
+    {
+        $response = $this->actingAs($this->user)->get(route('deployment.index'));
+
+        $response->assertStatus(200);
+        $response->assertDontSee('<select name="status" id="edit_status"', false);
+        $response->assertSee('Current Status', false);
+    }
 }
 

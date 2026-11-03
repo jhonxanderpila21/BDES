@@ -26,6 +26,7 @@ use App\Http\Controllers\AssetSalvageController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ArchivedRecordController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\GeneralSearchController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -56,6 +57,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('asset-types', AssetTypeController::class);
     Route::post('/locations/relocate-asset', [LocationController::class, 'relocateAsset'])->name('locations.relocate-asset');
     Route::resource('locations', LocationController::class);
+
+    // General Autocomplete Search
+    Route::get('/search/autocomplete', [GeneralSearchController::class, 'autocomplete'])->name('search.autocomplete');
 
     // Asset Management
     Route::get('/assets/export', [AssetController::class, 'export'])->name('assets.export')->middleware('throttle:60,1');

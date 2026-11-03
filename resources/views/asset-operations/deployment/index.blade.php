@@ -475,7 +475,14 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Return Date" required>
-                    <input type="date" name="return_date" id="return_date" value="{{ date('Y-m-d') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <input type="date" name="return_date" id="return_date" value="{{ date('Y-m-d') }}" oninput="validateReturnDate()" onchange="validateReturnDate()" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <p id="return_date_error" class="hidden text-xs text-rose-600 font-semibold mt-1 flex items-center gap-1">
+                        <i class="fas fa-circle-exclamation text-[11px]"></i>
+                        <span id="return_date_error_msg">Return date cannot be earlier than deployment date.</span>
+                    </p>
+                    <p id="return_date_hint" class="text-[11px] text-gray-500 mt-1">
+                        Must be on or after deployment date (<strong id="hint_dep_date" class="text-gray-700">—</strong>).
+                    </p>
                 </x-form-group>
 
                 <x-form-group label="Returned By / Received From">
@@ -617,7 +624,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Deployment Date" required>
-                    <input type="date" name="deployment_date" id="edit_deployment_date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <input type="date" name="deployment_date" id="edit_deployment_date" onchange="document.getElementById('edit_expected_return_date').min = this.value" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </x-form-group>
 
                 <x-form-group label="Expected Return Date">
@@ -625,13 +632,13 @@
                 </x-form-group>
             </div>
 
-            <x-form-group label="Status" required>
-                <select name="status" id="edit_status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                    <option value="active">Active</option>
-                    <option value="pending_return">Pending Return</option>
-                    <option value="returned">Returned</option>
-                </select>
-            </x-form-group>
+            <div class="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs text-gray-500 block">Current Status</span>
+                    <span id="edit_status_display" class="font-bold text-xs uppercase px-2.5 py-0.5 rounded-full inline-block mt-0.5"></span>
+                </div>
+                <p class="text-[11px] text-gray-400 italic">Status is updated exclusively via return verification</p>
+            </div>
 
             <x-form-group label="Purpose">
                 <textarea name="purpose" id="edit_purpose" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
@@ -901,9 +908,36 @@
                 if (depDate) {
                     const retDateField = document.getElementById('return_date');
                     retDateField.min = depDate;
+                    const hintDate = document.getElementById('hint_dep_date');
+                    if (hintDate) hintDate.textContent = depDate;
                     if (retDateField.value < depDate) {
                         retDateField.value = depDate;
                     }
+                    validateReturnDate();
+                }
+            }
+
+            function validateReturnDate() {
+                const input = document.getElementById('return_date');
+                const errorElem = document.getElementById('return_date_error');
+                const errorMsg = document.getElementById('return_date_error_msg');
+                const submitBtn = document.getElementById('submit_return_btn');
+
+                if (!input || !input.min) return true;
+
+                if (input.value && input.value < input.min) {
+                    if (errorElem && errorMsg) {
+                        errorMsg.textContent = 'Return date cannot precede deployment date (' + input.min + ').';
+                        errorElem.classList.remove('hidden');
+                    }
+                    input.classList.add('border-rose-500', 'bg-rose-50');
+                    if (submitBtn) submitBtn.disabled = true;
+                    return false;
+                } else {
+                    if (errorElem) errorElem.classList.add('hidden');
+                    input.classList.remove('border-rose-500', 'bg-rose-50');
+                    if (submitBtn) submitBtn.disabled = false;
+                    return true;
                 }
             }
             @endif
@@ -1079,13 +1113,40 @@
 
                 let expDate = deployment.expected_return_date || '';
                 if (expDate.includes('T')) expDate = expDate.split('T')[0];
-                document.getElementById('edit_expected_return_date').value = expDate;
+                const editExpInput = document.getElementById('edit_expected_return_date');
+                editExpInput.value = expDate;
+                if (depDate) {
+                    editExpInput.min = depDate;
+                }
 
-                document.getElementById('edit_status').value = deployment.status || 'active';
+                const statusBadge = document.getElementById('edit_status_display');
+                if (statusBadge) {
+                    const st = deployment.status || 'active';
+                    statusBadge.textContent = st.replace(/_/g, ' ').toUpperCase();
+                    statusBadge.className = 'font-bold text-xs uppercase px-2.5 py-0.5 rounded-full inline-block mt-0.5 ' + 
+                        (st === 'returned' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 
+                        (st === 'pending_return' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-blue-100 text-blue-800 border border-blue-200'));
+                }
+
                 document.getElementById('edit_purpose').value = deployment.purpose || '';
 
                 window.openModal('edit-deployment-modal');
             }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const form = document.getElementById('recordReturnForm');
+                if (form) {
+                    form.addEventListener('submit', function(e) {
+                        if (!validateReturnDate()) {
+                            e.preventDefault();
+                            if (window.bdesToast) {
+                                window.bdesToast('Return date cannot precede the deployment date.', 'error', 4000);
+                            }
+                            return false;
+                        }
+                    });
+                }
+            });
             @endif
         </script>
     @endpush

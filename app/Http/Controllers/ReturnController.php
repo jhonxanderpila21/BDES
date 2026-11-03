@@ -55,27 +55,37 @@ class ReturnController extends Controller
     public function store(Request $request)
     {
         $this->authorizeEditor($request);
-        $validated = $request->validate([
+
+        $activeDeployment = Deployment::where('asset_id', $request->asset_id)
+            ->whereIn('status', ['active', 'pending_return'])
+            ->latest('id')
+            ->first();
+
+        $depDate = $activeDeployment && $activeDeployment->deployment_date
+            ? \Carbon\Carbon::parse($activeDeployment->deployment_date)->toDateString()
+            : null;
+
+        $rules = [
             'asset_id' => [
                 'required',
                 Rule::exists('assets', 'id')->where('status', 'deployed'),
             ],
-            'returned_by' => 'nullable|string|max:255',
-            'return_date' => 'required|date',
-            'condition' => 'required|in:excellent,good,fair,poor',
-            'damage_notes' => 'nullable|string',
+            'returned_by'         => 'nullable|string|max:255',
+            'return_date'         => array_merge(['required', 'date'], $depDate ? ['after_or_equal:' . $depDate] : []),
+            'condition'           => 'required|in:excellent,good,fair,poor',
+            'damage_notes'        => 'nullable|string',
             'missing_accessories' => 'nullable|string',
-            'actual_location' => 'nullable|string|max:255',
-            'status' => 'required|in:received,damage_noted,incomplete_accessories',
-        ]);
+            'actual_location'     => 'nullable|string|max:255',
+            'status'              => 'required|in:received,damage_noted,incomplete_accessories',
+        ];
 
-        DB::transaction(function () use ($validated) {
-            // Find and link active deployment if one exists
-            $activeDeployment = Deployment::where('asset_id', $validated['asset_id'])
-                ->whereIn('status', ['active', 'pending_return'])
-                ->latest()
-                ->first();
+        $messages = [
+            'return_date.after_or_equal' => "The return date cannot precede the deployment date ({$depDate}).",
+        ];
 
+        $validated = $request->validate($rules, $messages);
+
+        DB::transaction(function () use ($validated, $activeDeployment) {
             if ($activeDeployment) {
                 $validated['deployment_id'] = $activeDeployment->id;
                 $activeDeployment->update(['status' => 'returned']);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace App\Models;/*  */
 
 use App\Services\MaintenanceScheduleService;
 use Carbon\Carbon;

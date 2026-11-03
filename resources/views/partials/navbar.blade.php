@@ -21,6 +21,120 @@
             </div>
         </div>
 
+        {{-- Center Section: General Autocomplete Search Bar (Displays at least 5 suggestions) --}}
+        <div class="hidden sm:flex flex-1 max-w-xl mx-4 lg:mx-8 relative" x-data="bdesGlobalSearchComponent()" @click.outside="close()">
+            <div class="relative w-full">
+                <input 
+                    x-ref="searchInput"
+                    type="text" 
+                    x-model="query"
+                    @focus="onFocus()"
+                    @input="onInput()"
+                    @keydown.arrow-down.prevent="navigateDown()"
+                    @keydown.arrow-up.prevent="navigateUp()"
+                    @keydown.enter.prevent="selectCurrent()"
+                    @keydown.escape.prevent="close()"
+                    placeholder="Search equipment, dispatches, work orders, facilities... (Press '/' to focus)" 
+                    class="w-full bg-white/10 hover:bg-white/15 focus:bg-white text-white focus:text-gray-900 placeholder-blue-200/70 focus:placeholder-gray-400 pl-10 pr-20 py-2 rounded-xl border border-white/20 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-400/40 text-sm transition-all duration-200 shadow-inner"
+                    autocomplete="off"
+                >
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-blue-200/80">
+                    <i class="fas fa-search text-xs"></i>
+                </span>
+
+                <div class="absolute inset-y-0 right-0 pr-2.5 flex items-center gap-1.5">
+                    {{-- Spinner --}}
+                    <span x-show="loading" x-cloak class="text-blue-200">
+                        <i class="fas fa-circle-notch fa-spin text-xs"></i>
+                    </span>
+
+                    {{-- Clear button --}}
+                    <button 
+                        type="button" 
+                        x-show="query.length > 0 && !loading" 
+                        x-cloak 
+                        @click="clear()" 
+                        class="p-1 rounded-md text-blue-200 hover:text-white hover:bg-white/10 transition-colors"
+                        title="Clear search"
+                    >
+                        <i class="fas fa-times text-xs"></i>
+                    </button>
+
+                    {{-- Keyboard Shortcut Badge --}}
+                    <span class="hidden lg:inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-white/15 text-blue-100 border border-white/20">
+                        /
+                    </span>
+                </div>
+            </div>
+
+            {{-- Autocomplete Suggestions Dropdown --}}
+            <div 
+                x-show="open && (suggestions.length > 0 || (query.length >= 1 && !loading))"
+                x-cloak
+                x-transition:enter="transition ease-out duration-150"
+                x-transition:enter-start="opacity-0 translate-y-1 scale-98"
+                x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                x-transition:leave="transition ease-in duration-100"
+                x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                x-transition:leave-end="opacity-0 translate-y-1 scale-98"
+                class="absolute left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden z-[120] text-gray-800"
+            >
+                <div class="p-2.5 bg-gray-50/80 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-semibold px-3.5">
+                    <span x-text="query.length > 0 ? ('Suggestions matching \"' + query + '\" (' + suggestions.length + ')') : 'Recommended Equipment & Modules'"></span>
+                    <span class="text-[10px] text-gray-400 font-normal">Use &uarr;&darr; to navigate &bull; Enter to select</span>
+                </div>
+
+                {{-- Suggestions List (displays at least 5 suggestions) --}}
+                <div class="max-h-80 overflow-y-auto divide-y divide-gray-100">
+                    <template x-for="(item, idx) in suggestions" :key="item.id">
+                        <div 
+                            :id="'search-item-' + idx"
+                            @click="selectItem(item)"
+                            @mouseenter="selectedIndex = idx"
+                            class="px-3.5 py-2.5 flex items-center gap-3 transition-colors cursor-pointer group"
+                            :class="selectedIndex === idx ? 'bg-blue-50/90 text-blue-900' : 'hover:bg-gray-50 text-gray-800'"
+                        >
+                            {{-- Icon --}}
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 text-sm group-hover:bg-white shadow-xs">
+                                <i :class="item.icon"></i>
+                            </div>
+
+                            {{-- Details --}}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold truncate" x-text="item.title"></span>
+                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded border shrink-0" :class="item.badge_color" x-text="item.category"></span>
+                                </div>
+                                <p class="text-[11px] text-gray-500 truncate mt-0.5" x-text="item.subtitle"></p>
+                            </div>
+
+                            <i class="fas fa-arrow-turn-down-left text-xs text-gray-300 group-hover:text-blue-600 transition-colors shrink-0"></i>
+                        </div>
+                    </template>
+
+                    {{-- Empty State --}}
+                    <template x-if="suggestions.length === 0 && !loading && query.length >= 1">
+                        <div class="py-8 text-center px-4">
+                            <div class="w-9 h-9 mx-auto rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mb-1.5 text-sm">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <p class="text-xs font-semibold text-gray-700">No suggestions found for "<span x-text="query"></span>"</p>
+                            <p class="text-[11px] text-gray-400 mt-0.5">Try searching by asset SKU, equipment name, destination, or facility</p>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Footer Action --}}
+                <div class="p-2.5 bg-gray-50/90 border-t border-gray-100 flex items-center justify-between text-xs px-3.5">
+                    <a :href="'{{ route('assets.index') }}?tab=assets&search=' + encodeURIComponent(query)" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center gap-1.5 hover:underline">
+                        <span>Search all assets registry</span>
+                        <i class="fas fa-arrow-right text-[10px]"></i>
+                    </a>
+                    <span class="text-[10px] text-gray-400">ESC to close</span>
+                </div>
+            </div>
+        </div>
+
         {{-- Right Section --}}
         <div class="flex items-center gap-6">
             {{-- Notifications Dropdown with Alpine.js Reactive Badge & Real-Time Data --}}
@@ -490,6 +604,119 @@
                 .catch(err => {
                     console.warn('Backend markAllAsRead warning:', err);
                 });
+            }
+        };
+    }
+
+    function bdesGlobalSearchComponent() {
+        return {
+            query: '',
+            open: false,
+            loading: false,
+            suggestions: [],
+            selectedIndex: -1,
+            debounceTimer: null,
+
+            init() {
+                // Focus search bar via global keyboard shortcut '/' or 'Ctrl+K'
+                window.addEventListener('keydown', (e) => {
+                    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                    const isInput = activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select' || document.activeElement.isContentEditable;
+                    
+                    if ((e.key === '/' && !isInput) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+                        e.preventDefault();
+                        if (this.$refs && this.$refs.searchInput) {
+                            this.$refs.searchInput.focus();
+                            this.open = true;
+                            if (this.suggestions.length === 0) {
+                                this.fetchSuggestions();
+                            }
+                        }
+                    }
+                });
+            },
+
+            onFocus() {
+                this.open = true;
+                if (this.suggestions.length === 0) {
+                    this.fetchSuggestions();
+                }
+            },
+
+            onInput() {
+                this.open = true;
+                this.selectedIndex = -1;
+                clearTimeout(this.debounceTimer);
+                this.debounceTimer = setTimeout(() => {
+                    this.fetchSuggestions();
+                }, 200);
+            },
+
+            fetchSuggestions() {
+                this.loading = true;
+                const url = '{{ route('search.autocomplete') }}?q=' + encodeURIComponent(this.query);
+                
+                fetch(url, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    this.suggestions = data.suggestions || [];
+                    this.loading = false;
+                })
+                .catch(() => {
+                    this.loading = false;
+                });
+            },
+
+            navigateDown() {
+                if (!this.open || this.suggestions.length === 0) return;
+                this.selectedIndex = (this.selectedIndex + 1) % this.suggestions.length;
+                this.scrollToSelected();
+            },
+
+            navigateUp() {
+                if (!this.open || this.suggestions.length === 0) return;
+                this.selectedIndex = (this.selectedIndex - 1 + this.suggestions.length) % this.suggestions.length;
+                this.scrollToSelected();
+            },
+
+            scrollToSelected() {
+                this.$nextTick(() => {
+                    const item = document.getElementById('search-item-' + this.selectedIndex);
+                    if (item) {
+                        item.scrollIntoView({ block: 'nearest' });
+                    }
+                });
+            },
+
+            selectCurrent() {
+                if (this.selectedIndex >= 0 && this.suggestions[this.selectedIndex]) {
+                    window.location.href = this.suggestions[this.selectedIndex].url;
+                } else if (this.query.trim().length > 0) {
+                    window.location.href = '{{ route('assets.index') }}?tab=assets&search=' + encodeURIComponent(this.query.trim());
+                }
+            },
+
+            selectItem(item) {
+                window.location.href = item.url;
+            },
+
+            clear() {
+                this.query = '';
+                this.selectedIndex = -1;
+                this.fetchSuggestions();
+                if (this.$refs && this.$refs.searchInput) {
+                    this.$refs.searchInput.focus();
+                }
+            },
+
+            close() {
+                this.open = false;
+                this.selectedIndex = -1;
             }
         };
     }
