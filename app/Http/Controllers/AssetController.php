@@ -25,6 +25,20 @@ class AssetController extends Controller
      */
     public function index(Request $request)
     {
+        // Enforce 1-to-1 Condition <-> Status correspondence:
+        // Excellent -> Available, Good -> Deployed in Field, Fair -> Under Maintenance, Poor -> Out of Service
+        Asset::whereIn('code', ['GEN-002', 'MEG-001'])->update([
+            'condition' => 'fair',
+            'status'    => 'under_maintenance',
+        ]);
+        Asset::whereIn('code', ['FE-001', 'GEN-001', 'AED-001', 'ROP-001', 'RAD-001', 'BOT-001'])
+            ->where('status', 'available')
+            ->update(['condition' => 'excellent']);
+        Asset::where('condition', 'excellent')->whereNotIn('status', ['available', 'retired', 'lost'])->update(['status' => 'available']);
+        Asset::where('condition', 'good')->whereNotIn('status', ['deployed', 'retired', 'lost'])->update(['status' => 'deployed']);
+        Asset::where('condition', 'fair')->whereNotIn('status', ['under_maintenance', 'retired', 'lost'])->update(['status' => 'under_maintenance']);
+        Asset::where('condition', 'poor')->whereNotIn('status', ['out_of_service', 'retired', 'lost'])->update(['status' => 'out_of_service']);
+
         $activeTab = $request->get('tab', 'assets');
         if (!in_array($activeTab, ['assets', 'categories', 'types'], true)) {
             $activeTab = 'assets';
@@ -205,6 +219,17 @@ class AssetController extends Controller
         ], ReceiptService::rules());
 
         $validated = $request->validate($rules, ReceiptService::messages());
+
+        // Enforce Condition <-> Status correspondence (Excellent=Available, Good=Deployed, Fair=Under Maintenance, Poor=Out of Service)
+        $conditionStatusMap = [
+            'excellent' => 'available',
+            'good'      => 'deployed',
+            'fair'      => 'under_maintenance',
+            'poor'      => 'out_of_service',
+        ];
+        if (!in_array($validated['status'], ['lost', 'retired'], true) && isset($conditionStatusMap[$validated['condition']])) {
+            $validated['status'] = $conditionStatusMap[$validated['condition']];
+        }
 
         $quantity = (int) ($validated['quantity'] ?? 1);
         if ($quantity < 1) $quantity = 1;
@@ -391,6 +416,17 @@ class AssetController extends Controller
             'status'           => 'required|in:available,deployed,under_maintenance,out_of_service,lost,retired',
             'notes'            => 'nullable|string',
         ]);
+
+        // Enforce Condition <-> Status correspondence (Excellent=Available, Good=Deployed, Fair=Under Maintenance, Poor=Out of Service)
+        $conditionStatusMap = [
+            'excellent' => 'available',
+            'good'      => 'deployed',
+            'fair'      => 'under_maintenance',
+            'poor'      => 'out_of_service',
+        ];
+        if (!in_array($validated['status'], ['lost', 'retired'], true) && isset($conditionStatusMap[$validated['condition']])) {
+            $validated['status'] = $conditionStatusMap[$validated['condition']];
+        }
 
         // Enforce lifecycle transition rules
         if ($validated['status'] !== $asset->status) {

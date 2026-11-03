@@ -426,7 +426,7 @@
                                                 @if($item->started_at)
                                                     <div><span class="text-blue-500 font-medium">Started:</span> <span class="text-blue-700 font-medium">{{ $item->started_at->format('M d, Y') }}</span></div>
                                                 @endif
-                                                <div><span class="text-gray-400">Completed:</span> <span class="{{ $item->completed_at ? 'text-emerald-700 font-medium' : 'text-gray-400 italic' }}">{{ $item->completed_at ? $item->completed_at->format('M d, Y') : ($item->status === 'completed' ? 'Completed' : 'Pending') }}</span></div>
+                                                <div><span class="text-gray-400">Status:</span> <span class="{{ $item->completed_at ? 'text-emerald-700 font-medium' : 'text-gray-400 italic' }}">{{ $item->completed_at ? $item->completed_at->format('M d, Y') : ($item->status === 'completed' ? 'Completed' : 'Pending') }}</span></div>
                                             </div>
                                         @endif
                                     </td>
@@ -1375,10 +1375,10 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <x-form-group label="Verified Asset Physical Condition" required>
-                        <select name="final_condition" id="complete_final_condition" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs bg-white">
+                        <select name="final_condition" id="complete_final_condition" required onchange="if(this.value === 'fair') { document.getElementById('complete_final_status').value = 'under_maintenance'; }" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs bg-white">
                             <option value="good" selected>Good — Fully functional, minor normal wear</option>
                             <option value="excellent">Excellent — Like new / optimal operational order</option>
-                            <option value="fair">Fair — Operational, requires periodic monitoring</option>
+                            <option value="fair">Fair — Needs further maintenance (Cannot be deployed)</option>
                             <option value="poor">Poor — Restricted operation / partial capability</option>
                         </select>
                     </x-form-group>

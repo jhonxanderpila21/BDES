@@ -139,7 +139,7 @@ class MaintenanceModuleEnhancementsTest extends TestCase
         $response->assertSee('Next Due:');
         $response->assertSee('Created:');
         $response->assertSee('Scheduled:');
-        $response->assertSee('Completed:');
+        $response->assertSee('Status:');
     }
 
     /**

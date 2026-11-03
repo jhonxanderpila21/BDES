@@ -8,7 +8,6 @@ class ReportedAssetService
     public const STATUS_PENDING = 'Pending';
     public const STATUS_FOR_REVIEW = 'For Review';
     public const STATUS_ONGOING = 'Ongoing';
-    public const STATUS_ESCALATED = 'Escalated';
     public const STATUS_DONE = 'Done';
     public const STATUS_CLOSED = 'Closed';
 
@@ -27,8 +26,7 @@ class ReportedAssetService
     public const VALID_TRANSITIONS = [
         self::STATUS_PENDING     => [self::STATUS_FOR_REVIEW, self::STATUS_ONGOING],
         self::STATUS_FOR_REVIEW  => [self::STATUS_ONGOING],
-        self::STATUS_ONGOING     => [self::STATUS_ESCALATED, self::STATUS_DONE],
-        self::STATUS_ESCALATED   => [self::STATUS_ONGOING, self::STATUS_DONE],
+        self::STATUS_ONGOING     => [self::STATUS_DONE],
         self::STATUS_DONE        => [self::STATUS_CLOSED],
         self::STATUS_CLOSED      => [], // Terminal state
     ];
@@ -74,7 +72,6 @@ class ReportedAssetService
             self::STATUS_PENDING,
             self::STATUS_FOR_REVIEW,
             self::STATUS_ONGOING,
-            self::STATUS_ESCALATED,
             self::STATUS_DONE,
             self::STATUS_CLOSED,
         ];
@@ -89,7 +86,6 @@ class ReportedAssetService
             self::STATUS_PENDING,
             self::STATUS_FOR_REVIEW,
             self::STATUS_ONGOING,
-            self::STATUS_ESCALATED,
         ];
     }
 
@@ -102,7 +98,6 @@ class ReportedAssetService
             self::STATUS_PENDING     => 'warning',
             self::STATUS_FOR_REVIEW  => 'info',
             self::STATUS_ONGOING     => 'primary',
-            self::STATUS_ESCALATED   => 'danger',
             self::STATUS_DONE        => 'success',
             self::STATUS_CLOSED      => 'secondary',
             default                  => 'secondary',

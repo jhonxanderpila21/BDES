@@ -38,13 +38,12 @@
     </div>
 
     {{-- Dashboard Summary KPI Cards (Clickable quick status filters) --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-8">
         @php
             $statusConfig = [
                 'Pending'    => ['icon' => 'fas fa-clock', 'border' => 'border-amber-200', 'bg' => 'bg-amber-50/40', 'iconBg' => 'bg-amber-100 text-amber-600', 'textColor' => 'text-amber-700', 'label' => 'Awaiting Review'],
                 'For Review' => ['icon' => 'fas fa-search', 'border' => 'border-sky-200', 'bg' => 'bg-sky-50/40', 'iconBg' => 'bg-sky-100 text-sky-600', 'textColor' => 'text-sky-700', 'label' => 'Admin Review'],
                 'Ongoing'    => ['icon' => 'fas fa-spinner', 'border' => 'border-blue-200', 'bg' => 'bg-blue-50/40', 'iconBg' => 'bg-blue-100 text-blue-600', 'textColor' => 'text-blue-700', 'label' => 'In Progress'],
-                'Escalated'  => ['icon' => 'fas fa-triangle-exclamation', 'border' => 'border-red-200', 'bg' => 'bg-red-50/40', 'iconBg' => 'bg-red-100 text-red-600', 'textColor' => 'text-red-700', 'label' => 'Critical Alert'],
                 'Done'       => ['icon' => 'fas fa-circle-check', 'border' => 'border-emerald-200', 'bg' => 'bg-emerald-50/40', 'iconBg' => 'bg-emerald-100 text-emerald-600', 'textColor' => 'text-emerald-700', 'label' => 'Resolved'],
                 'Closed'     => ['icon' => 'fas fa-archive', 'border' => 'border-gray-200', 'bg' => 'bg-gray-50/60', 'iconBg' => 'bg-gray-200 text-gray-700', 'textColor' => 'text-gray-700', 'label' => 'Archived'],
             ];

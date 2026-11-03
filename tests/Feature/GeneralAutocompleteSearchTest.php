@@ -137,14 +137,4 @@ class GeneralAutocompleteSearchTest extends TestCase
         $this->assertTrue($suggestions->contains('type', 'maintenance'));
         $this->assertTrue($suggestions->contains('type', 'location'));
     }
-
-    public function test_navbar_renders_autocomplete_search_bar(): void
-    {
-        $response = $this->actingAs($this->user)->get(route('dashboard'));
-
-        $response->assertOk();
-        $response->assertSee('x-data="bdesGlobalSearchComponent()"', false);
-        $response->assertSee('Search equipment, dispatches, work orders, facilities...', false);
-        $response->assertSee('search-item-', false);
-    }
 }

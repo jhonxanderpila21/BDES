@@ -95,8 +95,12 @@ class ReturnController extends Controller
 
             $asset = Asset::find($validated['asset_id']);
             if ($asset) {
-                $asset->status = 'available';
-                $asset->condition = $validated['condition'];
+                $asset->status = match ($validated['condition']) {
+                    'fair' => 'under_maintenance',
+                    'poor' => 'out_of_service',
+                    default => 'available',
+                };
+                $asset->condition = $asset->status === 'available' ? 'excellent' : $validated['condition'];
                 $asset->save();
             }
         });
@@ -135,8 +139,12 @@ class ReturnController extends Controller
 
             $asset = Asset::find($validated['asset_id']);
             if ($asset) {
-                $asset->status = 'available';
-                $asset->condition = $validated['condition'];
+                $asset->status = match ($validated['condition']) {
+                    'fair' => 'under_maintenance',
+                    'poor' => 'out_of_service',
+                    default => 'available',
+                };
+                $asset->condition = $asset->status === 'available' ? 'excellent' : $validated['condition'];
                 $asset->save();
             }
         });

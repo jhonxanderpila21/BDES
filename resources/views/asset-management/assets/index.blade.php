@@ -203,7 +203,7 @@
 
             <select name="status" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
-                @foreach(\App\Services\AssetLifecycleService::statuses() as $key => $label)
+                @foreach(['available' => 'Available', 'deployed' => 'Deployed in Field', 'under_maintenance' => 'Under Maintenance', 'out_of_service' => 'Out of Service'] as $key => $label)
                     <option value="{{ $key }}" {{ request('status') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
@@ -660,22 +660,20 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Condition" required>
-                    <select name="condition" id="edit_asset_condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="excellent">Excellent</option>
-                        <option value="good">Good</option>
-                        <option value="fair">Fair</option>
-                        <option value="poor">Poor</option>
+                    <select name="condition" id="edit_asset_condition" required onchange="const m = {excellent:'available', good:'deployed', fair:'under_maintenance', poor:'out_of_service'}; if(m[this.value]) document.getElementById('edit_asset_status').value = m[this.value];" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="excellent">Excellent (Available)</option>
+                        <option value="good">Good (Deployed in Field)</option>
+                        <option value="fair">Fair (Under Maintenance)</option>
+                        <option value="poor">Poor (Out of Service)</option>
                     </select>
                 </x-form-group>
 
                 <x-form-group label="Operational Status" required>
-                    <select name="status" id="edit_asset_status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <select name="status" id="edit_asset_status" required onchange="const r = {available:'excellent', deployed:'good', under_maintenance:'fair', out_of_service:'poor'}; if(r[this.value]) document.getElementById('edit_asset_condition').value = r[this.value];" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                         <option value="available">Available</option>
-                        <option value="deployed">Deployed</option>
+                        <option value="deployed">Deployed in Field</option>
                         <option value="under_maintenance">Under Maintenance</option>
                         <option value="out_of_service">Out of Service</option>
-                        <option value="lost">Lost / Missing</option>
-                        <option value="retired">Retired / Decommissioned</option>
                     </select>
                 </x-form-group>
             </div>
