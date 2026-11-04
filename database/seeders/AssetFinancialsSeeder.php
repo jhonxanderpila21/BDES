@@ -38,10 +38,6 @@ class AssetFinancialsSeeder extends Seeder
                 'salvage_value'     => 5000.00,
                 'salvage_notes'     => 'Estimated generator frame and parts recovery scrap appraisal value.',
             ],
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/demo
             'AED-001' => [
                 'acquisition_cost'  => 95000.00,
                 'useful_life_years' => 5,
@@ -96,10 +92,6 @@ class AssetFinancialsSeeder extends Seeder
                 'salvage_value'     => 48000.00,
                 'salvage_notes'     => 'Municipal vehicle residual scrap metal, engine, and drive-train appraisal.',
             ],
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/demo
         ];
 
         foreach ($financialProfiles as $code => $financials) {

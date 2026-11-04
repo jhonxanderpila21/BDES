@@ -56,14 +56,6 @@ class DeploymentSeeder extends Seeder
                 'purpose'              => 'Fire safety standby during Purok fiesta cooking event.',
                 'status'               => 'active',
             ],
-<<<<<<< HEAD
-
-            [
-                'asset_id' => 3, // Honda 5kVA Generator
-                'destination' => 'Purok C Evacuation Center',
-                'assigned_team' => 'Logistics Team',
-                'deployment_date' => now()->subMonths(1),
-=======
             [
                 'asset_code'           => 'GEN-001',
                 'fallback_id'          => 3,
@@ -72,7 +64,6 @@ class DeploymentSeeder extends Seeder
                 'responsible_person'   => 'Kagawad Fernandez',
                 'borrower_type'        => 'personnel',
                 'deployment_date'      => now()->subMonths(1),
->>>>>>> origin/demo
                 'expected_return_date' => now()->subDays(25),
                 'purpose'              => 'Emergency power supply during typhoon evacuation.',
                 'status'               => 'returned',
