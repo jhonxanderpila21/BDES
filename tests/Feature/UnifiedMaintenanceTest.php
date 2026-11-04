@@ -132,6 +132,50 @@ class UnifiedMaintenanceTest extends TestCase
         $responseInsp->assertSee('Minor oil sweat');
     }
 
+    public function test_active_orders_filter_displays_active_work_orders_without_error(): void
+    {
+        $activeWo = Maintenance::create([
+            'asset_id'       => $this->asset->id,
+            'type'           => 'repair',
+            'technician'     => 'Active Tech Jack',
+            'scheduled_date' => Carbon::now()->format('Y-m-d'),
+            'status'         => 'in_progress',
+            'notes'          => 'Engine diagnosis in progress',
+        ]);
+
+        $completedWo = Maintenance::create([
+            'asset_id'       => $this->asset->id,
+            'type'           => 'routine',
+            'technician'     => 'Completed Tech Jill',
+            'scheduled_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
+            'status'         => 'completed',
+            'notes'          => 'Filter replaced',
+        ]);
+
+        $sched = MaintenanceSchedule::create([
+            'asset_id'             => $this->asset->id,
+            'asset_type'           => 'Generator',
+            'maintenance_task'     => 'Routine Inspection Schedule',
+            'interval_type'        => 'Monthly',
+            'interval_days'        => 30,
+            'last_maintenance_date'=> Carbon::now()->subDays(5)->format('Y-m-d'),
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('maintenance.index', [
+            'tab'    => 'logs',
+            'status' => 'active',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Active Orders');
+        $response->assertSee('Active Tech Jack');
+        $response->assertDontSee('Completed Tech Jill');
+        // Schedules should be excluded from active work orders listing
+        $this->assertTrue($response->viewData('maintenances')->contains('id', $activeWo->id));
+        $this->assertFalse($response->viewData('maintenances')->contains('id', $completedWo->id));
+        $this->assertFalse($response->viewData('maintenances')->contains(fn ($item) => !empty($item->is_schedule) && $item->id === $sched->id));
+    }
+
     public function test_maintenance_logs_store_sets_asset_status_to_under_maintenance_when_in_progress(): void
     {
         $response = $this->actingAs($this->user)->post(route('maintenance.store'), [

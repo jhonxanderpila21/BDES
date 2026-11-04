@@ -45,7 +45,7 @@ class MaintenanceController extends Controller
                 MaintenanceScheduleService::STATUS_DUE,
                 MaintenanceScheduleService::STATUS_OVERDUE,
             ])->count(),
-            'active_maintenance'    => Maintenance::whereIn('status', ['in_progress', 'scheduled'])->count(),
+            'active_maintenance'    => Maintenance::whereIn('status', ['in_progress', 'scheduled', 'pending'])->count(),
             'completed_maintenance' => Maintenance::where('status', 'completed')->count(),
             'total_inspections'     => Inspection::count(),
             'total_repair_cost'     => Maintenance::sum('cost') ?? 0,
@@ -85,14 +85,9 @@ class MaintenanceController extends Controller
                     MaintenanceScheduleService::STATUS_DUE,
                     MaintenanceScheduleService::STATUS_OVERDUE,
                 ]);
-            } elseif (in_array($request->status, ['due', 'overdue', 'Monitoring Only'], true)) {
+            } elseif (in_array($request->status, ['due', 'overdue', 'Monitoring Only', 'Maintenance Due'], true)) {
                 $schedulesQuery->where('status', $request->status);
-            } elseif ($request->status === 'active') {
-                $schedulesQuery->whereIn('status', [
-                    MaintenanceScheduleService::STATUS_OK,
-                    MaintenanceScheduleService::STATUS_DUE,
-                ]);
-            } elseif (in_array($request->status, ['completed', 'pending'], true)) {
+            } elseif (in_array($request->status, ['active', 'completed', 'pending', 'in_progress', 'scheduled'], true)) {
                 $schedulesQuery->whereRaw('1 = 0');
             }
         }
@@ -137,10 +132,10 @@ class MaintenanceController extends Controller
         }
         if ($request->filled('status') && $activeTab === 'logs') {
             if ($request->status === 'active') {
-                $maintenancesQuery->whereIn('status', ['in_progress', 'scheduled']);
+                $maintenancesQuery->whereIn('status', ['in_progress', 'scheduled', 'pending']);
             } elseif ($request->status === 'due_overdue') {
                 $maintenancesQuery->whereRaw('1 = 0');
-            } elseif (!in_array($request->status, ['Monitoring Only', 'Maintenance Due', 'Overdue'], true)) {
+            } elseif (!in_array($request->status, ['Monitoring Only', 'Maintenance Due', 'Overdue', 'due'], true)) {
                 $maintenancesQuery->where('status', $request->status);
             } else {
                 $maintenancesQuery->whereRaw('1 = 0');

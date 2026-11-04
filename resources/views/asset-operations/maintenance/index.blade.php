@@ -54,7 +54,7 @@
         $isInspTab = $activeTab === 'inspections';
         $currStatus = request('status');
 
-        $activeOrdersActive = $isLogsTab && in_array($currStatus, ['active', 'in_progress', 'scheduled']);
+        $activeOrdersActive = $isLogsTab && in_array($currStatus, ['active', 'in_progress', 'scheduled', 'pending']);
         $completedLogsActive = $isLogsTab && $currStatus === 'completed';
         $allInspActive = $isInspTab && empty($currStatus);
         $dueSchedActive = $isLogsTab && in_array($currStatus, ['due_overdue', 'due', 'overdue']);
@@ -208,6 +208,7 @@
                     @php
                         $currentStatus = request('status');
                         $statusLabels = [
+                            'active'           => 'Active Orders',
                             'due_overdue'      => 'Due / Overdue',
                             'pending'          => 'Pending',
                             'scheduled'        => 'Scheduled',

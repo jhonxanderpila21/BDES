@@ -9,6 +9,7 @@ class MaintenanceScheduleService
     public const STATUS_MONITORING = 'Monitoring Only';
     public const STATUS_DUE = 'Maintenance Due';
     public const STATUS_OVERDUE = 'Overdue';
+    public const STATUS_OK = self::STATUS_MONITORING;
 
     public const INTERVAL_MONTHLY = 'Monthly';
     public const INTERVAL_QUARTERLY = 'Quarterly';
