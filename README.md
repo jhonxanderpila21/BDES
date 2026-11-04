@@ -18,7 +18,7 @@ A modern, robust, and secure Laravel-based enterprise asset management and disas
   - **₱50,000.00 Capitalization Threshold**: Equipment `< ₱50,000.00` is recognized as **Semi-Expendable Property** (issued via Inventory Custodian Slip / ICS) and is statutorily non-depreciable (`salvage = ₱0.00`, `depreciation = ₱0.00`).
   - **Capitalized PPE Amortization**: Equipment `≥ ₱50,000.00` is capitalized as **Property, Plant, and Equipment (PPE)** and automatically calculates a **10% standard residual value** and straight-line depreciation based on standard COA useful life schedules.
 - **Financial Valuation & Residual Accounting**: Straight-line depreciation tracking, dynamic current book value computation, statutory 10% salvage value estimation, consolidated Expenses Ledger, and CSV export capabilities with official COA Classification tags.
-- **Real-Time Global Autocomplete Search**: Interactive search bar with instant multi-module suggestions (Assets, Deployments, Work Orders, Locations) with prioritized direct navigation.
+- **Intelligent Autocomplete Search**: Interactive search bar with instant multi-module suggestions (Assets, Deployments, Work Orders, Locations) with prioritized direct navigation.
 - **Enterprise Role-Based Access Control (RBAC)**: Enforced across 5 roles with backend authorization policies, gates, form requests, and branded HTTP 403 Forbidden protection.
 - **Security Hardening**: Strict MIME-type document validation, path sanitization, rate-limiting on sensitive export endpoints, and intelligent input normalization.
 

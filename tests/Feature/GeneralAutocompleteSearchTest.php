@@ -138,13 +138,17 @@ class GeneralAutocompleteSearchTest extends TestCase
         $this->assertTrue($suggestions->contains('type', 'location'));
     }
 
-    public function test_navbar_renders_autocomplete_search_bar(): void
+    public function test_page_renders_autocomplete_search_bar_and_navbar_has_no_duplicate_upper_search(): void
     {
-        $response = $this->actingAs($this->user)->get(route('dashboard'));
+        // 1. Dashboard / Navbar should not have the duplicate upper search bar
+        $dashboardResponse = $this->actingAs($this->user)->get(route('dashboard'));
+        $dashboardResponse->assertOk();
+        $dashboardResponse->assertDontSee('bdesGlobalSearchComponent', false);
 
-        $response->assertOk();
-        $response->assertSee('x-data="bdesGlobalSearchComponent()"', false);
-        $response->assertSee('Search equipment, dispatches, work orders, facilities...', false);
-        $response->assertSee('search-item-', false);
+        // 2. Module pages use x-search-bar with autocomplete enabled
+        $deployResponse = $this->actingAs($this->user)->get(route('deployment.index'));
+        $deployResponse->assertOk();
+        $deployResponse->assertSee('fetchSuggestions', false);
+        $deployResponse->assertSee(route('search.autocomplete'), false);
     }
 }

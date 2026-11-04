@@ -190,8 +190,8 @@ A unified top tab bar allows seamless one-click switching between:
    - Notice the prominent danger confirmation modal warning that this action is irreversible.
    - Confirm permanent deletion and verify the record is expunged and an audit log of type `force_deleted` is recorded.
 
-### 3.6. Global Autocomplete Search Bar (Fast Multi-Module Jump)
-1. Locate the search input in the top navigation bar.
+### 3.6. Intelligent Autocomplete Search Bar (Fast Multi-Module Jump)
+1. Navigate to any module page equipped with a search bar (e.g. Deployments, Maintenance, Users, Returns).
 2. Type at least 2 characters (e.g. `gen`, `amb`, `bar`, or `wo`).
 3. Notice the live dropdown suggestions appear instantly (minimum 5 categorized results):
    - Categorized by **Assets** (Code, Name, Category), **Deployments**, **Work Orders**, and **Locations**.
@@ -384,7 +384,7 @@ A unified top tab bar allows seamless one-click switching between:
 1. Log in as `staff@bdes.gov`.
 2. Navigate to **Asset Registry** (`/assets`).
 3. Notice that administrative modification buttons (Edit, Delete, Add Asset) are properly hidden.
-4. Search for an asset by code or keyword using the navbar autocomplete search bar.
+4. Search for an asset by code or keyword using the search bar.
 
 ### 7.2. Incident Reporting, Confirmation & Multiple Personnel Assignments
 1. Navigate to **Asset Operations -> Reported Assets** (`/reported-assets`).
