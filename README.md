@@ -46,24 +46,40 @@ All test accounts are automatically seeded with password: **`password`**
 
 ---
 
-## ⚙️ Quick Start Installation
+## ⚙️ Quick Start Installation (Zero-Configuration Onboarding)
 
+For anyone pulling or cloning this repository on a new computer:
+
+### Option A: Automatic Setup (Recommended)
+```bash
+composer run setup
+php artisan serve
+```
+
+### Option B: Manual Setup Steps
 ```bash
 # 1. Install PHP dependencies
 composer install
 
-# 2. Install Node dependencies & compile assets
+# 2. Setup environment configuration
+# On Windows (CMD / PowerShell):
+copy .env.example .env
+# On Linux / macOS:
+cp .env.example .env
+
+# 3. Generate application key
+php artisan key:generate
+
+# 4. Link storage and compile frontend assets (if modifying UI)
+php artisan storage:link
 npm install
 npm run build
 
-# 3. Setup environment and database
-copy .env.example .env
-php artisan key:generate
-php artisan migrate:fresh --seed
-
-# 4. Start local development server
+# 5. Start local development server
 php artisan serve
 ```
+
+> **Note on SQLite Database:** The pre-seeded database file (`capstone_db`) is included in the repository and configured by default in `.env.example`. You do not need to configure MySQL or run migrations manually unless you wish to reset the database (`php artisan migrate:fresh --seed`).
 
 Visit `http://127.0.0.1:8000` to log in with any of the seeded accounts above.
 
