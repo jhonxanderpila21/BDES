@@ -11,10 +11,10 @@ The system enforces **Role-Based Access Control (RBAC)** across 5 distinct user 
 
 | Role Name | Database Identifier | Access Tier | Primary Operational Responsibility |
 | :--- | :--- | :--- | :--- |
-| **System Administrator** | `administrator` | Full Superadmin | System configuration, user accounts & soft deletes, expenses ledger, financial valuations, audit logs, master reporting |
+| **System Administrator** | `administrator` | Full Superadmin | System configuration, user accounts & soft deletes, expenses ledger, financial valuations, centralized archived records management, audit logs, master reporting |
 | **Hon. Barangay Captain** | `barangay_captain` | Executive Admin | Executive oversight, asset retirement approvals, high-level reporting, executive dashboard |
-| **BDRRMC Inventory Officer** | `inventory_officer` | Operational Equipment Officer | All equipment works **aside from maintenance**: acquisitions with auto-SKU and batch quantity, asset registry, attachments & accessories, operational supplies/restocks, barangay personnel & resident deployments & returns, incident reporting |
-| **Maintenance Officer** | `maintenance_officer` | Operational Upkeep Officer | All equipment servicing & maintenance works: work orders, preventive maintenance schedules, physical inspections, condition rating, repair cost tracking with receipts |
+| **BDRRMC Inventory Officer** | `inventory_officer` | Operational Equipment Officer | All equipment works **aside from maintenance**: acquisitions with auto-SKU and batch quantity, asset registry, attachments & accessories, operational supplies/restocks, barangay personnel & resident deployments & returns, location management & asset relocations, incident reporting |
+| **Maintenance Officer** | `maintenance_officer` | Operational Upkeep Officer | All equipment servicing & maintenance works: work orders, preventive maintenance schedules, physical inspections, condition rating, spare parts inventory consumption, repair cost tracking with receipts |
 | **Barangay Staff / Viewer** | `viewer` | Read-Only / Reporter | Asset registry lookup, defect report creation, personal profile management |
 
 ---
@@ -40,19 +40,22 @@ All accounts are pre-seeded in the database via `database/seeders/UserSeeder.php
 +------------------------------------+--------------------------+-----------------------+
 ```
 
-### Pre-Requisite Commands
+### Pre-Requisite Commands (Zero-Configuration Setup)
 
 To start the local environment with a clean, fully-seeded database:
 
 ```bash
-# 1. Run database migrations and seed default accounts
+# Option A: Automatic single-command setup (Recommended)
+composer run setup
+php artisan serve
+
+# Option B: Manual setup
+copy .env.example .env     # On Windows (use cp on Linux/macOS)
+php artisan key:generate
+php artisan storage:link
 php artisan migrate --force
 php artisan db:seed --force
-
-# 2. Build frontend assets (Vite)
 npm run build
-
-# 3. Start the Laravel development server
 php artisan serve
 ```
 
@@ -161,6 +164,40 @@ A unified top tab bar allows seamless one-click switching between:
 4. Test filtering by specific actors in the **All Actors / Users** dropdown.
 5. Click **Export Audit Log** to export the comprehensive system audit trail CSV.
 
+### 3.5. Centralized Archived Records (Soft Deletes & Data Protection)
+1. Click **Tracking & Reporting -> Archived Records** (`/archived-records`).
+2. Notice the centralized table containing soft-deleted records across 10 system modules:
+   - Assets, Deployments, Returns, Maintenance, Maintenance Schedules, Inspections, Reported Assets, Operational Requirements, Attachments, and Accessories.
+3. Review the table columns:
+   - **Record ID & Name** (e.g., `AST-005 - Heavy Chainsaw`, `WO-2026-0004 - Water Pump Overhaul`)
+   - **Source Module** (color-coded badge: Asset Registry, Deployments, Maintenance, etc.)
+   - **Deletion Reason** (audit justification recorded at time of soft delete)
+   - **Deleted By** (actor responsible for archiving)
+   - **Date Deleted** (relative and exact timestamp)
+   - **Actions** (Restore Record, Permanent Delete)
+4. Test **Filters**:
+   - Filter by **Module**: Select `Maintenance`. Verify only deleted work orders and schedules appear.
+   - Filter by **Deleted By**: Select a user to review their deletions.
+   - Search by keyword or specify a date range.
+5. Test **Record Restoration**:
+   - Locate an archived record and click **Restore**.
+   - Review the confirmation modal explaining that the record will be restored with its existing relationships intact.
+   - Click **Confirm Restore**.
+   - Verify that the record disappears from Archived Records and reappears in its original operational table.
+   - Check **Audit Trail** to confirm the `restored` event was recorded with your admin user ID.
+6. Test **Permanent Purge (Force Delete)**:
+   - Locate a disposable archived test record and click **Delete Permanently**.
+   - Notice the prominent danger confirmation modal warning that this action is irreversible.
+   - Confirm permanent deletion and verify the record is expunged and an audit log of type `force_deleted` is recorded.
+
+### 3.6. Global Autocomplete Search Bar (Fast Multi-Module Jump)
+1. Locate the search input in the top navigation bar.
+2. Type at least 2 characters (e.g. `gen`, `amb`, `bar`, or `wo`).
+3. Notice the live dropdown suggestions appear instantly (minimum 5 categorized results):
+   - Categorized by **Assets** (Code, Name, Category), **Deployments**, **Work Orders**, and **Locations**.
+4. Click on any search suggestion or press Enter:
+   - Verify you are immediately redirected to the exact dossier, work order, or location page.
+
 ---
 
 ## 4. Step-by-Step Testing Guide: Role 2 — Hon. Barangay Captain
@@ -228,8 +265,30 @@ A unified top tab bar allows seamless one-click switching between:
    - Enter Valid ID Number: `BRGY-2026-9812`.
    - Purpose: `Emergency residential pumping due to localized gutter overflow`.
    - Submit and verify the deployment appears with full resident borrower credentials.
+5. Test **Chronological Return Date Validation**:
+   - Locate an active deployment deployed on e.g. `Nov 01, 2026`.
+   - Click **Return** and attempt to set the Return Date to `Oct 25, 2026` (before deployment).
+   - Click **Save Return**.
+   - Verify that the system strictly blocks the return and displays an inline validation alert: `The return date cannot be earlier than the deployment date.`
+   - Set the Return Date to today (valid date) and confirm the return saves smoothly.
+6. Test **Deployment Edit Status Protection**:
+   - Click **Edit** on any existing deployment.
+   - Notice that the status field cannot be arbitrarily altered to bypass return verification. The official return process (`/returns`) remains the sanctioned mechanism for closing out borrowings.
 
-### 5.3. Managing Accessories, Attachments & Operational Requirements
+### 5.3. Asset Locations & In-Place Asset Relocation
+1. Navigate to **Tracking & Reporting -> Asset Locations** (`/locations`).
+2. Click on any Location card (e.g. `Barangay Storage Yard` or `Main Hall Depot`).
+3. View the list of assets currently stationed at that physical facility.
+4. Locate an asset (e.g. `AMB-001 - Rescue Ambulance Alpha`) and click **Relocate Asset**:
+   - A modal opens displaying the current location.
+   - Select the **New Destination Location** (e.g. `Emergency Evacuation Center`).
+   - Enter relocation notes/reason: `Pre-staged for flood season response.`
+   - Click **Confirm Relocation**.
+5. Verify that:
+   - The asset is immediately removed from the old location count and credited to the new location.
+   - An audit trail event (`asset_relocated`) and an Asset History movement record are created automatically.
+
+### 5.4. Managing Accessories, Attachments & Operational Requirements
 1. Navigate to **Asset Management -> Attachments & Accessories** (`/attachments`).
    - Verify that all **4 seeded accessories** (Heavy-Duty Extension Cord, Oxygen Tank Regulator, Suction Hose 3-inch, Spark Plug Spare Set) are visible and linked to their assets.
    - Verify that **6 disaster attachments** (Tow Hitch Trailer, Marine Propeller Guard, Heavy-Duty Spreader Jaws, etc.) are populated with unit costs.
@@ -247,7 +306,7 @@ A unified top tab bar allows seamless one-click switching between:
      - Attach official invoice receipt.
    - Submit and verify stock increases and restock transaction is recorded into the expenses ledger.
 
-### 5.4. Account-Specific Audit Trail
+### 5.5. Account-Specific Audit Trail
 1. Click **Tracking & Reporting -> Asset History & Audit** (`/asset-history`).
 2. Observe the blue badge: `Account-Specific Access • Logs for BDRRMC Inventory Officer`.
 3. Notice that you only see audit actions performed by your specific account.
@@ -261,32 +320,59 @@ A unified top tab bar allows seamless one-click switching between:
 
 **Login:** `maintenance@bdes.gov` | **Password:** `password`
 
-*(Responsible for equipment upkeep, repairs, preventive maintenance schedules, physical inspections, and repair cost proof)*
+*(Responsible for equipment upkeep, repairs, preventive maintenance schedules, physical inspections, spare parts consumption, and repair cost proof)*
 
-### 6.1. Maintenance Hub & Work Orders with Cost Receipts
-1. Log in and notice the tailored sidebar focusing on upkeep and inspection.
-2. Navigate to **Asset Operations -> Maintenance & Work Orders** (`/maintenance?tab=logs`).
-3. Click **Create Work Order**:
-   - Asset: Select an asset needing repair.
-   - Type: `repair`.
-   - Priority: `high`.
-   - Scheduled Date: Today.
-   - Estimated Cost: `₱ 3,500.00`.
-   - Upload repair quotation / receipt file.
-   - Submit and verify asset status switches to `under_maintenance`.
-4. Click **Complete Work Order**:
-   - Final Cost: `₱ 3,500.00`.
-   - Parts Used: `Carburetor rebuild kit, spark plug`.
-   - Attach official service receipt.
-   - Save completion: the maintenance cost automatically syncs into the **Expenses Ledger** with receipts attached.
+### 6.1. Unified Maintenance Hub, Record Classification & KPI Cards
+1. Log in and navigate to **Asset Operations -> Maintenance & Work Orders** (`/maintenance?tab=logs`).
+2. Review the top KPI cards:
+   - **Active Orders**: In-progress, scheduled, and pending repairs. Click this card to instantly filter for active work orders without error; confirm that preventive schedules are cleanly excluded.
+   - **Completed Tasks**: Resolved and verified work orders.
+   - **Asset Inspections**: Quality & safety audits count.
+   - **Preventive Schedules**: Recurring schedules with due/overdue counters.
+3. Test **Record Classification Filter (`record_type`)**:
+   - Filter by **Work Orders (WO)**: The table displays only work orders with `WO-YYYY-XXXX` badges.
+   - Filter by **Preventive Schedules (SCHED)**: The table displays only recurring schedules with `SCHED-XXXX` badges.
+   - Filter by **All Records**: Seamlessly interweaves both streams chronologically.
 
-### 6.2. Physical Equipment Inspections
-1. Click the **Inspections** tab (`/maintenance?tab=inspections`).
+### 6.2. Parts & Materials Tracking with Live Inventory Deduction
+1. In the table, observe the **Parts & Materials** column:
+   - Shows consumed spare parts with quantities, units, and itemized costs (e.g. `2 pcs Oil Filter (₱800.00)`).
+2. Click **Create Work Order** (`/maintenance`):
+   - Select an asset, maintenance type, priority, and scheduled date.
+   - In the **Parts & Materials Consumed** section:
+     - Select items from the integrated spare parts inventory (attachments and accessories with stock > 0).
+     - Enter quantity used (e.g. `1` unit of `Spark Plug Spare Set`).
+     - Notice the unit cost and total cost calculate dynamically.
+   - Upload repair quotation or receipt.
+   - Submit work order:
+     - Confirm the asset status updates to `under_maintenance`.
+     - Confirm the spare parts stock in inventory decreases by the consumed amount.
+
+### 6.3. Accurate Service Dates & View Details Modal
+1. Observe the **Service Dates** column:
+   - **For Work Orders**: Displays Created, Scheduled, Started, and Completed dates.
+   - **For Schedules**: Displays Last Serviced date and Next Due date (color-coded red if overdue).
+2. Click **View Details** on any work order:
+   - Verify the comprehensive dossier displays: Asset details, Problem description, Assigned technicians, Inspection findings, Consumed parts & costs, Technician remarks, and Attached receipts.
+
+### 6.4. Work Order Completion & Asset Condition Verification
+1. Click **Complete Work Order** on an in-progress repair.
+2. Enter completion details: Work performed, actual labor/parts cost, and attach service invoice.
+3. Notice the **Post-Maintenance Operational Condition Verification**:
+   - The system does **not** blindly mark the asset as Available.
+   - The officer must verify and certify the asset's true operational condition (`good`, `fair`, `poor`, `operational`, `under_maintenance`).
+4. Save completion: confirm the financial outlay syncs to the Expenses Ledger with receipts attached.
+
+### 6.5. Asset Inspections & Work Order Generation from Findings
+1. Switch to the **Inspections** tab (`/maintenance?tab=inspections`).
 2. Click **Record Inspection**:
    - Asset: Select equipment.
-   - Rating: `passed`.
-   - Findings: `All emergency shutoffs functional.`
-   - Submit and verify the inspection record is preserved.
+   - Rating: `failed` or `conditional_pass`.
+   - Findings: `Hydraulic cylinder seal leaking under pressure.`
+   - Attach condition photo.
+   - Submit inspection.
+3. For any inspection needing repair, test clicking **Create Work Order**:
+   - Notice the work order modal automatically pre-populates with the asset, inspection reference, and finding notes, establishing complete operational traceability.
 
 ---
 
@@ -297,15 +383,22 @@ A unified top tab bar allows seamless one-click switching between:
 ### 7.1. Read-Only Exploration & Defect Reporting
 1. Log in as `staff@bdes.gov`.
 2. Navigate to **Asset Registry** (`/assets`).
-3. Notice that edit, delete, and add buttons are hidden.
-4. Search for an asset by code or keyword.
+3. Notice that administrative modification buttons (Edit, Delete, Add Asset) are properly hidden.
+4. Search for an asset by code or keyword using the navbar autocomplete search bar.
 
-### 7.2. Submitting an Incident Report
+### 7.2. Incident Reporting, Confirmation & Multiple Personnel Assignments
 1. Navigate to **Asset Operations -> Reported Assets** (`/reported-assets`).
 2. Click **Submit Asset Report**:
-   - Select Asset, report type (`damaged`), and describe defect.
-   - Upload defect photo evidence or damage documentation via the file input.
+   - Select Asset, report type (`damaged`), and describe the defect.
+   - Upload defect photo evidence or damage documentation.
    - Submit and confirm status is set to `pending`.
+3. Log in as an Administrator or Inventory Officer (`inventory@bdes.gov`):
+   - Open the reported asset record.
+   - Test **Confirm Report**: Click **Confirm** to verify the reported issue (records `confirmed_by` and confirmation timestamp).
+   - Test **Assign Personnel**:
+     - Click **Assign Personnel**.
+     - Notice you can select **multiple technicians / officers** who will collaborate on the issue.
+     - Save assignment and confirm status progresses towards repair resolution.
 
 ---
 
@@ -338,8 +431,14 @@ Run the full automated test suite anytime using:
 php artisan test
 ```
 
-All **206 tests (765 assertions)** execute and pass with **100% green rate (zero failures)**:
-* `UniversalFileUploadTest`: File uploads across Asset Attachments, Accessories, Operational Requirements, Deployments, Returns, Preventive Schedules, Inspections, Reported Assets, and Asset Needs.
+All **310 tests (1,706 assertions)** execute and pass with **100% green rate (zero failures)**:
+* `ArchivedRecordsTest`: Centralized soft-deletes management across 10 modules, filtering by module and actor, relationship-preserving restoration, permanent force delete with confirmation, and audit logging.
+* `AssetRelocationTest`: In-place asset relocation directly from physical locations, audit movement history generation, and location inventory updates.
+* `ReportedAssetAndMaintenanceConfirmationTest`: Confirmation workflow, multiple simultaneous personnel assignments, and resolution tracking.
+* `MaintenanceModuleEnhancementsTest` & `UnifiedMaintenanceTest`: Record classification (`WO` vs `SCHED`), Active Orders KPI card filtering without errors, spare parts inventory consumption & automatic stock updates, accurate service dates, and operational condition verification.
+* `DeploymentAndReturnTest`: Chronological return date validation (`return_date >= deployment_date`), deployment status protection against unauthorized edits, resident borrowings with valid IDs, and return condition inspections.
+* `GeneralAutocompleteSearchTest`: Real-time autocomplete suggestions (≥5 suggestions) across Assets, Deployments, Work Orders, and Locations.
+* `UniversalFileUploadTest`: Universal file uploads across Asset Attachments, Accessories, Operational Requirements, Deployments, Returns, Preventive Schedules, Inspections, Reported Assets, and Asset Needs.
 * `UserManagementTest`: Split name fields, default `TempPass_123` password, soft deletion & restoration, self-delete protection, last-admin defense.
 * `ExpensesLedgerTest`: Admin-only access guard, consolidated financial compilation across Capital Assets, Accessories, Attachments, Supplies Restocks, and Maintenance, filtering, and CSV export.
 * `SkuGeneratorTest`: Automatic 2-4 letter category/type prefixing (`FE`, `GEN`, `FAK`, `BOT`), collision handling, and sequential batch generation.

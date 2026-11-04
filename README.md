@@ -6,20 +6,19 @@ A modern, robust, and secure Laravel-based enterprise asset management and disas
 
 ## 🚀 Key Features
 
-- **Master Asset Registry & 360° Dossier**: Comprehensive lifecycle tracking (available, deployed, under maintenance, out of service, retired, lost) with audit trails, document attachments, and specification history.
-- **Field Deployments & Return Check-Ins**: Real-time tracking of emergency equipment dispatch, custody assignments, condition checks on return, and automatic status transitions.
-- **Preventive Maintenance & Inspection Hub**: Work order management, maintenance logging, automated schedule recurring intervals, and physical condition inspection ratings.
-- **Operational Requirements & Consumables**: Tracking fuel, two-stroke oil, and emergency consumables with automated threshold alerts for low-stock scenarios.
+- **Master Asset Registry & 360° Dossier**: Comprehensive lifecycle tracking (available, deployed, under maintenance, out of service, retired, lost) with audit trails, document attachments, batch quantity creation, auto-SKU generation, and specification history.
+- **Field Deployments & Return Check-Ins**: Real-time tracking of emergency equipment dispatch, resident borrowings with valid IDs, chronological date validation (`return_date >= deployment_date`), status protection against tampering, and condition inspections on return.
+- **Preventive Maintenance & Work Orders Hub**: Unified management with `WO` vs `SCHED` record classification, Active Orders KPI filtering, parts and materials tracking with automated spare parts inventory deductions, accurate service dates, and mandatory condition verification before returning assets to service.
+- **Reported Assets & Incident Confirmation**: Formally confirm reported defects, assign multiple technicians simultaneously, track work progress, and automatically generate work orders from inspection findings.
+- **Asset Locations & In-Place Relocation**: Real-time facility inventory overview with direct in-place asset relocation modals and automatic movement history logging.
+- **Centralized Archived Records (Soft Deletes Management)**: Centralized table under Tracking & Reporting (`/archived-records`) managing deleted records across 10 modules with filtering, audit logging, relationship-preserving restoration, and permanent purge protection.
+- **Operational Requirements & Consumables**: Tracking fuel, two-stroke oil, and emergency consumables with automated threshold alerts for low-stock scenarios and restock expense logging.
 - **Attachments & Accessories**: Fine-grained tracking of hoses, nozzles, blades, harnesses, and safety accessories linked to parent assets.
 - **Automated Philippine Government Standard Accounting (COA Circular No. 2022-004 & 2003-007)**:
   - **₱50,000.00 Capitalization Threshold**: Equipment `< ₱50,000.00` is recognized as **Semi-Expendable Property** (issued via Inventory Custodian Slip / ICS) and is statutorily non-depreciable (`salvage = ₱0.00`, `depreciation = ₱0.00`).
   - **Capitalized PPE Amortization**: Equipment `≥ ₱50,000.00` is capitalized as **Property, Plant, and Equipment (PPE)** and automatically calculates a **10% standard residual value** and straight-line depreciation based on standard COA useful life schedules.
-- **Master Asset Registry & 360° Dossier**: Comprehensive lifecycle tracking (available, deployed, under maintenance, out of service, retired, lost) with audit trails, document attachments, and specification history.
-- **Field Deployments & Return Check-Ins**: Real-time tracking of emergency equipment dispatch, custody assignments, condition checks on return, and automatic status transitions.
-- **Preventive Maintenance & Inspection Hub**: Work order management, maintenance logging, automated schedule recurring intervals, and physical condition inspection ratings.
-- **Operational Requirements & Consumables**: Tracking fuel, two-stroke oil, and emergency consumables with automated threshold alerts for low-stock scenarios.
-- **Attachments & Accessories**: Fine-grained tracking of hoses, nozzles, blades, harnesses, and safety accessories linked to parent assets.
-- **Financial Valuation & Residual Accounting**: Straight-line depreciation tracking, dynamic current book value computation, statutory 10% salvage value estimation, and CSV export capabilities with official COA Classification tags.
+- **Financial Valuation & Residual Accounting**: Straight-line depreciation tracking, dynamic current book value computation, statutory 10% salvage value estimation, consolidated Expenses Ledger, and CSV export capabilities with official COA Classification tags.
+- **Real-Time Global Autocomplete Search**: Interactive search bar with instant multi-module suggestions (Assets, Deployments, Work Orders, Locations) with prioritized direct navigation.
 - **Enterprise Role-Based Access Control (RBAC)**: Enforced across 5 roles with backend authorization policies, gates, form requests, and branded HTTP 403 Forbidden protection.
 - **Security Hardening**: Strict MIME-type document validation, path sanitization, rate-limiting on sensitive export endpoints, and intelligent input normalization.
 
@@ -92,3 +91,5 @@ Execute the complete feature and unit test suite:
 ```bash
 php artisan test
 ```
+
+All **310 tests (1,706 assertions)** execute with **100% pass rate (zero failures)** covering full-stack authentication, role authorizations, lifecycle management, financial calculations, archived soft deletes, asset relocations, maintenance work orders, and input hardening.
