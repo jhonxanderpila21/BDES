@@ -64,9 +64,10 @@ class DeploymentController extends Controller
             'returned'       => Deployment::where('status', 'returned')->count(),
         ];
 
-        // Available assets that can be deployed
+        // Available assets that can be deployed (exclude 'fair' and 'poor' condition assets that need maintenance)
         $availableAssets = Asset::with('category')
             ->where('status', 'available')
+            ->whereNotIn('condition', ['fair', 'poor'])
             ->orderBy('name')
             ->get();
 
@@ -162,7 +163,9 @@ class DeploymentController extends Controller
         $rules = array_merge([
             'asset_id'             => [
                 'required',
-                Rule::exists('assets', 'id')->where('status', 'available'),
+                Rule::exists('assets', 'id')
+                    ->where('status', 'available')
+                    ->whereNotIn('condition', ['fair', 'poor']),
             ],
             'borrower_type'        => ['nullable', 'in:personnel,resident'],
             'destination'          => ['required', 'string', 'max:255'],
@@ -213,6 +216,9 @@ class DeploymentController extends Controller
             \App\Services\ReceiptService::attachFromRequest($deployment, $request);
 
             if ($asset) {
+                $asset->condition = 'good';
+                $asset->save();
+
                 if (AssetLifecycleService::canTransition($asset, AssetLifecycleService::STATUS_DEPLOYED)) {
                     AssetLifecycleService::transition(
                         $asset,
@@ -220,7 +226,7 @@ class DeploymentController extends Controller
                         "Dispatched to [{$deployment->destination}] for mission: " . ($deployment->purpose ?? 'Emergency response')
                     );
                 } else {
-                    $asset->update(['status' => 'deployed']);
+                    $asset->update(['status' => 'deployed', 'condition' => 'good']);
                 }
             }
 
@@ -313,8 +319,13 @@ class DeploymentController extends Controller
             // Update asset status and condition
             $asset = $deployment->asset;
             if ($asset) {
-                $asset->status = 'available';
-                $asset->condition = $validated['condition'];
+                $newAssetStatus = match ($validated['condition']) {
+                    'fair' => 'under_maintenance',
+                    'poor' => 'out_of_service',
+                    default => 'available',
+                };
+                $asset->status = $newAssetStatus;
+                $asset->condition = $newAssetStatus === 'available' ? 'excellent' : $validated['condition'];
 
                 // Sync location if matched
                 if (!empty($validated['actual_location'])) {
@@ -331,7 +342,7 @@ class DeploymentController extends Controller
                     $asset,
                     "Asset returned from deployment to [{$deployment->destination}]. Post-operation condition: [{$validated['condition']}]. Returned to: " . ($validated['actual_location'] ?? 'Station'),
                     ['status' => 'deployed'],
-                    ['status' => 'available', 'condition' => $validated['condition']]
+                    ['status' => $newAssetStatus, 'condition' => $asset->condition]
                 );
             }
 

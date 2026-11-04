@@ -105,6 +105,11 @@ class AssetHistorySeeder extends Seeder
                 'created_at'  => $now->copy()->subDays(5),
             ],
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> origin/demo
             // Zoll AED events
             [
                 'code'        => 'AED-001',

@@ -404,11 +404,7 @@
                         </div>
                         <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
                             <span class="font-semibold text-blue-700">Ongoing</span>
-                            <span class="text-gray-400">→ Escalated, Done</span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                            <span class="font-semibold text-rose-700">Escalated</span>
-                            <span class="text-gray-400">→ Ongoing, Done</span>
+                            <span class="text-gray-400">→ Done</span>
                         </div>
                         <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
                             <span class="font-semibold text-emerald-700">Done</span>

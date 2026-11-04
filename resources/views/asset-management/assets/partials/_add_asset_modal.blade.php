@@ -134,11 +134,13 @@
             <x-form-group label="Condition" required>
                 <select
                     name="condition"
+                    id="add_asset_condition"
                     required
+                    onchange="const m = {excellent:'available', good:'deployed', fair:'under_maintenance', poor:'out_of_service'}; if(m[this.value]) document.getElementById('add_asset_status').value = m[this.value];"
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 >
-                    @foreach(['good' => 'Good (Serviceable)', 'excellent' => 'Excellent (Brand New)', 'fair' => 'Fair (Minor Wear)', 'poor' => 'Poor (Needs Repair)'] as $val => $lbl)
-                        <option value="{{ $val }}" {{ old('condition', 'good') === $val ? 'selected' : '' }}>
+                    @foreach(['excellent' => 'Excellent (Available)', 'good' => 'Good (Deployed in Field)', 'fair' => 'Fair (Under Maintenance)', 'poor' => 'Poor (Out of Service)'] as $val => $lbl)
+                        <option value="{{ $val }}" {{ old('condition', 'excellent') === $val ? 'selected' : '' }}>
                             {{ $lbl }}
                         </option>
                     @endforeach
@@ -146,9 +148,9 @@
             </x-form-group>
 
             <x-form-group label="Status" required>
-                <select name="status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                    <option value="available" {{ old('status', 'available') === 'available' ? 'selected' : '' }}>Available (In Stock)</option>
-                    <option value="deployed" {{ old('status') === 'deployed' ? 'selected' : '' }}>Deployed (In Field)</option>
+                <select name="status" id="add_asset_status" required onchange="const r = {available:'excellent', deployed:'good', under_maintenance:'fair', out_of_service:'poor'}; if(r[this.value]) document.getElementById('add_asset_condition').value = r[this.value];" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                    <option value="available" {{ old('status', 'available') === 'available' ? 'selected' : '' }}>Available</option>
+                    <option value="deployed" {{ old('status') === 'deployed' ? 'selected' : '' }}>Deployed in Field</option>
                     <option value="under_maintenance" {{ old('status') === 'under_maintenance' ? 'selected' : '' }}>Under Maintenance</option>
                     <option value="out_of_service" {{ old('status') === 'out_of_service' ? 'selected' : '' }}>Out of Service</option>
                 </select>
