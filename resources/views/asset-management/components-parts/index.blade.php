@@ -713,7 +713,7 @@
     @endif
 
     {{-- Attachment Details Modal --}}
-    <x-modal id="attachment-details-modal" title="Asset Attachment Dossier" maxWidth="2xl">
+    <x-modal id="attachment-details-modal" title="Asset Attachment Details" maxWidth="2xl">
         <div class="space-y-5">
             {{-- Header info --}}
             <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
@@ -750,7 +750,7 @@
                     </div>
                     <a id="dtl_attach_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                        <span>View Asset Dossier</span>
+                        <span>View Asset Details</span>
                     </a>
                 </div>
             </div>
@@ -783,7 +783,7 @@
     </x-modal>
 
     {{-- Accessory Details Modal --}}
-    <x-modal id="accessory-details-modal" title="Asset Accessory Dossier" maxWidth="2xl">
+    <x-modal id="accessory-details-modal" title="Asset Accessory Details" maxWidth="2xl">
         <div class="space-y-5">
             {{-- Header info --}}
             <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
@@ -819,7 +819,7 @@
                     </div>
                     <a id="dtl_acc_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200 transition-colors">
                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                        <span>View Asset Dossier</span>
+                        <span>View Asset Details</span>
                     </a>
                 </div>
             </div>
@@ -986,7 +986,7 @@
                 }
             @endif
 
-            // Interactive Dossier Modals
+            // Interactive Details Modals
             function openAttachmentDetailsModal(attachment) {
                 document.getElementById('dtl_attach_name').textContent = attachment.name;
                 document.getElementById('dtl_attach_type').textContent = attachment.type || 'General Attachment';

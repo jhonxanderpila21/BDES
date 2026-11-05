@@ -61,7 +61,7 @@ class AssetDocumentController extends Controller
             'notes'         => $validated['notes'] ?? null,
         ]);
 
-        AuditTrailService::log('updated', $asset, "Document [{$document->title}] ({$document->document_type}) uploaded to asset dossier.", null, ['document_id' => $document->id, 'title' => $document->title]);
+        AuditTrailService::log('updated', $asset, "Document [{$document->title}] ({$document->document_type}) uploaded to asset details.", null, ['document_id' => $document->id, 'title' => $document->title]);
 
         return redirect()->route('assets.show', $asset)
             ->with('success', "Document [{$document->title}] uploaded successfully!");
@@ -99,7 +99,7 @@ class AssetDocumentController extends Controller
 
         $document->delete();
 
-        AuditTrailService::log('updated', $asset, "Document [{$title}] removed from asset dossier.");
+        AuditTrailService::log('updated', $asset, "Document [{$title}] removed from asset details.");
 
         return redirect()->route('assets.show', $asset)
             ->with('success', "Document [{$title}] deleted successfully.");

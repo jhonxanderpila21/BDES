@@ -417,7 +417,7 @@ class DeploymentAndReturnTest extends TestCase
             'actual_location' => 'Warehouse Shelf 4B',
         ]);
 
-        // HTML page renders the return inspection information in the table and dossier
+        // HTML page renders the return inspection information in the table and details modal
         $htmlResponse = $this->actingAs($this->staff)->get(route('deployment.index'));
         $htmlResponse->assertStatus(200);
         $htmlResponse->assertSee('Fair');

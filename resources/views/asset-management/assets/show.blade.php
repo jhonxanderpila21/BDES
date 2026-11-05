@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Asset Dossier: ' . $asset->name . ' (' . $asset->code . ') - BDES')
+@section('title', 'Asset Details: ' . $asset->name . ' (' . $asset->code . ') - BDES')
 
 @section('content')
 @php
@@ -34,7 +34,7 @@
         <div class="flex flex-wrap items-center gap-2 print:hidden">
             <button onclick="window.print()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors">
                 <i class="fas fa-print"></i>
-                <span class="hidden sm:inline">Print Dossier</span>
+                <span class="hidden sm:inline">Print Details</span>
             </button>
 
             @if(!$isReadOnlyStaff && auth()->user()?->can('uploadDocument', $asset))
@@ -184,7 +184,7 @@
         </div>
     </div>
 
-    {{-- Dossier Tab Navigation (Streamlined to 4 Focused Tabs) --}}
+    {{-- Details Tab Navigation (Streamlined to 4 Focused Tabs) --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         <div class="border-b border-gray-200 px-4 bg-gray-50/50 flex flex-wrap gap-1 print:hidden">
             <button @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
