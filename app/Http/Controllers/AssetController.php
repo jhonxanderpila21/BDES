@@ -300,7 +300,7 @@ class AssetController extends Controller
     }
 
     /**
-     * Display the specified asset with a complete 360-degree dossier.
+     * Display the specified asset with complete 360-degree details.
      */
     public function show(Asset $asset)
     {

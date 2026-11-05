@@ -38,7 +38,7 @@
                 'scope'       => 'All Modules',
                 'permissions' => [
                     'User Account Management (Create, Edit, Disable, Reset Password)',
-                    'Asset Registry & Equipment Dossiers (Full CRUD)',
+                    'Asset Registry & Equipment Details (Full CRUD)',
                     'Asset Decommissioning & Retirement Authorization',
                     'Field Deployments & Return Inspections',
                     'Equipment Maintenance, Schedules & Inspections',
@@ -75,7 +75,7 @@
                     'Maintenance Hub & Work Orders (Create, Update, Sign-off)',
                     'Preventive Maintenance Scheduling (Interval Tracking)',
                     'Physical Asset Inspections & Diagnostic Reports',
-                    'Asset Registry & Technical Dossiers Inspection',
+                    'Asset Registry & Technical Details Inspection',
                     'Asset History Review',
                     'Asset Locations Inquiry',
                 ],

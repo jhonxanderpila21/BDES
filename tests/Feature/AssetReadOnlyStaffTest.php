@@ -98,7 +98,7 @@ class AssetReadOnlyStaffTest extends TestCase
         $resTypes->assertOk();
         $resTypes->assertSee('Rescue Inflatable Boat');
 
-        // 4. Asset Details / Dossier
+        // 4. Asset Details
         $resShow = $this->actingAs($this->staff)->get(route('assets.show', $this->asset));
         $resShow->assertOk();
         $resShow->assertSee('Zodiac Milpro Inflatable');

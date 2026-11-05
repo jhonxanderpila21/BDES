@@ -258,7 +258,7 @@
         </div>
     </x-card>
 
-    {{-- Location Stored Assets Dossier Modal --}}
+    {{-- Location Stored Assets Details Modal --}}
     <x-modal id="location-assets-modal" title="Facility Stored Assets">
         <div class="space-y-6">
             {{-- Facility Header Card --}}
@@ -616,7 +616,7 @@
                                     </button>
                                 ` : ''}
                                 <a href="/assets/${asset.id}" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline px-2 py-1">
-                                    <span>Dossier</span>
+                                    <span>Details</span>
                                     <i class="fas fa-chevron-right text-[10px]"></i>
                                 </a>
                             </div>

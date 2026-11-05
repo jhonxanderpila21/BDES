@@ -784,7 +784,7 @@
                     @if(!$isReadOnlyStaff)
                     <a id="and_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                        <span>View Asset Dossier</span>
+                        <span>View Asset Details</span>
                     </a>
                     @endif
                 </div>
@@ -1087,7 +1087,7 @@
                                 <td class="px-4 py-3 align-middle text-right">
                                     <a href="/assets/${asset.id}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold border border-blue-200 transition-colors">
                                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                                        <span>Dossier</span>
+                                        <span>Details</span>
                                     </a>
                                 </td>
                             </tr>

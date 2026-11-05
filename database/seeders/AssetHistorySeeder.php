@@ -32,7 +32,7 @@ class AssetHistorySeeder extends Seeder
                 'code'        => 'GEN-001',
                 'user_id'     => $admin?->id,
                 'event'       => 'created',
-                'description' => 'Initial asset registration and commissioning into disaster inventory dossier.',
+                'description' => 'Initial asset registration and commissioning into disaster inventory details.',
                 'old_values'  => null,
                 'new_values'  => ['status' => 'available', 'condition' => 'excellent', 'location_id' => 1],
                 'created_at'  => $now->copy()->subMonths(6),
