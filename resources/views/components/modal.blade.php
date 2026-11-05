@@ -35,7 +35,7 @@
     </div>
 
     <div
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl transform transition-all sm:w-full {{ $maxWidthClass }} max-h-[90vh] flex flex-col overflow-hidden"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl transform transition-all w-[95vw] sm:w-full {{ $maxWidthClass }} max-h-[90vh] flex flex-col overflow-hidden"
     >
         @if($title)
             <div class="flex-shrink-0 border-b border-gray-200 px-6 py-4">

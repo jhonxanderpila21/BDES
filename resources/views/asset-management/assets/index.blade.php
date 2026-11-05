@@ -1080,7 +1080,7 @@
                     <span id="modal_category_count_badge" class="text-xs text-gray-400 font-medium">0 assets</span>
                 </div>
 
-                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                <div class="border border-gray-200 rounded-xl overflow-x-auto max-h-96 overflow-y-auto">
                     <table class="w-full text-left text-sm border-collapse">
                         <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
                             <tr>
@@ -1156,7 +1156,7 @@
                     <span id="modal_type_count_badge" class="text-xs text-gray-400 font-medium">0 assets</span>
                 </div>
 
-                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                <div class="border border-gray-200 rounded-xl overflow-x-auto max-h-96 overflow-y-auto">
                     <table class="w-full text-left text-sm border-collapse">
                         <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
                             <tr>
