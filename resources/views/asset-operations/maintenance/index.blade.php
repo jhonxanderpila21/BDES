@@ -518,20 +518,21 @@
                                                         <button 
                                                             type="button"
                                                             onclick='openConfirmMaintenanceModal(@json($item))'
-                                                            class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 hover:text-emerald-800 transition-colors"
+                                                            class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-800 transition-colors"
                                                             title="Confirm Work Order & Assign Personnel"
                                                         >
                                                             <i class="fas fa-clipboard-check"></i>
                                                         </button>
+                                                    @else
+                                                        <button 
+                                                            type="button"
+                                                            onclick='openAssignMaintenancePersonnelModal(@json($item))'
+                                                            class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-800 transition-colors"
+                                                            title="Assign Personnel"
+                                                        >
+                                                            <i class="fas fa-user-plus"></i>
+                                                        </button>
                                                     @endif
-                                                    <button 
-                                                        type="button"
-                                                        onclick='openAssignMaintenancePersonnelModal(@json($item))'
-                                                        class="p-1.5 rounded-lg hover:bg-indigo-50 text-indigo-600 hover:text-indigo-800 transition-colors"
-                                                        title="Assign Personnel"
-                                                    >
-                                                        <i class="fas fa-user-plus"></i>
-                                                    </button>
                                                     <button 
                                                         type="button" 
                                                         onclick='openEditMaintenanceModal(@json($item))'
