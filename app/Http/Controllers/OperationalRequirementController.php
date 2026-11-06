@@ -163,7 +163,6 @@ class OperationalRequirementController extends Controller
             'adequate_stock'     => $allRequirements->filter(fn($r) => !$r->isLowStock())->count()
                                     + $allNeeds->where('status', 'Monitoring Only')->count(),
             'low_stock'          => $allRequirements->filter(fn($r) => $r->isLowStock())->count(),
-            'monitored_types'    => $allRequirements->pluck('asset_type_id')->filter()->unique()->count(),
             'total_needs'        => $allNeeds->count(),
             'needs_monitoring'   => $allNeeds->where('status', 'Monitoring Only')->count(),
             'needs_attention'    => $allNeeds->whereIn('status', ['Requires Maintenance', 'Under Maintenance'])->count(),

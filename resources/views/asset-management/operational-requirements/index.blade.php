@@ -40,7 +40,7 @@
     </div>
 
     {{-- High-Level KPI Summary Cards with Interactive Dashboard Summary Filtering --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {{-- Card 1: Total Requirements --}}
         <a href="{{ route('operational-requirements.index') }}" 
            class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ !request('low') && !request('status') ? 'border-blue-500 ring-2 ring-blue-500 shadow-md bg-blue-50/20' : 'border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md' }}"
@@ -48,7 +48,7 @@
             <div>
                 <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Total Requirements</p>
                 <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_all'] ?? ($metrics['total_requirements'] + $metrics['total_needs']) }}</p>
-                <p class="text-[11px] text-gray-400 mt-0.5">All monitored supplies</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">All registered supplies</p>
             </div>
             <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <i class="fas fa-layer-group"></i>
@@ -80,20 +80,6 @@
             </div>
             <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
                 <i class="fas fa-triangle-exclamation"></i>
-            </div>
-        </a>
-
-        {{-- Card 4: Equipment Monitored --}}
-        <a href="{{ route('operational-requirements.index') }}" 
-           class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group block"
-           title="Monitored Equipment Types">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Equipment Monitored</p>
-                <p class="text-2xl font-bold text-purple-700">{{ $metrics['monitored_types'] ?? 0 }}</p>
-                <p class="text-[11px] text-purple-500 mt-0.5">Applicable models</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                <i class="fas fa-boxes-stacked"></i>
             </div>
         </a>
     </div>
@@ -297,13 +283,13 @@
                                             </button>
                                             <button 
                                                 type="button"
-                                                onclick='event.stopPropagation(); editNeed({{ $item->id }}, {{ $item->raw_model->asset_id ?? "null" }}, @js($item->raw_model->asset_type), @js($item->name), @js($item->unit), {{ $item->maximum_capacity }}, {{ $item->minimum_level }}, {{ $item->current_level }})'
+                                                onclick='event.stopPropagation(); openEditNeedModal(@json($item->raw_model)); openEditModal(@json($item->raw_model));'
                                                 class="p-1.5 rounded hover:bg-gray-100 text-amber-600 hover:text-amber-800 transition-colors" 
-                                                title="Edit Need"
+                                                title="Edit"
                                             >
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form action="{{ route('asset-needs.destroy', $item->id) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Need: {{ addslashes($item->name) }}', 'This requirement will be removed.');" onclick="event.stopPropagation()">
+                                            <form action="{{ route('asset-needs.destroy', $item->id) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Equipment Need: {{ addslashes($item->name) }} ({{ addslashes($item->raw_model->asset->name ?? $item->raw_model->asset_type ?? 'Asset') }})', 'This will delete this equipment operational need specification.');" onclick="event.stopPropagation()">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-1.5 rounded hover:bg-gray-100 text-red-600 hover:text-red-800 transition-colors" title="Delete" onclick="event.stopPropagation()">

@@ -14,14 +14,13 @@ The **Operational Requirements & Supplies** module in the Barangay Disaster and 
 
 ## 2. Dashboard Summary KPI Cards
 
-At the top of the page, four interactive summary cards provide high-level health indicators for all emergency supplies. Clicking any card filters the table instantly.
+At the top of the page, three interactive summary cards provide high-level health indicators for all emergency supplies. Clicking any card filters the table instantly.
 
 | KPI Card | Metric Displayed | Purpose & Action | Filter Triggered |
 | :--- | :--- | :--- | :--- |
 | **Total Requirements** | Total count of all operational requirements and equipment supplies. | Displays complete inventory footprint. Clicking resets filters to view all entries. | None (clears query) |
 | **Adequate Reserves / In Stock** | Count of items where `Current Level > Minimum Safety Threshold`. | Identifies supplies ready for deployment without immediate replenishment. | `?status=adequate` |
 | **Low Stock Alert** | Count of items where `Current Level <= Minimum Safety Threshold` or requires maintenance. | Highlights urgent logistics needs requiring procurement or restocking. | `?low=1` |
-| **Equipment Monitored** | Total count of unique equipment types and registered machinery with active supply tracking. | Assesses coverage of emergency assets that are monitored. | High-level diagnostic |
 
 ---
 
@@ -140,3 +139,4 @@ The data on this page is served primarily from two related models:
 2. **`AssetNeed` (`asset_needs` table)**:
    - Tracks equipment-specific consumable allocations (e.g., dedicated battery specs, specialized fluids).
    - Linked directly to specific `Asset` records.
+

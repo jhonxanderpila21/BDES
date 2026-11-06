@@ -299,7 +299,6 @@ A unified top tab bar allows seamless one-click switching between:
      - **Total Requirements**: Total count of all supplies and needs.
      - **Adequate Reserves / In Stock**: Click to filter entries with safe reserve levels (`?status=adequate`).
      - **Low Stock Alert**: Click to filter entries requiring replenishment (`?low=1`).
-     - **Equipment Monitored**: High-level coverage indicator for emergency assets.
    - Unified Inventory Table columns:
      - **Requirement / Supply**: Item name, icon, and description.
      - **Target Equipment / Type**: Linked equipment unit or general category.
