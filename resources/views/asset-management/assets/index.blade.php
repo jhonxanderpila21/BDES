@@ -786,9 +786,9 @@
             {{-- Modal Actions --}}
             <div class="pt-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <a id="view_asset_dossier_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors w-full sm:w-auto shadow-sm">
+                    <a id="view_asset_details_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-colors w-full sm:w-auto shadow-sm">
                         <i class="fas fa-folder-open"></i>
-                        <span>Open Full Dossier</span>
+                        <span>Open Full Details</span>
                     </a>
                     @if(!$isReadOnlyStaff)
                         <a id="view_asset_deploy_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors hidden sm:inline-flex">
@@ -1071,7 +1071,7 @@
                     <span id="modal_category_count_badge" class="text-xs text-gray-400 font-medium">0 assets</span>
                 </div>
 
-                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                <div class="border border-gray-200 rounded-xl overflow-x-auto max-h-96 overflow-y-auto">
                     <table class="w-full text-left text-sm border-collapse">
                         <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
                             <tr>
@@ -1147,7 +1147,7 @@
                     <span id="modal_type_count_badge" class="text-xs text-gray-400 font-medium">0 assets</span>
                 </div>
 
-                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                <div class="border border-gray-200 rounded-xl overflow-x-auto max-h-96 overflow-y-auto">
                     <table class="w-full text-left text-sm border-collapse">
                         <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
                             <tr>
@@ -1267,9 +1267,9 @@
                 }
                 statusBadge.innerHTML = `<span class="px-2.5 py-1 text-xs font-bold rounded-full ${statusClasses}">${displayStatus}</span>`;
 
-                const dossierBtn = document.getElementById('view_asset_dossier_btn');
-                if (dossierBtn) {
-                    dossierBtn.href = '/assets/' + asset.id;
+                const detailsBtn = document.getElementById('view_asset_details_btn');
+                if (detailsBtn) {
+                    detailsBtn.href = '/assets/' + asset.id;
                 }
 
                 const deployBtn = document.getElementById('view_asset_deploy_btn');
@@ -1401,7 +1401,7 @@
                                 <td class="px-4 py-3 align-middle text-right">
                                     <a href="/assets/${asset.id}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold border border-blue-200 transition-colors">
                                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                                        <span>Dossier</span>
+                                        <span>Details</span>
                                     </a>
                                 </td>
                             </tr>
@@ -1488,7 +1488,7 @@
                                 <td class="px-4 py-3 align-middle text-right">
                                     <a href="/assets/${asset.id}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold border border-indigo-200 transition-colors">
                                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                                        <span>Dossier</span>
+                                        <span>Details</span>
                                     </a>
                                 </td>
                             </tr>

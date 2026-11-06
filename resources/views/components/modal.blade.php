@@ -18,7 +18,20 @@
         '3xl' => 'sm:max-w-3xl',
         '4xl' => 'sm:max-w-4xl',
         '5xl' => 'sm:max-w-5xl',
+        '6xl' => 'sm:max-w-6xl',
         default => 'sm:max-w-lg',
+    };
+    $maxWidthStyle = match($maxWidth) {
+        'sm' => '24rem',
+        'md' => '28rem',
+        'lg' => '32rem',
+        'xl' => '36rem',
+        '2xl' => '42rem',
+        '3xl' => '48rem',
+        '4xl' => '56rem',
+        '5xl' => '64rem',
+        '6xl' => '72rem',
+        default => '32rem',
     };
 @endphp
 
@@ -35,7 +48,8 @@
     </div>
 
     <div
-        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl transform transition-all sm:w-full {{ $maxWidthClass }} max-h-[90vh] flex flex-col overflow-hidden"
+        style="width: min(95vw, {{ $maxWidthStyle }}); max-width: {{ $maxWidthStyle }};"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg shadow-xl transform transition-all w-[95vw] sm:w-full {{ $maxWidthClass }} max-h-[90vh] flex flex-col overflow-hidden"
     >
         @if($title)
             <div class="flex-shrink-0 border-b border-gray-200 px-6 py-4">

@@ -62,7 +62,7 @@
             @if($reportedAsset->asset && !$isReadOnlyStaff)
                 <a href="{{ route('assets.show', $reportedAsset->asset) }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl font-medium text-sm transition-colors">
                     <i class="fas fa-box"></i>
-                    <span class="hidden sm:inline">View Asset Dossier</span>
+                    <span class="hidden sm:inline">View Asset Details</span>
                 </a>
             @endif
             <button onclick="window.print()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors">

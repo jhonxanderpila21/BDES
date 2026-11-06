@@ -258,14 +258,14 @@
         </div>
     </x-card>
 
-    {{-- Location Stored Assets Dossier Modal --}}
-    <x-modal id="location-assets-modal" title="Facility Stored Assets">
+    {{-- Location Stored Assets Details Modal --}}
+    <x-modal id="location-assets-modal" title="Facility Stored Assets" maxWidth="5xl">
         <div class="space-y-6">
             {{-- Facility Header Card --}}
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                             <h3 id="modal_location_name" class="text-lg font-bold text-gray-900">Facility Name</h3>
                             <span id="modal_location_type_badge" class="px-2 py-0.5 rounded text-xs font-bold uppercase bg-blue-100 text-blue-800">Storage</span>
                         </div>
@@ -274,7 +274,7 @@
                             <span>Address</span>
                         </p>
                     </div>
-                    <div class="flex items-center gap-3 bg-white px-3.5 py-2 rounded-lg border border-gray-200 shadow-xs">
+                    <div class="flex items-center gap-3 bg-white px-3.5 py-2 rounded-lg border border-gray-200 shadow-xs shrink-0">
                         <div class="text-center">
                             <span class="text-[10px] uppercase font-bold text-gray-400 block">Total Stored</span>
                             <span id="modal_total_assets" class="text-sm font-bold text-gray-900">0</span>
@@ -314,7 +314,7 @@
                     </div>
                 </div>
 
-                <div class="border border-gray-200 rounded-xl overflow-hidden max-h-96 overflow-y-auto">
+                <div class="border border-gray-200 rounded-xl overflow-x-auto max-h-96 overflow-y-auto">
                     <table class="w-full text-left text-sm border-collapse">
                         <thead class="bg-gray-100/75 border-b border-gray-200 sticky top-0 z-10">
                             <tr>
@@ -587,21 +587,21 @@
                             </td>
                         ` : ''}
                         <td class="px-4 py-3 align-middle">
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">${escapeHtml(asset.code)}</span>
+                            <div class="flex items-center gap-2.5">
+                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded whitespace-nowrap shrink-0">${escapeHtml(asset.code)}</span>
                                 <div>
                                     <a href="/assets/${asset.id}" class="font-semibold text-gray-900 hover:text-blue-600 hover:underline block">${escapeHtml(asset.name)}</a>
-                                    ${asset.serial_number ? `<span class="text-[10px] text-gray-400 font-mono">S/N: ${escapeHtml(asset.serial_number)}</span>` : ''}
+                                    ${asset.serial_number ? `<span class="text-[10px] text-gray-400 font-mono block">S/N: ${escapeHtml(asset.serial_number)}</span>` : ''}
                                 </div>
                             </div>
                         </td>
                         <td class="px-4 py-3 align-middle text-xs text-gray-600">
                             ${escapeHtml(categoryName)}
                         </td>
-                        <td class="px-4 py-3 align-middle text-center">
+                        <td class="px-4 py-3 align-middle text-center whitespace-nowrap">
                             ${statusBadge}
                         </td>
-                        <td class="px-4 py-3 align-middle text-right font-mono text-xs text-gray-700">
+                        <td class="px-4 py-3 align-middle text-right font-mono text-xs text-gray-700 whitespace-nowrap">
                             ${costFormatted}
                         </td>
                         <td class="px-4 py-3 align-middle text-right whitespace-nowrap">
@@ -616,7 +616,7 @@
                                     </button>
                                 ` : ''}
                                 <a href="/assets/${asset.id}" class="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium hover:underline px-2 py-1">
-                                    <span>Dossier</span>
+                                    <span>Details</span>
                                     <i class="fas fa-chevron-right text-[10px]"></i>
                                 </a>
                             </div>

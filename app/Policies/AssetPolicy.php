@@ -85,7 +85,7 @@ class AssetPolicy
     }
 
     /**
-     * Determine whether the user can upload documents to the asset dossier.
+     * Determine whether the user can upload documents to the asset details.
      */
     public function uploadDocument(User $user, Asset $asset): bool
     {
