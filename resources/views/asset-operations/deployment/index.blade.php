@@ -117,7 +117,7 @@
                     @forelse($deployments as $deployment)
                         <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors group"
                             onclick="if(!event.target.closest('button, a, form, input, select')) openDeploymentDetailsModal(@json($deployment));"
-                            title="Click to view full details for {{ $deployment->asset->name ?? 'Equipment' }}">
+                            title="View Full Details: Click to view details for {{ $deployment->asset->name ?? 'Equipment' }}">
                             {{-- Asset Info --}}
                             <td class="px-6 py-4 align-middle text-left">
                                 <div class="flex items-start gap-3">
@@ -254,16 +254,6 @@
                                             <i class="fas fa-clipboard-check"></i>
                                         </button>
                                     @endif
-
-                                    {{-- View Details Modal --}}
-                                    <button 
-                                        type="button"
-                                        onclick='openDeploymentDetailsModal(@json($deployment))' 
-                                        class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors" 
-                                        title="View Full Details"
-                                    >
-                                        <i class="fas fa-eye"></i>
-                                    </button>
 
                                     @if(!$isReadOnlyStaff)
                                         {{-- Edit Deployment --}}

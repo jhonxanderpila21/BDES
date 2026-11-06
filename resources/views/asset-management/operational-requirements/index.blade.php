@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', ($activeTab === 'needs' ? 'Asset Needs' : 'Operational Requirements & Supplies') . ' - BDES')
+@section('title', 'Operational Requirements & Asset Needs - BDES')
 
 @section('content')
 @php
@@ -26,144 +26,120 @@
                     Read-Only Staff Access
                 </div>
             @else
-                @if($activeTab === 'needs')
-                    <button onclick="openAddNeedModal(); openAddModal();" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                        <i class="fas fa-plus"></i>
-                        Add Asset Need
-                    </button>
-                @else
-                    <button onclick="openAddRequirementModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
-                        <i class="fas fa-plus"></i>
-                        Add Requirement
-                    </button>
-                @endif
+                <button onclick="openAddRequirementModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-xs shadow-xs">
+                    <i class="fas fa-plus"></i>
+                    Add Requirement
+                </button>
+                <button onclick="openAddNeedModal(); openAddModal();" class="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-xs shadow-xs">
+                    <i class="fas fa-plus"></i>
+                    Add Asset Need
+                </button>
             @endif
         </div>
     </div>
 
-    {{-- High-Level KPI Summary Cards --}}
-    {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        @if($activeTab === 'needs')
-            {{-- Total Needs --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}" class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Total Equipment Needs</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_needs'] ?? $assetNeeds->total() }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-gas-pump"></i>
-                </div>
-            </a>
+        {{-- High-Level KPI Summary Cards with Interactive Dashboard Summary Filtering --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+        {{-- Card 1: Total Supplies & Needs (All) --}}
+        <a href="{{ route('operational-requirements.index', ['tab' => 'all']) }}" 
+           class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ $activeTab === 'all' && !request('low') && !request('status') ? 'border-blue-500 ring-2 ring-blue-500 shadow-md bg-blue-50/20' : 'border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md' }}"
+           title="Show all supplies and needs combined">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Total Supplies & Needs</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_all'] ?? ($metrics['total_requirements'] + $metrics['total_needs']) }}</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">Combined Inventory</p>
+            </div>
+            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <i class="fas fa-layer-group"></i>
+            </div>
+        </a>
 
-            {{-- Healthy Needs --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'needs', 'status' => 'Monitoring Only']) }}" class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Monitoring Only">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate (Monitoring)</p>
-                    <p class="text-2xl font-bold text-emerald-700">{{ $metrics['needs_monitoring'] ?? 0 }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-circle-check"></i>
-                </div>
-            </a>
+        {{-- Card 2: Warehouse Supplies & Consumables --}}
+        <a href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}" 
+           class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ $activeTab === 'requirements' ? 'border-blue-500 ring-2 ring-blue-500 shadow-md bg-blue-50/20' : 'border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md' }}"
+           title="Filter by Warehouse Consumables & Bulk Supplies">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Warehouse Supplies</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_requirements'] ?? $requirements->total() }}</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">Bulk stock & fuel</p>
+            </div>
+            <div class="w-12 h-12 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                <i class="fas fa-boxes-stacked"></i>
+            </div>
+        </a>
 
-            {{-- Attention Needed --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'needs', 'status' => 'attention']) }}" class="bg-white rounded-xl p-5 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center justify-between group block {{ request('status') === 'attention' ? 'ring-2 ring-amber-500 shadow-md' : '' }}" title="Filter by Attention Needed">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-amber-700 mb-1">Requires Refill / Maint.</p>
-                    <p class="text-2xl font-bold text-amber-700">{{ $metrics['needs_attention'] ?? 0 }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-triangle-exclamation"></i>
-                </div>
-            </a>
+        {{-- Card 3: Equipment Asset Needs --}}
+        <a href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}" 
+           class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ $activeTab === 'needs' ? 'border-purple-500 ring-2 ring-purple-500 shadow-md bg-purple-50/20' : 'border-gray-200 shadow-sm hover:border-purple-400 hover:shadow-md' }}"
+           title="Filter by Equipment Asset Needs & Allocations">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-purple-600 transition-colors">Equipment Asset Needs</p>
+                <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_needs'] ?? $assetNeeds->total() }}</p>
+                <p class="text-[11px] text-gray-400 mt-0.5">Unit tank/fluid needs</p>
+            </div>
+            <div class="w-12 h-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <i class="fas fa-gas-pump"></i>
+            </div>
+        </a>
 
-            {{-- Equipment Models --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}" class="bg-white rounded-xl p-5 border border-purple-200 bg-purple-50/20 shadow-sm hover:border-purple-400 hover:shadow-md transition-all flex items-center justify-between group block">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-purple-700 mb-1">Equipment Models</p>
-                    <p class="text-2xl font-bold text-purple-700">{{ $needAssetTypes->count() }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-boxes-stacked"></i>
-                </div>
-            </a>
-        @else
-            {{-- Total Requirements --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}" class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center justify-between group block">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Warehouse Supplies</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_requirements'] ?? $requirements->total() }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-boxes-stacked"></i>
-                </div>
-            </a>
+        {{-- Card 4: Low Stock / Action Needed Alert --}}
+        <a href="{{ route('operational-requirements.index', ['tab' => 'all', 'low' => 1]) }}" 
+           class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ request('low') || request('status') === 'low' || request('status') === 'attention' ? 'border-rose-500 ring-2 ring-rose-500 shadow-md bg-rose-50/20' : 'border-rose-200 bg-rose-50/20 shadow-sm hover:border-rose-400 hover:shadow-md' }}"
+           title="Filter by Low Stock or Attention Needed Items">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-wider text-rose-700 mb-1">Low Stock / Action</p>
+                <p class="text-2xl font-bold text-rose-700">{{ $metrics['total_low_stock'] ?? ($metrics['low_stock'] + $metrics['needs_attention']) }}</p>
+                <p class="text-[11px] text-rose-500 mt-0.5">Requires restock/refill</p>
+            </div>
+            <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+        </a>
+    </div>
 
-            {{-- Adequate Reserves --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements', 'status' => 'adequate']) }}" class="bg-white rounded-xl p-5 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Adequate Reserves">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate Reserves</p>
-                    <p class="text-2xl font-bold text-emerald-700">{{ $metrics['adequate_stock'] ?? 0 }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-circle-check"></i>
-                </div>
+    {{-- Dashboard Summary Filter Bar --}}
+    <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-xl border border-gray-200 shadow-xs mb-6">
+        <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider px-2">
+                <i class="fas fa-filter text-blue-600 mr-1"></i> Summary Filter:
+            </span>
+            <a href="{{ route('operational-requirements.index', ['tab' => 'all', 'search' => request('search')]) }}" 
+               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all {{ $activeTab === 'all' && !request('low') ? 'bg-blue-600 text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                <i class="fas fa-layer-group text-[10px]"></i> All Items ({{ $metrics['total_all'] }})
             </a>
-
-            {{-- Low Stock Alert --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements', 'status' => 'low']) }}" class="bg-white rounded-xl p-5 border border-rose-200 bg-rose-50/20 shadow-sm hover:border-rose-400 hover:shadow-md transition-all flex items-center justify-between group block" title="Filter by Low Stock Alert">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-rose-700 mb-1">Low Stock Alert</p>
-                    <p class="text-2xl font-bold text-rose-700">{{ $metrics['low_stock'] ?? 0 }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-triangle-exclamation"></i>
-                </div>
+            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements', 'search' => request('search')]) }}" 
+               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all {{ $activeTab === 'requirements' ? 'bg-blue-600 text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                <i class="fas fa-boxes-stacked text-[10px]"></i> Warehouse Consumables & Supplies ({{ $metrics['total_requirements'] }})
             </a>
-
-            {{-- Covered Asset Types --}}
-            <a href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}" class="bg-white rounded-xl p-5 border border-indigo-200 bg-indigo-50/20 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all flex items-center justify-between group block">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wider text-indigo-700 mb-1">Equipment Types Covered</p>
-                    <p class="text-2xl font-bold text-indigo-700">{{ $metrics['monitored_types'] ?? 0 }}</p>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                    <i class="fas fa-tags"></i>
-                </div>
+            <a href="{{ route('operational-requirements.index', ['tab' => 'needs', 'search' => request('search')]) }}" 
+               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all {{ $activeTab === 'needs' ? 'bg-blue-600 text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200' }}">
+                <i class="fas fa-gas-pump text-[10px]"></i> Asset Needs ({{ $metrics['total_needs'] }})
+            </a>
+            <a href="{{ route('operational-requirements.index', ['tab' => $activeTab, 'low' => 1, 'search' => request('search')]) }}" 
+               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all {{ request('low') ? 'bg-rose-600 text-white shadow-xs' : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100' }}">
+                <i class="fas fa-triangle-exclamation text-[10px]"></i> Low Stock Alert ({{ $metrics['total_low_stock'] }})
+            </a>
+        </div>
+        @if(request()->hasAny(['search', 'asset_type_id', 'asset_type', 'status', 'low', 'unit']) || $activeTab !== 'all')
+            <a href="{{ route('operational-requirements.index', ['tab' => 'all']) }}" class="text-xs text-gray-500 hover:text-gray-800 font-medium px-2 py-1 flex items-center gap-1">
+                <i class="fas fa-rotate-left text-[10px]"></i> Clear Filters
             </a>
         @endif
     </div>
 
-    {{-- Module Navigation Tabs --}}
-    <div class="flex border-b border-gray-200 mb-6 space-x-1">
-        <a 
-            href="{{ route('operational-requirements.index', ['tab' => 'requirements']) }}"
-            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'requirements' ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
-        >
-            <i class="fas fa-boxes-stacked"></i>
-            <span>Warehouse Consumables & Supplies</span>
-            <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'requirements' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
-                {{ $requirements->total() }}
-            </span>
-        </a>
-
-        <a 
-            href="{{ route('operational-requirements.index', ['tab' => 'needs']) }}"
-            class="flex items-center gap-2 py-3 px-5 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'needs' ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300' }}"
-        >
-            <i class="fas fa-gas-pump"></i>
-            <span>Asset Needs</span>
-            <span class="ml-1 px-2 py-0.5 text-xs rounded-full {{ $activeTab === 'needs' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-600' }}">
-                {{ $assetNeeds->total() }}
-            </span>
-        </a>
-    </div>
-
     {{-- ========================================================================= --}}
-    {{-- TAB 1: WAREHOUSE CONSUMABLES & OPERATIONAL REQUIREMENTS                   --}}
+    {{-- SECTION 1: WAREHOUSE CONSUMABLES & OPERATIONAL REQUIREMENTS               --}}
     {{-- ========================================================================= --}}
-    @if($activeTab === 'requirements')
+    {{-- ========================================================================= --}}
+    @if($activeTab === 'all' || $activeTab === 'requirements')
+        <div class="mb-10">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fas fa-boxes-stacked text-blue-600"></i>
+                    Warehouse Consumables & Supplies
+                    <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800">{{ $requirements->total() }}</span>
+                </h2>
+            </div>
         {{-- Filters & Search --}}
         <form action="{{ route('operational-requirements.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
             <input type="hidden" name="tab" value="requirements">
@@ -228,7 +204,7 @@
                                 $isLow = $requirement->isLowStock();
                                 $usingCount = $requirement->using_assets ? $requirement->using_assets->count() : 0;
                             @endphp
-                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openRequirementDetailsModal(@js($requirement))">
+                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="if(!event.target.closest('button, a, form, input, select')) { openRequirementDetailsModal(@js($requirement)); openViewRequirementModal(@json($requirement)); }" title="View Details">
                                 {{-- Requirement Name & Description --}}
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center gap-2">
@@ -285,14 +261,7 @@
                                 {{-- Actions --}}
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
-                                        <button 
-                                            type="button"
-                                            onclick="event.stopPropagation(); openRequirementDetailsModal(@js($requirement)); openViewRequirementModal(@json($requirement));" 
-                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="View Details"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+
                                         @if(!$isReadOnlyStaff)
                                             <button 
                                                 type="button"
@@ -335,12 +304,21 @@
                 {{ $requirements->links() }}
             </div>
         </x-card>
+        </div>
     @endif
 
     {{-- ========================================================================= --}}
     {{-- TAB 2: EQUIPMENT NEEDS & ALLOCATIONS                                      --}}
     {{-- ========================================================================= --}}
-    @if($activeTab === 'needs')
+    @if($activeTab === 'all' || $activeTab === 'needs')
+        <div class="mb-10">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <i class="fas fa-gas-pump text-purple-600"></i>
+                    Equipment Asset Needs
+                    <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800">{{ $assetNeeds->total() }}</span>
+                </h2>
+            </div>
         {{-- Filters & Search --}}
         <form action="{{ route('operational-requirements.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
             <input type="hidden" name="tab" value="needs">
@@ -402,7 +380,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200">
                         @forelse($assetNeeds as $need)
-                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="openAssetNeedModal(@js($need))">
+                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="if(!event.target.closest('button, a, form, input, select')) { openAssetNeedModal(@js($need)); openViewModal(@json($need)); }" title="View Details">
                                 {{-- Target Asset --}}
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     @if(!$isReadOnlyStaff && $need->asset)
@@ -462,14 +440,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
                                         {{-- View Details --}}
-                                        <button 
-                                            type="button"
-                                            onclick="event.stopPropagation(); openAssetNeedModal(@js($need)); openViewModal(@json($need));"
-                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors"
-                                            title="View Details"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
+
                                         @if(!$isReadOnlyStaff)
                                             {{-- Replenish --}}
                                             <button 
@@ -515,6 +486,7 @@
                 {{ $assetNeeds->links() }}
             </div>
         </x-card>
+        </div>
     @endif
 
     {{-- ========================================================================= --}}

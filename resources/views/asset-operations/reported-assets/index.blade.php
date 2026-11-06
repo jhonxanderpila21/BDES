@@ -171,7 +171,7 @@
                         >
                             {{-- Asset --}}
                             <td class="px-5 py-4 whitespace-nowrap">
-                                <a href="{{ route('reported-assets.show', $report) }}" class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors block">
+                                <a href="{{ route('reported-assets.show', $report) }}" class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors block" title="View Details">
                                     {{ $report->asset?->name ?? $report->asset_name }}
                                 </a>
                                 <div class="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
@@ -263,15 +263,6 @@
                             {{-- Actions --}}
                             <td class="px-5 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    {{-- View Details --}}
-                                    <a 
-                                        href="{{ route('reported-assets.show', $report) }}"
-                                        class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-800 transition-colors" 
-                                        title="View Details"
-                                    >
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-
                                     @if(!$isReadOnlyStaff)
                                         {{-- Confirm & Assign Action --}}
                                         @if(!$report->isConfirmed())

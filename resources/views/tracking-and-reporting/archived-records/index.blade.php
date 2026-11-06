@@ -227,7 +227,7 @@
                                             onclick="openArchiveViewModal('{{ $item->module_key }}', '{{ $item->raw_id }}')"
                                             title="View Archived Record Details"
                                             class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                                        <i class="fas fa-eye text-blue-600"></i> View
+                                        View
                                     </button>
 
                                     {{-- Restore Record --}}

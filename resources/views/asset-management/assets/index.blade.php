@@ -246,7 +246,7 @@
                         @forelse($assets as $asset)
                             <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors group"
                                 onclick="if(!event.target.closest('button, a, form, input')) openViewAssetModal(@js($asset), @js($asset->category->name ?? 'N/A'), @js($asset->type->name ?? 'N/A'), @js($asset->location->name ?? 'N/A'));"
-                                title="Click to view {{ $asset->name }} details">
+                                title="Quick View">
                                 <td class="px-5 py-3.5 whitespace-nowrap">
                                     <a href="{{ route('assets.show', $asset) }}" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 group-hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors">
                                         {{ $asset->code }}
@@ -310,15 +310,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        {{-- Quick View Modal --}}
-                                        <button 
-                                            onclick="openViewAssetModal({{ json_encode($asset) }}, '{{ $asset->category->name ?? 'N/A' }}', '{{ $asset->type->name ?? 'N/A' }}', '{{ $asset->location->name ?? 'N/A' }}')" 
-                                            class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors" 
-                                            title="Quick View"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-
                                         @if(!$isReadOnlyStaff)
                                             {{-- Edit Modal --}}
                                             <button 

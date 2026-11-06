@@ -257,7 +257,9 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @forelse($maintenances as $item)
-                                <tr class="hover:bg-gray-50 transition-colors">
+                                <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                                    onclick="if(!event.target.closest('button, a, form, input, select')) {{ !empty($item->is_schedule) ? 'openViewScheduleModal(' . json_encode($item) . ')' : 'openViewMaintenanceModal(' . json_encode($item) . ')' }};"
+                                    title="Click to view details">
                                     {{-- Work Order / Asset Column --}}
                                     <td class="px-5 py-3.5 align-middle text-left">
                                         @if(!empty($item->is_schedule))
@@ -475,14 +477,6 @@
                                     <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
                                         <div class="flex items-center justify-end gap-1.5">
                                             @if(!empty($item->is_schedule))
-                                                <button 
-                                                    type="button"
-                                                    onclick='openViewScheduleModal(@json($item))'
-                                                    class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-colors"
-                                                    title="View Schedule Details"
-                                                >
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
                                                 @if(!$isReadOnlyStaff)
                                                     <button 
                                                         type="button" 
@@ -509,14 +503,6 @@
                                                     </form>
                                                 @endif
                                             @else
-                                                <button 
-                                                    type="button"
-                                                    onclick='openViewMaintenanceModal(@json($item))'
-                                                    class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-colors"
-                                                    title="View Work Order Details"
-                                                >
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
                                                 @if(!$isReadOnlyStaff)
                                                     @if($item->status !== 'completed')
                                                         <button 
@@ -660,7 +646,9 @@
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 @forelse($inspections as $insp)
-                                    <tr class="hover:bg-gray-50 transition-colors">
+                                    <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group"
+                                    onclick="if(!event.target.closest('button, a, form, input, select')) openViewInspectionModal(@json($insp));"
+                                    title="Click to view inspection details">
                                         <td class="px-6 py-4 align-middle text-left">
                                             <span class="inline-block px-2 py-0.5 text-xs font-mono font-semibold rounded bg-gray-100 text-gray-700 border border-gray-200 mb-0.5">
                                                 {{ $insp->asset->code ?? 'N/A' }}
@@ -713,14 +701,6 @@
                                         </td>
                                         <td class="px-6 py-4 align-middle whitespace-nowrap text-right text-sm">
                                             <div class="flex items-center justify-end gap-1.5">
-                                                <button 
-                                                    type="button"
-                                                    onclick='openViewInspectionModal(@json($insp))'
-                                                    class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-blue-600 transition-colors"
-                                                    title="View Inspection Details"
-                                                >
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
                                                 @if(!$isReadOnlyStaff)
                                                     <button 
                                                         type="button"

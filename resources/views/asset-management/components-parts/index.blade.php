@@ -210,7 +210,7 @@
                             $classification = $isAccessory ? 'Accessory' : ($item->type ?: 'General');
                             $forAssetType = $isAccessory ? ($item->asset_type ?: 'Any') : ($item->assetType->name ?? 'Any');
                         @endphp
-                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group {{ $isAccessory && ($item->status === 'Not Available' || $item->quantity <= 0) ? 'opacity-75' : '' }}" onclick="{{ $isAccessory ? 'openAccessoryDetailsModal(' . json_encode($item) . '); openViewAccessoryModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\');' : 'openAttachmentDetailsModal(' . json_encode($item) . '); openViewAttachmentModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\', \'' . addslashes($item->assetType->name ?? '') . '\');' }}">
+                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group {{ $isAccessory && ($item->status === 'Not Available' || $item->quantity <= 0) ? 'opacity-75' : '' }}" onclick="{{ $isAccessory ? 'openAccessoryDetailsModal(' . json_encode($item) . '); openViewAccessoryModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\');' : 'openAttachmentDetailsModal(' . json_encode($item) . '); openViewAttachmentModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\', \'' . addslashes($item->assetType->name ?? '') . '\');' }}" title="Quick View">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2.5">
                                     <i class="fas fa-puzzle-piece text-blue-500 text-sm group-hover:scale-110 transition-transform"></i>
@@ -272,14 +272,6 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
                                     @if(!$isAccessory)
-                                        <button 
-                                            type="button"
-                                            onclick="event.stopPropagation(); openAttachmentDetailsModal(@js($item)); openViewAttachmentModal(@json($item), '{{ addslashes($item->asset->name ?? '') }}', '{{ addslashes($item->asset->code ?? '') }}', '{{ addslashes($item->assetType->name ?? '') }}');" 
-                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="Quick View"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
                                         @if(!$isReadOnlyStaff)
                                             <button 
                                                 type="button"
@@ -298,14 +290,6 @@
                                             </form>
                                         @endif
                                     @else
-                                        <button 
-                                            type="button"
-                                            onclick="event.stopPropagation(); openAccessoryDetailsModal(@js($item)); openViewAccessoryModal(@json($item), '{{ addslashes($item->asset->name ?? '') }}', '{{ addslashes($item->asset->code ?? '') }}');" 
-                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="Quick View"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
                                         @if(!$isReadOnlyStaff)
                                             <button 
                                                 type="button"
