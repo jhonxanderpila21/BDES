@@ -36,7 +36,7 @@ Located directly above the unified inventory table, these controls allow logisti
 - **Equipment / Asset Type Filter (`asset_type`)**: Filters entries assigned to a specific machinery class (e.g., *Generator Set*, *Ambulance*, *Water Pump*, *Power Tool*).
 - **Unit of Measure Filter (`unit`)**: Filters by measurement standard (e.g., *Liters*, *Gallons*, *Units*, *Boxes*, *Sets*).
 - **Status Filter (`status`)**:
-  - `In Stock` / `Monitoring Only` — Sufficient supply level
+  - `In Stock` / `Adequate` — Sufficient supply level
   - `Low Stock` / `Requires Maintenance` — Urgent attention needed
   - `Under Maintenance` — Equipment/supply undergoing servicing
 - **Clear Filters Button**: Appears when any filter or search query is active, allowing a single-click reset to the default view.
@@ -69,9 +69,8 @@ Each record in the unified table displays the following data fields:
 
 ### D. Status
 - **Badge Indicator**:
-  - `In Stock`: Sufficient supplies available.
+  - `In Stock`: Sufficient supplies available meeting safety reserve thresholds.
   - `Low Stock Alert`: Current level has dropped below the minimum reserve threshold.
-  - `Monitoring Only`: Standard periodic monitoring for auxiliary requirements.
   - `Requires Maintenance` / `Under Maintenance`: Mechanical or consumable attention flagged.
 
 ### E. Actions (Role-Based Permissions)

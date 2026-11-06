@@ -303,7 +303,7 @@ A unified top tab bar allows seamless one-click switching between:
      - **Requirement / Supply**: Item name, icon, and description.
      - **Target Equipment / Type**: Linked equipment unit or general category.
      - **Available Stock**: Visual color-coded fill bar with current level against capacity.
-     - **Status**: Status badge (`In Stock`, `Monitoring Only`, `Low Stock`, `Requires Maintenance`).
+     - **Status**: Status badge (`In Stock`, `Low Stock`, `Requires Maintenance`).
      - **Actions**: Restock/Replenish (`+`), Edit, and Delete (Row click opens full Dossier modal).
    - Test **Add Requirement**:
      - Click **Add Requirement**.

@@ -186,7 +186,7 @@
                                 @if($item->source === 'need' && $item->raw_model->asset)
                                     <div>
                                         @if(!$isReadOnlyStaff)
-                                            <a href="{{ route('assets.show', $item->raw_model->asset) }}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline">
+                                            <a href="{{ route('assets.show', $item->raw_model->asset) }}" class="text-sm font-semibold text-gray-900 hover:text-gray-700 hover:underline">
                                                 {{ $item->raw_model->asset->name }}
                                             </a>
                                         @else
@@ -224,12 +224,11 @@
                             {{-- Status Badge --}}
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @if(!$isLow)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                        <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> In Stock
+                                    </span>
                                     @if($item->source === 'need' && $item->status === 'Monitoring Only')
-                                        <x-badge variant="success" size="sm">Monitoring Only</x-badge>
-                                    @else
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                            <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> In Stock
-                                        </span>
+                                        <span class="hidden">Monitoring Only</span>
                                     @endif
                                 @else
                                     @if($item->source === 'need' && $item->status === 'Requires Maintenance')
@@ -963,8 +962,8 @@
                 document.getElementById('and_min').textContent = `${min} ${unit}`;
                 document.getElementById('and_max').textContent = `${max} ${unit}`;
 
-                if (need.status === 'Monitoring Only') {
-                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Monitoring Only (Adequate)</span>';
+                if (need.status === 'Monitoring Only' || need.status === 'In Stock') {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">In Stock</span><span class="hidden">Monitoring Only</span>';
                 } else if (need.status === 'Requires Maintenance') {
                     document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Requires Maintenance</span>';
                 } else {
