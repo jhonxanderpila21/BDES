@@ -11,7 +11,7 @@
     <x-page-header 
         title="Asset Components and Parts"
         icon="fas fa-puzzle-piece"
-        subtitle="Unified registry and lifecycle tracking for asset components, replacement parts, and equipment hardware"
+        subtitle="Track and manage equipment components, replacement parts, and accessories"
         :breadcrumbs="[
             ['label' => 'Dashboard', 'url' => route('dashboard')],
             ['label' => 'Asset Management'],
@@ -56,7 +56,7 @@
             :value="$metrics['total_components']" 
             icon="fas fa-puzzle-piece" 
             color="blue" 
-            subtitle="Distinct items registered" 
+            subtitle="Total registered items" 
             :href="route('attachments.index', ['tab' => 'all'])" 
         />
         <x-kpi-card 
@@ -64,21 +64,21 @@
             :value="$metrics['total_available_units']" 
             icon="fas fa-boxes-stacked" 
             color="indigo" 
-            subtitle="Total physical inventory" 
+            subtitle="Items currently in stock" 
         />
         <x-kpi-card 
             title="Available In-Service" 
             :value="$metrics['available_components'] ?? 0" 
             icon="fas fa-check-circle" 
             color="emerald" 
-            subtitle="Ready for deployment" 
+            subtitle="Ready to use" 
         />
         <x-kpi-card 
             title="Total Valuation" 
             :value="'₱' . number_format($metrics['total_inventory_value'], 2)" 
             icon="fas fa-coins" 
             color="purple" 
-            subtitle="Recorded parts valuation" 
+            subtitle="Total recorded value" 
         />
     </div>
 
@@ -126,7 +126,7 @@
             </select>
         @else
             <select name="type" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">All Classifications</option>
+                <option value="">All Types</option>
                 @foreach(['Hose', 'Bracket', 'Cable', 'Mount', 'Hardware', 'Adapter', 'Rope', 'Strap', 'Nozzle', 'Accessory'] as $t)
                     <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
                 @endforeach
@@ -339,15 +339,15 @@
     </x-card>
 
     {{-- ========================================================================= --}}
-    {{-- UNIFIED DOSSIER MODALS: ATTACHMENT & ACCESSORY                             --}}
+    {{-- DETAILS MODALS: ATTACHMENT & ACCESSORY                                     --}}
     {{-- ========================================================================= --}}
     
     {{-- Hidden compatibility elements --}}
     <div id="attachment-details-modal" class="hidden"></div>
     <div id="accessory-details-modal" class="hidden"></div>
 
-    {{-- Attachment Dossier Modal --}}
-    <x-modal id="view-attachment-modal" title="Asset Attachment Dossier" maxWidth="2xl">
+    {{-- Attachment Details Modal --}}
+    <x-modal id="view-attachment-modal" title="Attachment Details" maxWidth="2xl">
         <div class="space-y-5">
             {{-- Header info --}}
             <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
@@ -370,7 +370,7 @@
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
                 <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
                     <i class="fas fa-link text-blue-600"></i>
-                    <span>Linked Asset Assignment</span>
+                    <span>Assigned Asset</span>
                 </h4>
                 <div id="dtl_attach_asset_box" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
                     <div class="flex items-center gap-3">
@@ -384,7 +384,7 @@
                     </div>
                     <a id="dtl_attach_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                        <span>View Asset Dossier</span>
+                        <span>View Asset</span>
                     </a>
                 </div>
             </div>
@@ -392,11 +392,11 @@
             {{-- Grid specs --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity Units</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity</span>
                     <span id="dtl_attach_quantity" class="text-base font-bold text-gray-900 block mt-0.5">1</span>
                 </div>
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Compatible Asset Type</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Asset Type</span>
                     <span id="dtl_attach_asset_type" class="text-sm font-semibold text-gray-800 block mt-0.5">General</span>
                 </div>
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
@@ -420,8 +420,8 @@
         </div>
     </x-modal>
 
-    {{-- Accessory Dossier Modal --}}
-    <x-modal id="view-accessory-modal" title="Asset Accessory Dossier" maxWidth="2xl">
+    {{-- Accessory Details Modal --}}
+    <x-modal id="view-accessory-modal" title="Accessory Details" maxWidth="2xl">
         <div class="space-y-5">
             {{-- Header info --}}
             <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
@@ -443,7 +443,7 @@
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
                 <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
                     <i class="fas fa-link text-purple-600"></i>
-                    <span>Linked Asset Assignment</span>
+                    <span>Assigned Asset</span>
                 </h4>
                 <div id="dtl_acc_asset_box" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
                     <div class="flex items-center gap-3">
@@ -457,7 +457,7 @@
                     </div>
                     <a id="dtl_acc_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200 transition-colors">
                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                        <span>View Asset Dossier</span>
+                        <span>View Asset</span>
                     </a>
                 </div>
             </div>
@@ -465,7 +465,7 @@
             {{-- Grid specs --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Available Quantity</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity Available</span>
                     <span id="dtl_acc_quantity" class="text-base font-bold text-gray-900 block mt-0.5">0 units</span>
                 </div>
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
@@ -791,7 +791,7 @@
                     }
                 } else {
                     document.getElementById('dtl_attach_asset_code').textContent = '—';
-                    document.getElementById('dtl_attach_asset_name').textContent = 'Currently Unassigned / Standalone';
+                    document.getElementById('dtl_attach_asset_name').textContent = 'Not assigned to any asset';
                     document.getElementById('dtl_attach_asset_link').classList.add('hidden');
                 }
 
@@ -865,7 +865,7 @@
                     }
                 } else {
                     document.getElementById('dtl_acc_asset_code').textContent = '—';
-                    document.getElementById('dtl_acc_asset_name').textContent = 'Currently Unassigned / General Component';
+                    document.getElementById('dtl_acc_asset_name').textContent = 'Not assigned to any asset';
                     document.getElementById('dtl_acc_asset_link').classList.add('hidden');
                 }
 
