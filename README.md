@@ -41,6 +41,7 @@ All test accounts are automatically seeded with password: **`password`**
 ## 📖 System Documentation & Manuals
 
 * 👉 **[USER_TESTING_GUIDE.md](file:///c:/Capstone/BDES/USER_TESTING_GUIDE.md)**: Complete step-by-step testing manual for all user roles and security checkpoints.
+* 👉 **[OPERATIONAL_REQUIREMENTS_GUIDE.md](file:///c:/Capstone/BDES/OPERATIONAL_REQUIREMENTS_GUIDE.md)**: Field guide explaining the unified Operational Requirements & Supplies module, data points, status indicators, and replenishment procedures.
 * 👉 **[PHILIPPINE_GOVERNMENT_ACCOUNTING_STANDARD.md](file:///c:/Capstone/BDES/PHILIPPINE_GOVERNMENT_ACCOUNTING_STANDARD.md)**: Detailed technical and legal reference for COA Circular No. 2022-004, COA Circular No. 2003-007, straight-line depreciation formulas, and capitalization thresholds.
 
 ---

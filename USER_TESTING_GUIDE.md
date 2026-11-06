@@ -294,18 +294,31 @@ A unified top tab bar allows seamless one-click switching between:
    - Verify that all **4 seeded accessories** (Heavy-Duty Extension Cord, Oxygen Tank Regulator, Suction Hose 3-inch, Spark Plug Spare Set) are visible and linked to their assets.
    - Verify that **6 disaster attachments** (Tow Hitch Trailer, Marine Propeller Guard, Heavy-Duty Spreader Jaws, etc.) are populated with unit costs.
 2. Navigate to **Asset Management -> Operational Requirements** (`/operational-requirements`).
-   - Notice the table layout displays **Requirement Name**, **Unit**, **Count** (e.g. `38.5 / 50 Liters`), **Status**, and **Actions**.
+   - Notice the unified dashboard summarizing all warehouse consumables and equipment needs seamlessly.
+   - Interactive KPI Summary Cards:
+     - **Total Requirements**: Total count of all supplies and needs.
+     - **Adequate Reserves / In Stock**: Click to filter entries with safe reserve levels (`?status=adequate`).
+     - **Low Stock Alert**: Click to filter entries requiring replenishment (`?low=1`).
+     - **Equipment Monitored**: High-level coverage indicator for emergency assets.
+   - Unified Inventory Table columns:
+     - **Requirement / Supply**: Item name, icon, and description.
+     - **Target Equipment / Type**: Linked equipment unit or general category.
+     - **Available Stock**: Visual color-coded fill bar with current level against capacity.
+     - **Status**: Status badge (`In Stock`, `Monitoring Only`, `Low Stock`, `Requires Maintenance`).
+     - **Actions**: Restock/Replenish (`+`), Edit, and Delete (Row click opens full Dossier modal).
    - Test **Add Requirement**:
      - Click **Add Requirement**.
-     - Notice the inputs are cleanly arranged: **Requirement Name**, **Unit of Measurement**, and **Count / Level Capacity**.
+     - Notice the inputs are cleanly arranged: **Equipment Type**, **Requirement Name**, **Unit of Measurement**, **Current Level**, **Maximum Capacity**, and **Minimum Safety Level**.
      - Test clicking **Cancel**: verify that the modal immediately closes without error.
-   - Notice the **+ Add Quantity** restock button on each requirement.
-   - Click **+ Add Quantity**:
-     - Quantity: `10`
-     - Unit Cost: `₱ 350.00`
-     - Supplier: `Petron Dagupan Station`
-     - Attach official invoice receipt.
-   - Submit and verify stock increases and restock transaction is recorded into the expenses ledger.
+   - Test **Add Asset Need**:
+     - Click **Add Asset Need** to record equipment-specific consumable specifications.
+   - Test **Restock / Replenish**:
+     - Click **+ Add Quantity** on a requirement:
+       - Quantity: `10`
+       - Supplier: `Petron Dagupan Station`
+       - Reference / Invoice: `INV-2026-009`
+     - Submit and verify stock increases and restock transaction is recorded into the expenses ledger.
+   - For an exhaustive reference of all data points and operations, consult [OPERATIONAL_REQUIREMENTS_GUIDE.md](file:///c:/Capstone/BDES/OPERATIONAL_REQUIREMENTS_GUIDE.md).
 
 ### 5.5. Account-Specific Audit Trail
 1. Click **Tracking & Reporting -> Asset History & Audit** (`/asset-history`).
