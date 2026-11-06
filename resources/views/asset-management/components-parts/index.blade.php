@@ -155,7 +155,6 @@
                 <option value="accessory_name" {{ request('sort_by') === 'accessory_name' ? 'selected' : '' }}>Sort: Accessory Name</option>
                 <option value="asset_type" {{ request('sort_by') === 'asset_type' ? 'selected' : '' }}>Sort: Asset Type</option>
                 <option value="quantity" {{ request('sort_by') === 'quantity' ? 'selected' : '' }}>Sort: Quantity</option>
-                <option value="unit_cost" {{ request('sort_by') === 'unit_cost' ? 'selected' : '' }}>Sort: Unit Cost</option>
                 <option value="status" {{ request('sort_by') === 'status' ? 'selected' : '' }}>Sort: Status</option>
             @elseif($activeTab === 'attachments')
                 <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Attachment Name</option>
@@ -198,7 +197,7 @@
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Linked Asset</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition / Cost</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
                         <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -254,20 +253,16 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if(!$isAccessory)
-                                    @php
-                                        $cond = strtolower($item->condition ?? 'good');
-                                        $condColor = match($cond) {
-                                            'excellent', 'good' => 'success',
-                                            'fair' => 'warning',
-                                            'poor' => 'danger',
-                                            default => 'secondary'
-                                        };
-                                    @endphp
-                                    <x-badge variant="{{ $condColor }}" size="sm">{{ ucfirst($cond) }}</x-badge>
-                                @else
-                                    <span class="text-xs font-medium text-gray-600">₱{{ number_format($item->unit_cost ?? 0, 2) }}</span>
-                                @endif
+                                @php
+                                    $cond = strtolower($item->condition ?? 'good');
+                                    $condColor = match($cond) {
+                                        'excellent', 'good' => 'success',
+                                        'fair' => 'warning',
+                                        'poor' => 'danger',
+                                        default => 'secondary'
+                                    };
+                                @endphp
+                                <x-badge variant="{{ $condColor }}" size="sm">{{ ucfirst($cond) }}</x-badge>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
@@ -434,6 +429,7 @@
                         <h3 id="dtl_acc_name" class="text-lg font-bold text-gray-900">Accessory Name</h3>
                     </div>
                     <div class="flex items-center gap-2">
+                        <span id="dtl_acc_cond_badge"></span>
                         <span id="dtl_acc_status_badge"></span>
                     </div>
                 </div>
@@ -841,6 +837,15 @@
                         ? '₱' + totalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : '₱0.00';
                 }
+
+                // Condition Badge
+                const accCond = (acc.condition || 'good').toLowerCase();
+                const accCondBadge = accCond === 'excellent' || accCond === 'good'
+                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">' + accCond.toUpperCase() + '</span>'
+                    : (accCond === 'fair'
+                        ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">FAIR</span>'
+                        : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">POOR</span>');
+                document.getElementById('dtl_acc_cond_badge').innerHTML = accCondBadge;
 
                 // Status Badge
                 if (qty > 0) {
