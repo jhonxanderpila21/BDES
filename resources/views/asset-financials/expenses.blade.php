@@ -183,25 +183,25 @@
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Category</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Category</th>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Item Name & Reference</th>
-                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Quantity</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Quantity</th>
                         <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Cost per Unit</th>
                         <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Total Cost</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Receipts</th>
-                        <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Details</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Receipts</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Details</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($expenses as $exp)
                         <tr class="hover:bg-gray-50/80 transition-colors">
                             {{-- Date --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-medium align-middle">
                                 {{ $exp->formatted_date }}
                             </td>
 
                             {{-- Category Badge --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center align-middle">
                                 @php
                                     $badgeVariant = match($exp->type) {
                                         'asset' => 'primary',
@@ -218,7 +218,7 @@
                             </td>
 
                             {{-- Item & Reference --}}
-                            <td class="px-6 py-4 text-sm">
+                            <td class="px-6 py-4 text-sm align-middle">
                                 <div class="font-bold text-gray-900">{{ $exp->item_name }}</div>
                                 <div class="flex items-center gap-2 mt-0.5">
                                     <span class="inline-block px-1.5 py-0.5 text-[11px] font-mono font-semibold rounded bg-gray-100 text-gray-800 border border-gray-200">
@@ -236,24 +236,24 @@
                             </td>
 
                             {{-- Qty --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-700">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-medium text-gray-700 align-middle">
                                 {{ number_format($exp->quantity) }}
                             </td>
 
                             {{-- Unit Cost --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 font-mono">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-600 font-mono align-middle">
                                 ₱{{ number_format($exp->unit_cost, 2) }}
                             </td>
 
                             {{-- Total Cost --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-emerald-700 font-mono">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-emerald-700 font-mono align-middle">
                                 ₱{{ number_format($exp->total_cost, 2) }}
                             </td>
 
                             {{-- Receipts --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center align-middle">
                                 @if($exp->receipts_count > 0)
-                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                    <div class="flex items-center justify-center gap-1.5 flex-wrap">
                                         @foreach($exp->receipts as $r)
                                             <a 
                                                 href="{{ route('receipts.show', $r->id) }}" 
@@ -272,9 +272,9 @@
                             </td>
 
                             {{-- Action --}}
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm align-middle">
                                 @if(!empty($exp->route))
-                                    <a href="{{ $exp->route }}" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors inline-block" title="View Source Record">
+                                    <a href="{{ $exp->route }}" class="p-2 rounded-lg hover:bg-gray-100 text-gray-600 transition-colors inline-flex items-center justify-center" title="View Source Record">
                                         <i class="fas fa-arrow-up-right-from-square"></i>
                                     </a>
                                 @endif
