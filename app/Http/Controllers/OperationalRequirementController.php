@@ -100,6 +100,59 @@ class OperationalRequirementController extends Controller
             ->orderBy('name')
             ->get();
 
+        // Build unified merged items collection
+        $mergedCollection = collect();
+
+        foreach ($requirements as $r) {
+            $mergedCollection->push((object)[
+                'id'               => $r->id,
+                'source'           => 'requirement',
+                'name'             => $r->requirement_type,
+                'description'      => $r->description,
+                'equipment_name'   => $r->assetType ? $r->assetType->name : 'General / Multi-Use',
+                'current_level'    => (float) $r->current_level,
+                'maximum_capacity' => (float) $r->maximum_capacity,
+                'minimum_level'    => (float) $r->minimum_level,
+                'unit'             => $r->unit,
+                'is_low_stock'     => $r->isLowStock(),
+                'status'           => $r->isLowStock() ? 'Low Stock' : 'In Stock',
+                'raw_model'        => $r,
+                'created_at'       => $r->created_at,
+            ]);
+        }
+
+        foreach ($assetNeeds as $n) {
+            $isLow = $n->isCritical() || in_array($n->status, ['Requires Maintenance', 'Under Maintenance']);
+            $mergedCollection->push((object)[
+                'id'               => $n->id,
+                'source'           => 'need',
+                'name'             => $n->requirement,
+                'description'      => '',
+                'equipment_name'   => $n->asset ? $n->asset->name : ($n->asset_type ?: 'General'),
+                'current_level'    => (float) $n->current_level,
+                'maximum_capacity' => (float) $n->maximum_capacity,
+                'minimum_level'    => (float) $n->minimum_level,
+                'unit'             => $n->unit,
+                'is_low_stock'     => $isLow,
+                'status'           => $n->status ?: ($isLow ? 'Requires Refill' : 'Monitoring Only'),
+                'raw_model'        => $n,
+                'created_at'       => $n->created_at,
+            ]);
+        }
+
+        $sortedItems = $mergedCollection->sortByDesc('created_at')->values();
+
+        // Paginate unified list
+        $page = (int) $request->get('page', 1);
+        $perPage = 15;
+        $items = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sortedItems->forPage($page, $perPage)->values(),
+            $sortedItems->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         // Calculate KPI summary metrics matching Asset Registry structure
         $allRequirements = OperationalRequirement::all();
         $allNeeds = \App\Models\AssetNeed::all();
@@ -107,7 +160,8 @@ class OperationalRequirementController extends Controller
         $metrics = [
             'total_all'          => $allRequirements->count() + $allNeeds->count(),
             'total_requirements' => $allRequirements->count(),
-            'adequate_stock'     => $allRequirements->filter(fn($r) => !$r->isLowStock())->count(),
+            'adequate_stock'     => $allRequirements->filter(fn($r) => !$r->isLowStock())->count()
+                                    + $allNeeds->where('status', 'Monitoring Only')->count(),
             'low_stock'          => $allRequirements->filter(fn($r) => $r->isLowStock())->count(),
             'monitored_types'    => $allRequirements->pluck('asset_type_id')->filter()->unique()->count(),
             'total_needs'        => $allNeeds->count(),
@@ -118,6 +172,7 @@ class OperationalRequirementController extends Controller
 
         return view('asset-management.operational-requirements.index', compact(
             'activeTab',
+            'items',
             'requirements',
             'assetTypes',
             'assetNeeds',
