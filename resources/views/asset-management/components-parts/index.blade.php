@@ -91,7 +91,7 @@
                 type="text" 
                 name="search" 
                 value="{{ request('search') }}" 
-                placeholder="{{ $activeTab === 'accessories' ? 'Search accessory name, asset type, or linked asset...' : ($activeTab === 'attachments' ? 'Search attachment name, type, or linked asset...' : 'Search component or part name, type, or linked asset...') }}"
+                placeholder="Search component or part name, asset type, or linked asset..."
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
         </div>
@@ -110,28 +110,7 @@
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
                 @endforeach
             </select>
-        @elseif($activeTab === 'attachments')
-            <select name="type" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">All Types</option>
-                @foreach(['Hose', 'Bracket', 'Cable', 'Mount', 'Hardware', 'Adapter', 'Rope', 'Strap', 'Nozzle'] as $t)
-                    <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
-                @endforeach
-            </select>
-
-            <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">All Conditions</option>
-                @foreach(['good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
-                    <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
-                @endforeach
-            </select>
         @else
-            <select name="type" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">All Types</option>
-                @foreach(['Hose', 'Bracket', 'Cable', 'Mount', 'Hardware', 'Adapter', 'Rope', 'Strap', 'Nozzle', 'Accessory'] as $t)
-                    <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
-                @endforeach
-            </select>
-
             <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
                 @foreach(['good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
@@ -158,7 +137,6 @@
                 <option value="status" {{ request('sort_by') === 'status' ? 'selected' : '' }}>Sort: Status</option>
             @elseif($activeTab === 'attachments')
                 <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Attachment Name</option>
-                <option value="type" {{ request('sort_by') === 'type' ? 'selected' : '' }}>Sort: Type</option>
                 <option value="quantity" {{ request('sort_by') === 'quantity' ? 'selected' : '' }}>Sort: Quantity</option>
                 <option value="condition" {{ request('sort_by') === 'condition' ? 'selected' : '' }}>Sort: Condition</option>
             @else
@@ -193,7 +171,6 @@
                                 Component / Part Name
                             @endif
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Linked Asset</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
@@ -218,9 +195,6 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                                {{ $classification }}
-                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $forAssetType }}
                             </td>
@@ -244,7 +218,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center font-semibold text-sm">
                                 @if($item->quantity > 0)
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        @if($isAccessory)<i class="fas fa-check-circle text-[10px]"></i>@endif {{ $item->quantity }} Available
+                                        <i class="fas fa-check-circle text-[10px]"></i> {{ $item->quantity }} Available
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
@@ -317,7 +291,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center">
                                 <x-empty-state 
                                     icon="fas fa-puzzle-piece" 
                                     title="{{ $activeTab === 'accessories' ? 'No accessories found' : ($activeTab === 'attachments' ? 'No attachments found' : 'No components or parts found') }}" 
@@ -342,18 +316,15 @@
     <div id="attachment-details-modal" class="hidden"></div>
     <div id="accessory-details-modal" class="hidden"></div>
 
-    {{-- Attachment Details Modal --}}
-    <x-modal id="view-attachment-modal" title="Attachment Details" maxWidth="2xl">
+    {{-- Component / Part Details Modal (Attachments) --}}
+    <x-modal id="view-attachment-modal" title="Component / Part Details" maxWidth="2xl">
         <div class="space-y-5">
             {{-- Header info --}}
             <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-1">
-                            <i class="fas fa-paperclip text-[10px]"></i>
-                            <span id="dtl_attach_type">Attachment</span>
-                        </span>
-                        <h3 id="dtl_attach_name" class="text-lg font-bold text-gray-900">Attachment Name</h3>
+                        <span id="dtl_attach_type" class="hidden"></span>
+                        <h3 id="dtl_attach_name" class="text-lg font-bold text-gray-900">Component / Part Name</h3>
                     </div>
                     <div class="flex items-center gap-2">
                         <span id="dtl_attach_cond_badge"></span>
@@ -386,19 +357,16 @@
             </div>
 
             {{-- Grid specs --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity in Stock</span>
                     <span id="dtl_attach_quantity" class="text-base font-bold text-gray-900 block mt-0.5">1</span>
                 </div>
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Asset Type</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">For Asset Type</span>
                     <span id="dtl_attach_asset_type" class="text-sm font-semibold text-gray-800 block mt-0.5">General</span>
                 </div>
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Unit Cost (₱)</span>
-                    <span id="dtl_attach_unit_cost" class="text-base font-bold text-gray-900 block mt-0.5">₱0.00</span>
-                </div>
+                <span id="dtl_attach_unit_cost" class="hidden"></span>
             </div>
 
             {{-- Actions --}}
@@ -406,7 +374,7 @@
                 @if(!$isReadOnlyStaff)
                 <button type="button" id="dtl_attach_edit_btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold border border-amber-200 transition-colors">
                     <i class="fas fa-edit"></i>
-                    <span>Edit Attachment</span>
+                    <span>Edit Component / Part</span>
                 </button>
                 @endif
                 <button type="button" onclick="window.closeModal('view-attachment-modal'); window.closeModal('attachment-details-modal');" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
@@ -416,18 +384,15 @@
         </div>
     </x-modal>
 
-    {{-- Accessory Details Modal --}}
-    <x-modal id="view-accessory-modal" title="Accessory Details" maxWidth="2xl">
+    {{-- Component / Part Details Modal (Accessories) --}}
+    <x-modal id="view-accessory-modal" title="Component / Part Details" maxWidth="2xl">
         <div class="space-y-5">
             {{-- Header info --}}
-            <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 mb-1">
-                            <i class="fas fa-tools text-[10px]"></i>
-                            <span id="dtl_acc_type">Accessory</span>
-                        </span>
-                        <h3 id="dtl_acc_name" class="text-lg font-bold text-gray-900">Accessory Name</h3>
+                        <span id="dtl_acc_type" class="hidden"></span>
+                        <h3 id="dtl_acc_name" class="text-lg font-bold text-gray-900">Component / Part Name</h3>
                     </div>
                     <div class="flex items-center gap-2">
                         <span id="dtl_acc_cond_badge"></span>
@@ -439,20 +404,20 @@
             {{-- Linked Asset Card --}}
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
                 <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
-                    <i class="fas fa-link text-purple-600"></i>
+                    <i class="fas fa-link text-blue-600"></i>
                     <span>Assigned Asset</span>
                 </h4>
                 <div id="dtl_acc_asset_box" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
                     <div class="flex items-center gap-3">
-                        <span class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
-                            <i class="fas fa-box"></i>
+                        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                            <i class="fas fa-boxes-stacked"></i>
                         </span>
                         <div>
-                            <span id="dtl_acc_asset_code" class="font-mono text-xs font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">CODE</span>
+                            <span id="dtl_acc_asset_code" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">CODE</span>
                             <span id="dtl_acc_asset_name" class="font-semibold text-gray-900 text-sm ml-1">Asset Name</span>
                         </div>
                     </div>
-                    <a id="dtl_acc_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200 transition-colors">
+                    <a id="dtl_acc_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
                         <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
                         <span>View Asset</span>
                     </a>
@@ -460,19 +425,17 @@
             </div>
 
             {{-- Grid specs --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity Available</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity in Stock</span>
                     <span id="dtl_acc_quantity" class="text-base font-bold text-gray-900 block mt-0.5">0 units</span>
                 </div>
                 <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Unit Cost (₱)</span>
-                    <span id="dtl_acc_unit_cost" class="text-base font-bold text-gray-900 block mt-0.5">₱0.00</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">For Asset Type</span>
+                    <span id="dtl_acc_asset_type" class="text-sm font-semibold text-gray-800 block mt-0.5">General</span>
                 </div>
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Total Value (₱)</span>
-                    <span id="dtl_acc_total_value" class="text-base font-bold text-gray-900 block mt-0.5">₱0.00</span>
-                </div>
+                <span id="dtl_acc_unit_cost" class="hidden"></span>
+                <span id="dtl_acc_total_value" class="hidden"></span>
             </div>
 
             {{-- Actions --}}
@@ -480,7 +443,7 @@
                 @if(!$isReadOnlyStaff)
                 <button type="button" id="dtl_acc_edit_btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold border border-amber-200 transition-colors">
                     <i class="fas fa-edit"></i>
-                    <span>Edit Accessory</span>
+                    <span>Edit Component / Part</span>
                 </button>
                 @endif
                 <button type="button" onclick="window.closeModal('view-accessory-modal'); window.closeModal('accessory-details-modal');" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
@@ -503,20 +466,16 @@
                     <input type="text" name="name" placeholder="e.g., Heavy Duty Fire Hose (30m)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-form-group label="Attachment Type">
-                        <input type="text" name="type" placeholder="e.g., Hose, Bracket, Mount, Cable" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </x-form-group>
+                <input type="hidden" name="type" value="Component">
 
-                    <x-form-group label="For Asset Type">
-                        <select name="asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="">-- Optional Asset Type --</option>
-                            @foreach($assetTypes as $at)
-                                <option value="{{ $at->id }}">{{ $at->name }}</option>
-                            @endforeach
-                        </select>
-                    </x-form-group>
-                </div>
+                <x-form-group label="For Asset Type">
+                    <select name="asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="">-- Optional Asset Type --</option>
+                        @foreach($assetTypes as $at)
+                            <option value="{{ $at->id }}">{{ $at->name }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
@@ -571,20 +530,16 @@
                     <input type="text" name="name" id="edit_attach_name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-form-group label="Attachment Type">
-                        <input type="text" name="type" id="edit_attach_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </x-form-group>
+                <input type="hidden" name="type" id="edit_attach_type" value="Component">
 
-                    <x-form-group label="For Asset Type">
-                        <select name="asset_type_id" id="edit_attach_asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="">-- Optional Asset Type --</option>
-                            @foreach($assetTypes as $at)
-                                <option value="{{ $at->id }}">{{ $at->name }}</option>
-                            @endforeach
-                        </select>
-                    </x-form-group>
-                </div>
+                <x-form-group label="For Asset Type">
+                    <select name="asset_type_id" id="edit_attach_asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="">-- Optional Asset Type --</option>
+                        @foreach($assetTypes as $at)
+                            <option value="{{ $at->id }}">{{ $at->name }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
@@ -824,6 +779,10 @@
                 
                 const qty = parseInt(acc.quantity || 0, 10);
                 document.getElementById('dtl_acc_quantity').textContent = qty > 0 ? `${qty} unit(s)` : 'No Available';
+
+                const accAssetType = acc.asset_type || (acc.asset && acc.asset.type ? acc.asset.type.name : 'General');
+                const dtlAccAssetType = document.getElementById('dtl_acc_asset_type');
+                if (dtlAccAssetType) dtlAccAssetType.textContent = accAssetType;
 
                 const unitCost = parseFloat(acc.unit_cost || 0);
                 document.getElementById('dtl_acc_unit_cost').textContent = unitCost > 0 
