@@ -120,7 +120,7 @@
 
             <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
-                @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
+                @foreach(['good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
@@ -134,7 +134,7 @@
 
             <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
-                @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
+                @foreach(['good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
@@ -254,9 +254,10 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 @php
-                                    $cond = strtolower($item->condition ?? 'good');
+                                    $rawCond = strtolower($item->condition ?? 'good');
+                                    $cond = ($rawCond === 'excellent') ? 'good' : $rawCond;
                                     $condColor = match($cond) {
-                                        'excellent', 'good' => 'success',
+                                        'good' => 'success',
                                         'fair' => 'warning',
                                         'poor' => 'danger',
                                         default => 'secondary'
@@ -539,7 +540,6 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <x-form-group label="Condition" required>
                         <select name="condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="excellent">Excellent</option>
                             <option value="good" selected>Good</option>
                             <option value="fair">Fair</option>
                             <option value="poor">Poor</option>
@@ -607,7 +607,6 @@
 
                 <x-form-group label="Condition" required>
                     <select name="condition" id="edit_attach_condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="excellent">Excellent</option>
                         <option value="good">Good</option>
                         <option value="fair">Fair</option>
                         <option value="poor">Poor</option>
@@ -755,9 +754,10 @@
                 document.getElementById('dtl_attach_asset_type').textContent = compatibleType;
 
                 // Condition Badge
-                const cond = (attachment.condition || 'good').toLowerCase();
-                const condBadge = cond === 'excellent' || cond === 'good'
-                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">' + cond.toUpperCase() + '</span>'
+                let cond = (attachment.condition || 'good').toLowerCase();
+                if (cond === 'excellent') cond = 'good';
+                const condBadge = cond === 'good'
+                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">GOOD</span>'
                     : (cond === 'fair'
                         ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">FAIR</span>'
                         : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">POOR</span>');
@@ -839,9 +839,10 @@
                 }
 
                 // Condition Badge
-                const accCond = (acc.condition || 'good').toLowerCase();
-                const accCondBadge = accCond === 'excellent' || accCond === 'good'
-                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">' + accCond.toUpperCase() + '</span>'
+                let accCond = (acc.condition || 'good').toLowerCase();
+                if (accCond === 'excellent') accCond = 'good';
+                const accCondBadge = accCond === 'good'
+                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">GOOD</span>'
                     : (accCond === 'fair'
                         ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">FAIR</span>'
                         : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">POOR</span>');
@@ -906,7 +907,9 @@
                     document.getElementById('edit_attach_asset_type_id').value = attachment.asset_type_id || '';
                     document.getElementById('edit_attach_asset_id').value = attachment.asset_id || '';
                     document.getElementById('edit_attach_quantity').value = attachment.quantity || 1;
-                    document.getElementById('edit_attach_condition').value = attachment.condition || 'good';
+                    let editCond = (attachment.condition || 'good').toLowerCase();
+                    if (editCond === 'excellent') editCond = 'good';
+                    document.getElementById('edit_attach_condition').value = editCond;
                     window.openModal('edit-attachment-modal');
                 }
 
