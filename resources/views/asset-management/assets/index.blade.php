@@ -791,7 +791,7 @@
                         <span>Open Full Details</span>
                     </a>
                     @if(!$isReadOnlyStaff)
-                        <a id="view_asset_deploy_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors hidden sm:inline-flex">
+                        <a id="view_asset_deploy_btn" href="#" style="display: none;" class="hidden items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors">
                             <i class="fas fa-truck-fast"></i>
                             <span>Deploy</span>
                         </a>
@@ -1274,11 +1274,16 @@
 
                 const deployBtn = document.getElementById('view_asset_deploy_btn');
                 if (deployBtn) {
-                    if (asset.status === 'available') {
+                    if (asset.status === 'available' && asset.condition !== 'fair' && asset.condition !== 'poor') {
                         deployBtn.href = '/deployment/create?asset_id=' + asset.id;
                         deployBtn.classList.remove('hidden');
+                        deployBtn.classList.add('inline-flex');
+                        deployBtn.style.display = 'inline-flex';
                     } else {
+                        deployBtn.href = '#';
+                        deployBtn.classList.remove('inline-flex');
                         deployBtn.classList.add('hidden');
+                        deployBtn.style.display = 'none';
                     }
                 }
 

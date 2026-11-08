@@ -27,8 +27,8 @@
 
 
             {{-- Page Content --}}
-            <main class="flex-1 overflow-y-auto">
-                <div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 w-full max-w-full">
+            <main class="flex-1 overflow-y-auto overflow-x-hidden">
+                <div class="px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 w-full max-w-full min-w-0">
                     <x-flash-messages />
 
                     @yield('content')

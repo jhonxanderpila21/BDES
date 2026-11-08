@@ -10,11 +10,11 @@
     {{-- Page Header --}}
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Maintenance & Work Orders</h1>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Maintenance</h1>
             <x-breadcrumb :items="[
                 ['label' => 'Dashboard', 'url' => route('dashboard')],
                 ['label' => 'Operations'],
-                ['label' => 'Maintenance & Work Orders']
+                ['label' => 'Maintenance']
             ]" />
         </div>
         
@@ -246,13 +246,13 @@
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
-                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type & Priority</th>
-                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Task & Assigned</th>
-                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Parts &amp; Materials</th>
-                                <th class="px-5 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Service Dates</th>
-                                <th class="px-5 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
-                                <th class="px-5 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                                <th class="px-3.5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Work Order / Asset</th>
+                                <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type & Priority</th>
+                                <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Task & Assigned</th>
+                                <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Parts &amp; Materials</th>
+                                <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Service Dates</th>
+                                <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                                <th class="px-3.5 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -261,19 +261,19 @@
                                     onclick="if(!event.target.closest('button, a, form, input, select')) {{ !empty($item->is_schedule) ? 'openViewScheduleModal(' . json_encode($item) . ')' : 'openViewMaintenanceModal(' . json_encode($item) . ')' }};"
                                     title="Click to view details">
                                     {{-- Work Order / Asset Column --}}
-                                    <td class="px-5 py-3.5 align-middle text-left">
+                                    <td class="px-3.5 py-3 align-middle text-left">
                                         @if(!empty($item->is_schedule))
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded">
+                                            <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                                <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded whitespace-nowrap">
                                                     <i class="fas fa-calendar-check text-[10px]"></i> SCHED-{{ str_pad($item->id, 4, '0', STR_PAD_LEFT) }}
                                                 </span>
                                                 @if($item->asset)
                                                     @if($isReadOnlyStaff)
-                                                        <span class="text-xs font-mono text-gray-500">
+                                                        <span class="text-xs font-mono text-gray-500 whitespace-nowrap">
                                                             [{{ $item->asset->code }}]
                                                         </span>
                                                     @else
-                                                        <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
+                                                        <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600 whitespace-nowrap">
                                                             [{{ $item->asset->code }}]
                                                         </a>
                                                     @endif
@@ -282,17 +282,17 @@
                                             <p class="text-sm font-bold text-gray-900">{{ $item->asset->name ?? 'Unknown Asset' }}</p>
                                             <p class="text-[11px] text-gray-400">{{ $item->asset_type ?: ($item->asset->category->name ?? 'Preventive Schedule') }}</p>
                                         @else
-                                            <div class="flex items-center gap-2 mb-1">
-                                                <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                                            <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                                <span class="inline-flex items-center gap-1 font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded whitespace-nowrap">
                                                     <i class="fas fa-tools text-[10px]"></i> {{ $item->work_order_number ?? ('WO-' . str_pad($item->id, 5, '0', STR_PAD_LEFT)) }}
                                                 </span>
                                                 @if($item->asset)
                                                     @if($isReadOnlyStaff)
-                                                        <span class="text-xs font-mono text-gray-500">
+                                                        <span class="text-xs font-mono text-gray-500 whitespace-nowrap">
                                                             [{{ $item->asset->code }}]
                                                         </span>
                                                     @else
-                                                        <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600">
+                                                        <a href="{{ route('assets.show', $item->asset_id) }}" class="text-xs font-mono text-gray-500 hover:text-blue-600 whitespace-nowrap">
                                                             [{{ $item->asset->code }}]
                                                         </a>
                                                     @endif
@@ -311,7 +311,7 @@
                                     </td>
 
                                     {{-- Type & Priority Column --}}
-                                    <td class="px-5 py-3.5 whitespace-nowrap">
+                                    <td class="px-3 py-3 whitespace-nowrap">
                                         @if(!empty($item->is_schedule))
                                             <div class="space-y-1">
                                                 <x-badge variant="primary" size="sm">Preventive</x-badge>
@@ -343,7 +343,7 @@
                                     </td>
 
                                     {{-- Task & Assigned Column --}}
-                                    <td class="px-5 py-3.5 whitespace-nowrap text-sm text-gray-700">
+                                    <td class="px-3 py-3 text-sm text-gray-700">
                                         @if(!empty($item->is_schedule))
                                             <p class="font-medium text-gray-900">{{ $item->maintenance_task }}</p>
                                             <p class="text-xs text-purple-600 italic">
@@ -351,7 +351,7 @@
                                             </p>
                                         @else
                                             @if($item->assignedPersonnel && $item->assignedPersonnel->isNotEmpty())
-                                                <div class="flex flex-wrap items-center gap-1 max-w-[220px]">
+                                                <div class="flex flex-wrap items-center gap-1 max-w-[180px]">
                                                     @foreach($item->assignedPersonnel as $person)
                                                         <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200" title="{{ $person->name }} ({{ ucfirst($person->role) }})">
                                                              <i class="fas fa-user-circle text-[10px] text-blue-500"></i>
@@ -369,7 +369,7 @@
                                     </td>
 
                                     {{-- Parts & Materials Column (Requirement 1 & 5) --}}
-                                    <td class="px-5 py-3.5 text-xs">
+                                    <td class="px-3 py-3 text-xs">
                                         @if(!empty($item->is_schedule))
                                             <div class="space-y-0.5">
                                                 <span class="text-gray-600 font-medium">Routine Cadence</span>
@@ -383,7 +383,7 @@
                                                             <span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] bg-slate-100 text-slate-800 border border-slate-200 font-mono">
                                                                 {{ $p->quantity }} {{ $p->unit }}
                                                             </span>
-                                                            <span class="font-medium text-gray-800 truncate max-w-[130px]" title="{{ $p->part_name }}">{{ $p->part_name }}</span>
+                                                            <span class="font-medium text-gray-800 truncate max-w-[110px]" title="{{ $p->part_name }}">{{ $p->part_name }}</span>
                                                             @if($p->total_cost > 0)
                                                                 <span class="text-gray-400 text-[10px]">(₱{{ number_format($p->total_cost, 2) }})</span>
                                                             @endif
@@ -394,7 +394,7 @@
                                                     @endif
                                                 </div>
                                             @elseif($item->parts_used)
-                                                <p class="font-medium text-gray-800 truncate max-w-[160px]" title="{{ $item->parts_used }}">
+                                                <p class="font-medium text-gray-800 truncate max-w-[140px]" title="{{ $item->parts_used }}">
                                                     <i class="fas fa-boxes text-gray-400 mr-1"></i>{{ $item->parts_used }}
                                                 </p>
                                             @else
@@ -416,7 +416,7 @@
                                     </td>
 
                                     {{-- Service Dates Column (Requirement 3) --}}
-                                    <td class="px-5 py-3.5 align-middle whitespace-nowrap text-xs text-gray-600 text-left">
+                                    <td class="px-3 py-3 align-middle whitespace-nowrap text-xs text-gray-600 text-left">
                                         @if(!empty($item->is_schedule))
                                             <div class="space-y-0.5">
                                                 <div><span class="text-gray-500 font-normal">Last Serviced:</span> <span class="font-medium text-gray-900">{{ $item->last_maintenance_date ? \Carbon\Carbon::parse($item->last_maintenance_date)->format('M d, Y') : 'Never' }}</span></div>
@@ -435,7 +435,7 @@
                                     </td>
 
                                     {{-- Status Column --}}
-                                    <td class="px-5 py-3.5 align-middle whitespace-nowrap text-center">
+                                    <td class="px-3 py-3 align-middle whitespace-nowrap text-center">
                                         @if(!empty($item->is_schedule))
                                             @php
                                                 $schedColor = match($item->status) {
@@ -474,7 +474,7 @@
                                     </td>
 
                                     {{-- Actions Column --}}
-                                    <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
+                                    <td class="px-3.5 py-3 align-middle whitespace-nowrap text-right text-sm">
                                         <div class="flex items-center justify-end gap-1.5">
                                             @if(!empty($item->is_schedule))
                                                 @if(!$isReadOnlyStaff)
@@ -512,16 +512,6 @@
                                                             title="Complete & Verify Operational Status"
                                                         >
                                                             <i class="fas fa-check-circle"></i>
-                                                        </button>
-                                                    @endif
-                                                    @if(!$item->isConfirmed())
-                                                        <button 
-                                                            type="button"
-                                                            onclick='openConfirmMaintenanceModal(@json($item))'
-                                                            class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 hover:text-emerald-800 transition-colors"
-                                                            title="Confirm Work Order & Assign Personnel"
-                                                        >
-                                                            <i class="fas fa-clipboard-check"></i>
                                                         </button>
                                                     @endif
                                                     <button 
