@@ -243,18 +243,6 @@
                                         @endif
                                     @endif
 
-                                    {{-- View Return Details --}}
-                                    @if($deployment->status === 'returned' && $deployment->returnRecord)
-                                        <button 
-                                            type="button"
-                                            onclick='openViewReturnModal(@json($deployment->returnRecord), @js($deployment->asset->name ?? 'Asset'), @js($deployment->asset->code ?? 'N/A'))' 
-                                            class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 transition-colors" 
-                                            title="View Return Inspection Details"
-                                        >
-                                            <i class="fas fa-clipboard-check"></i>
-                                        </button>
-                                    @endif
-
                                     @if(!$isReadOnlyStaff)
                                         {{-- Edit Deployment --}}
                                         <button 

@@ -49,18 +49,17 @@ class ReportedAssetSeeder extends Seeder
                 ],
             ],
 
-            // 2. AED Missing — Escalated
+            // 2. AED Missing — Ongoing
             [
                 'asset'         => $findAsset('AED-001'),
                 'reported_type' => 'Missing',
-                'target_status' => 'Escalated',
+                'target_status' => 'Ongoing',
                 'location'      => 'Barangay Hall',
                 'description'   => 'Automated External Defibrillator unit not found in assigned emergency bay.',
                 'action'        => 'Report to city DRRMO',
                 'reported_date' => Carbon::now()->subDays(3)->format('Y-m-d'),
                 'transitions'   => [
                     ['to' => 'Ongoing', 'notes' => 'Internal inventory investigation initiated.'],
-                    ['to' => 'Escalated', 'notes' => 'Cannot locate after site search. Escalated to City Disaster Risk Office.'],
                 ],
             ],
 
@@ -105,26 +104,25 @@ class ReportedAssetSeeder extends Seeder
                 ],
             ],
 
-            // 6. Rescue Boat Hull Damage — Escalated
+            // 6. Rescue Boat Hull Damage — Ongoing
             [
                 'asset'         => $findAsset('BOT-001'),
                 'reported_type' => 'Damage',
-                'target_status' => 'Escalated',
+                'target_status' => 'Ongoing',
                 'location'      => 'Riverine Rescue Station',
                 'description'   => 'Transom mount seam separated during flash flood swiftwater rescue operation.',
-                'action'        => 'Escalated for manufacturer warranty repair',
+                'action'        => 'Dispatched for manufacturer warranty repair',
                 'reported_date' => Carbon::now()->subDays(7)->format('Y-m-d'),
                 'transitions'   => [
                     ['to' => 'Ongoing', 'notes' => 'Structural inspection by rescue team mechanics.'],
-                    ['to' => 'Escalated', 'notes' => 'Seam separation exceeds local repair capability. Escalated for specialized maritime service.'],
                 ],
             ],
 
-            // 7. Megaphone Clasp Replacement — Closed
+            // 7. Megaphone Clasp Replacement — Done
             [
                 'asset'         => $findAsset('MEG-001'),
                 'reported_type' => 'Replacement',
-                'target_status' => 'Closed',
+                'target_status' => 'Done',
                 'location'      => 'Evacuation Center 2',
                 'description'   => 'Battery door locking latch snapped off, preventing secure battery retention.',
                 'action'        => 'Replaced battery door latch and tested siren',
@@ -132,7 +130,6 @@ class ReportedAssetSeeder extends Seeder
                 'transitions'   => [
                     ['to' => 'Ongoing', 'notes' => 'Replacement part ordered.'],
                     ['to' => 'Done', 'notes' => 'Part installed and operational audio test passed.'],
-                    ['to' => 'Closed', 'notes' => 'Maintenance verified and signed off into active reserve.'],
                 ],
             ],
 
@@ -163,11 +160,11 @@ class ReportedAssetSeeder extends Seeder
                 ],
             ],
 
-            // 10. Secondary Fire Extinguisher Annual Check — Closed
+            // 10. Secondary Fire Extinguisher Annual Check — Done
             [
                 'asset'         => $findAsset('FE-002'),
                 'reported_type' => 'Maintenance',
-                'target_status' => 'Closed',
+                'target_status' => 'Done',
                 'location'      => 'Storage Room',
                 'description'   => 'Routine inspection: annual inspection tag expiring this month.',
                 'action'        => 'Certified and re-tagged for 12 months',
@@ -175,7 +172,6 @@ class ReportedAssetSeeder extends Seeder
                 'transitions'   => [
                     ['to' => 'Ongoing', 'notes' => 'Dispatched for certified inspection.'],
                     ['to' => 'Done', 'notes' => 'BFP certification completed and tag updated.'],
-                    ['to' => 'Closed', 'notes' => 'Returned to storage room.'],
                 ],
             ],
         ];

@@ -17,6 +17,10 @@ class ReportedAssetController extends Controller
      */
     public function index(Request $request)
     {
+        // Normalize any legacy Escalated/Closed statuses in existing records
+        ReportedAsset::where('status', ReportedAssetService::STATUS_ESCALATED)->update(['status' => ReportedAssetService::STATUS_ONGOING]);
+        ReportedAsset::where('status', ReportedAssetService::STATUS_CLOSED)->update(['status' => ReportedAssetService::STATUS_DONE]);
+
         $query = ReportedAsset::with(['asset', 'reporter', 'assignedPersonnel', 'confirmedByUser']);
 
         // Search

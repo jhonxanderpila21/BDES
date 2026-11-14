@@ -181,13 +181,13 @@
                     @endif
 
                     @if($isAdmin || $isMaintenance || $isViewer)
-                        {{-- Maintenance & Work Orders (Maintenance Officer workflow) --}}
+                        {{-- Maintenance (Maintenance Officer workflow) --}}
                         <a
                             href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"
                         >
                             <i class="fas fa-screwdriver-wrench w-4 text-center {{ $iconClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"></i>
-                            <span>Maintenance & Work Orders</span>
+                            <span>Maintenance</span>
                         </a>
                     @endif
 
@@ -391,17 +391,6 @@
             @endif
         </div>
     </nav>
-
-    {{-- Draggable Width Resizer Handle on Right Edge (Desktop only) --}}
-    <div 
-        @mousedown.prevent="startResize($event)"
-        @dblclick="resetSidebarWidth()"
-        title="Click and drag to adjust sidebar width (double-click to reset)"
-        class="hidden lg:block absolute right-0 top-0 bottom-0 w-2.5 cursor-col-resize hover:bg-[#2563EB]/40 transition-colors z-30 group"
-        :class="isResizing ? 'bg-[#2563EB] !w-3' : 'bg-transparent hover:bg-blue-400/50'"
-    >
-        <div class="h-full w-1 ml-auto opacity-0 group-hover:opacity-100 bg-[#2563EB] transition-opacity" :class="{'opacity-100': isResizing}"></div>
-    </div>
 </aside>
 
 {{-- Sidebar Overlay for mobile / tablet drawer --}}
