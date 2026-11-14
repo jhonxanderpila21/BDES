@@ -129,4 +129,3 @@ class DeploymentSeeder extends Seeder
         }
     }
 }
-

@@ -2,10 +2,12 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -21,6 +23,19 @@ class LoginRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     * Supports `username` as the primary login identifier while remaining backward-compatible if `email` is passed.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! $this->filled('username') && $this->filled('email')) {
+            $this->merge([
+                'username' => $this->input('email'),
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -28,7 +43,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -42,26 +57,42 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $credentials = $this->only('email', 'password');
+        $identifier = trim((string) $this->input('username'));
+        $password   = (string) $this->input('password');
+        $errorField = $this->has('email') && ! $this->has('username') ? 'email' : 'username';
+
+        $user = User::where('username', $identifier)
+            ->orWhere(function ($query) use ($identifier) {
+                if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+                    $query->where('email', $identifier);
+                }
+            })
+            ->first();
 
         // Check if account exists and is currently deactivated
-        $user = \App\Models\User::where('email', $credentials['email'])->first();
-
         if ($user && ! $user->is_active) {
-            if (\Illuminate\Support\Facades\Hash::check($credentials['password'], $user->password)) {
+            if (Hash::check($password, $user->password)) {
                 RateLimiter::hit($this->throttleKey());
 
                 throw ValidationException::withMessages([
-                    'email' => 'This account has been deactivated. Please contact your system administrator.',
+                    $errorField => 'This account has been deactivated. Please contact your system administrator.',
                 ]);
             }
         }
 
-        if (! Auth::attempt(array_merge($credentials, ['is_active' => true]), $this->boolean('remember'))) {
+        $authColumn = ($user && $user->email === $identifier && $user->username !== $identifier)
+            ? 'email'
+            : 'username';
+
+        if (! Auth::attempt([
+            $authColumn => $identifier,
+            'password'  => $password,
+            'is_active' => true,
+        ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                $errorField => trans('auth.failed'),
             ]);
         }
 
@@ -81,10 +112,11 @@ class LoginRequest extends FormRequest
 
         event(new Lockout($this));
 
-        $seconds = RateLimiter::availableIn($this->throttleKey());
+        $seconds    = RateLimiter::availableIn($this->throttleKey());
+        $errorField = $this->has('email') && ! $this->has('username') ? 'email' : 'username';
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
+            $errorField => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -96,6 +128,6 @@ class LoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->string('email')).'|'.$this->ip());
+        return Str::transliterate(Str::lower($this->string('username')).'|'.$this->ip());
     }
 }

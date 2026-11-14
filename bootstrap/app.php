@@ -13,9 +13,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'role'                => \App\Http\Middleware\RoleMiddleware::class,
+            'verified.onboarding' => \App\Http\Middleware\EnsurePhoneVerifiedAndPasswordChanged::class,
         ]);
         $middleware->appendToGroup('web', \App\Http\Middleware\EnsureUserIsActive::class);
+        $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePhoneVerifiedAndPasswordChanged::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

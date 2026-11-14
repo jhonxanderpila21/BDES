@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    'sms' => [
+        'provider' => env('SMS_PROVIDER', 'semaphore'),
+    ],
+
+    'semaphore' => [
+        'api_key'     => env('SEMAPHORE_API_KEY'),
+        'sender_name' => env('SEMAPHORE_SENDER_NAME', 'SEMAPHORE'),
+        'endpoint'    => env('SEMAPHORE_ENDPOINT', 'https://api.semaphore.co/api/v4/messages'),
+    ],
+
+    'vonage' => [
+        'key'      => env('VONAGE_KEY'),
+        'secret'   => env('VONAGE_SECRET'),
+        'from'     => env('VONAGE_FROM', 'BDES'),
+        'endpoint' => env('VONAGE_ENDPOINT', 'https://rest.nexmo.com/sms/json'),
+    ],
+
 ];
