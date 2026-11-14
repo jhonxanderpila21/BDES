@@ -37,6 +37,7 @@ return [
 
     'sms' => [
         'provider' => env('SMS_PROVIDER', 'semaphore'),
+        'demo_otp' => env('OTP_DEMO_CODE', '123456'),
     ],
 
     'semaphore' => [

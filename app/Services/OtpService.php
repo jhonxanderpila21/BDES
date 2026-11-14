@@ -24,9 +24,28 @@ class OtpService
      */
     public const MAX_ATTEMPTS = 5;
 
+    /**
+     * Default demo OTP code used in local/demo environments when set.
+     */
+    public const DEFAULT_DEMO_OTP = '123456';
+
     public function __construct(
         protected SmsService $smsService
     ) {}
+
+    /**
+     * Resolve the demo OTP code if demo mode is enabled in non-production environments.
+     */
+    public function getDemoOtp(): ?string
+    {
+        if (app()->environment('production')) {
+            return null;
+        }
+
+        $demoCode = (string) config('services.sms.demo_otp', self::DEFAULT_DEMO_OTP);
+
+        return preg_match('/^\d{6}$/', $demoCode) ? $demoCode : null;
+    }
 
     /**
      * Calculate how many seconds remain in the resend cooldown window for the user.
@@ -84,7 +103,8 @@ class OtpService
             }
         }
 
-        $plainOtp  = (string) random_int(100000, 999999);
+        $demoOtp   = $this->getDemoOtp();
+        $plainOtp  = $demoOtp ?? (string) random_int(100000, 999999);
         $expiresAt = now()->addMinutes(self::EXPIRY_MINUTES);
 
         DB::transaction(function () use ($user, $plainOtp, $expiresAt) {
@@ -151,7 +171,10 @@ class OtpService
             ];
         }
 
-        if (! Hash::check($code, $latestOtp->otp_hash)) {
+        $demoOtp = $this->getDemoOtp();
+        $isValid = Hash::check($code, $latestOtp->otp_hash) || ($demoOtp !== null && hash_equals($demoOtp, $code));
+
+        if (! $isValid) {
             $latestOtp->increment('attempts');
             $remaining = max(0, self::MAX_ATTEMPTS - $latestOtp->attempts);
 
