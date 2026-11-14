@@ -46,8 +46,8 @@ class UserManagementTest extends TestCase
         $response->assertSee('name="first_name"', false);
         $response->assertSee('name="last_name"', false);
         $response->assertSee('name="username"', false);
-        $response->assertSee('name="email"', false);
-        $response->assertSee('TempPass_123');
+        $response->assertSee('name="phone_number"', false);
+        $response->assertSee(User::DEFAULT_TEMP_PASSWORD);
     }
 
     public function test_admin_can_create_new_user_with_standard_modal_fields(): void
@@ -111,7 +111,7 @@ class UserManagementTest extends TestCase
             'role'       => '',
         ]);
 
-        $response->assertSessionHasErrors(['first_name', 'last_name', 'username', 'email', 'role']);
+        $response->assertSessionHasErrors(['first_name', 'last_name', 'username', 'phone_number', 'role']);
     }
 
     public function test_admin_can_update_user(): void

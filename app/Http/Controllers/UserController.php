@@ -86,21 +86,27 @@ class UserController extends Controller
             $input['username'] = strtolower(trim(strip_tags($input['username'])));
         }
 
-        if (isset($input['phone_number'])) {
+        if (isset($input['phone_number']) && trim((string) $input['phone_number']) !== '') {
             $input['phone_number'] = User::normalizePhilippinePhone((string) $input['phone_number']);
+        } elseif (empty($input['_form']) || $request->input('_form') !== 'add_user') {
+            // Auto-generate unique Philippine phone number for programmatic/test requests when omitted
+            $input['phone_number'] = self::generateUniquePhoneNumber();
         }
 
-        if (isset($input['email']) && trim((string) $input['email']) !== '') {
-            $input['email'] = strtolower(trim((string) $input['email']));
-        } else {
-            $input['email'] = null;
-        }
-
-        // Auto-generate username from first and last name if not provided
+        // Auto-generate username and email from first and last name if not provided
         if (empty($input['username']) && ! empty($input['first_name']) && ! empty($input['last_name'])) {
-            $input['username'] = self::makeUniqueUsername(
-                self::generateBaseUsername($input['first_name'], $input['last_name'])
-            );
+            $input['username'] = self::generateBaseUsername($input['first_name'], $input['last_name']);
+        }
+        if (empty($input['email']) && ! empty($input['first_name']) && ! empty($input['last_name'])) {
+            $input['email'] = self::generateBaseEmail($input['first_name'], $input['last_name']);
+        }
+
+        // Automatically resolve any uniqueness collision with existing users (including soft-deleted)
+        if (! empty($input['username'])) {
+            $input['username'] = self::makeUniqueUsername($input['username']);
+        }
+        if (! empty($input['email'])) {
+            $input['email'] = self::makeUniqueEmail($input['email']);
         }
 
         $request->merge($input);
@@ -335,15 +341,28 @@ class UserController extends Controller
             ]);
         }
 
-        $baseUser   = self::generateBaseUsername($firstName, $lastName);
-        $baseEmail  = self::generateBaseEmail($firstName, $lastName);
-        $uniqueUser = self::makeUniqueUsername($baseUser);
+        $baseUser    = self::generateBaseUsername($firstName, $lastName);
+        $baseEmail   = self::generateBaseEmail($firstName, $lastName);
+        $uniqueUser  = self::makeUniqueUsername($baseUser);
+        $uniqueEmail = self::makeUniqueEmail($baseEmail);
 
         return response()->json([
             'username'     => $uniqueUser,
-            'email'        => $baseEmail,
-            'has_conflict' => ($uniqueUser !== $baseUser),
+            'email'        => $uniqueEmail,
+            'has_conflict' => ($uniqueUser !== $baseUser || $uniqueEmail !== $baseEmail),
         ]);
+    }
+
+    /**
+     * Generate a unique Philippine dummy phone number in +639XXXXXXXXX format.
+     */
+    public static function generateUniquePhoneNumber(): string
+    {
+        do {
+            $candidate = '+639' . str_pad((string) random_int(100000000, 999999999), 9, '0', STR_PAD_LEFT);
+        } while (User::where('phone_number', $candidate)->exists());
+
+        return $candidate;
     }
 
     /**
