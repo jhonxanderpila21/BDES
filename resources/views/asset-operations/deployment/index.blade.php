@@ -10,6 +10,7 @@
     {{-- Page Header --}}
     <x-page-header 
         title="Deployments & Returns"
+        subtitle="Track and manage field equipment deployments, borrower assignments, and return inspections."
         icon="fas fa-truck-ramp-box"
         :breadcrumbs="[
             ['label' => 'Dashboard', 'url' => route('dashboard')],
@@ -18,48 +19,52 @@
         ]"
     >
         <x-slot:actions>
-            <button onclick="openGenericRecordReturnModal()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm shadow-sm">
+            <button onclick="openGenericRecordReturnModal()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
                 <i class="fas fa-undo"></i>
                 Record Return
             </button>
-            <button onclick="openCreateDeploymentModal()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
+            <button onclick="openCreateDeploymentModal()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm shadow-sm">
                 <i class="fas fa-plus"></i>
                 Deploy Asset
             </button>
         </x-slot:actions>
     </x-page-header>
 
-    {{-- Dashboard Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    {{-- KPI Metric Summary Cards --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <x-kpi-card 
             title="Total Records" 
-            :value="$statusCounts['total']" 
+            :value="number_format($statusCounts['total'])" 
             icon="fas fa-clipboard-list" 
             color="blue" 
+            :active="!request('status')"
             :href="route('deployment.index')" 
         />
         <x-kpi-card 
             title="Active in Field" 
-            :value="$statusCounts['active']" 
+            :value="number_format($statusCounts['active'])" 
             icon="fas fa-truck" 
             color="emerald" 
             tooltip="Filter by Active"
+            :active="request('status') === 'active'"
             :href="route('deployment.index', ['status' => 'active'])" 
         />
         <x-kpi-card 
             title="Pending Return" 
-            :value="$statusCounts['pending_return']" 
+            :value="number_format($statusCounts['pending_return'])" 
             icon="fas fa-clock" 
             color="amber" 
             tooltip="Filter by Pending Return"
+            :active="request('status') === 'pending_return'"
             :href="route('deployment.index', ['status' => 'pending_return'])" 
         />
         <x-kpi-card 
             title="Returned" 
-            :value="$statusCounts['returned']" 
+            :value="number_format($statusCounts['returned'])" 
             icon="fas fa-circle-check" 
             color="purple" 
             tooltip="Filter by Returned"
+            :active="request('status') === 'returned'"
             :href="route('deployment.index', ['status' => 'returned'])" 
         />
     </div>
@@ -105,7 +110,8 @@
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Destination & Borrower</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Destination</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Borrower</th>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Deployment Date</th>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Expected Return</th>
                         <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
@@ -129,31 +135,33 @@
                                             {{ $deployment->asset->code ?? 'N/A' }}
                                         </span>
                                         <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $deployment->asset->name ?? 'Unknown Asset' }}</p>
-                                        <p class="text-xs text-gray-500">{{ $deployment->asset->category->name ?? 'Uncategorized' }}</p>
                                     </div>
                                 </div>
                             </td>
 
-                            {{-- Destination & Borrower --}}
+                            {{-- Destination --}}
                             <td class="px-6 py-4 align-middle text-sm text-left">
                                 <p class="font-medium text-gray-900 flex items-center gap-1.5">
                                     <i class="fas fa-location-dot text-red-500 text-xs"></i>
-                                    {{ $deployment->destination }}
+                                    <span>{{ $deployment->destination }}</span>
                                 </p>
-                                <p class="text-gray-700 text-xs mt-1 flex items-center gap-1.5 font-medium">
+                            </td>
+
+                            {{-- Borrower --}}
+                            <td class="px-6 py-4 align-middle text-sm text-left">
+                                <p class="text-gray-800 text-xs flex items-center gap-1.5 font-medium">
                                     @if($deployment->borrower_type === 'resident')
                                         <i class="fas fa-house-user text-purple-600 text-xs"></i>
                                         <span>{{ $deployment->borrower_name ?: ($deployment->responsible_person ?? 'Resident Borrower') }}</span>
-                                        <span class="px-1.5 py-0.2 rounded text-[10px] bg-purple-100 text-purple-800 font-semibold">Resident</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-purple-100 text-purple-800 font-semibold">Resident</span>
                                     @else
                                         <i class="fas fa-user-shield text-blue-600 text-xs"></i>
                                         <span>{{ $deployment->responsible_person ?: ($deployment->assigned_team ?? 'Field Team') }}</span>
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-800 font-semibold">Personnel</span>
                                     @endif
                                 </p>
-                                @if($deployment->purpose)
-                                    <p class="text-xs text-gray-400 mt-0.5 truncate max-w-xs" title="{{ $deployment->purpose }}">
-                                        {{ $deployment->purpose }}
-                                    </p>
+                                @if($deployment->borrower_type !== 'resident' && $deployment->assigned_team && $deployment->responsible_person)
+                                    <p class="text-xs text-gray-500 mt-0.5">{{ $deployment->assigned_team }}</p>
                                 @endif
                             </td>
 
@@ -180,14 +188,18 @@
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 @php
                                     $statusVariant = match($deployment->status) {
-                                        'active' => 'success',
+                                        'active' => 'info',
                                         'pending_return' => 'warning',
-                                        'returned' => 'secondary',
+                                        'returned' => 'success',
                                         default => 'info'
+                                    };
+                                    $statusLabel = match($deployment->status) {
+                                        'returned' => 'Available',
+                                        default => ucfirst(str_replace('_', ' ', $deployment->status))
                                     };
                                 @endphp
                                 <x-badge variant="{{ $statusVariant }}" size="sm">
-                                    {{ ucfirst(str_replace('_', ' ', $deployment->status)) }}
+                                    {{ $statusLabel }}
                                 </x-badge>
                             </td>
 
@@ -229,16 +241,26 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-1.5">
                                     @if(!$isReadOnlyStaff)
-                                        {{-- Return Equipment Button (for active/pending deployments) --}}
+                                        {{-- If currently deployed: show Return button (Blue); otherwise show Deploy button (Green) --}}
                                         @if($deployment->status !== 'returned')
                                             <button 
                                                 type="button"
                                                 onclick='openRecordReturnModal(@json($deployment))' 
-                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-colors shadow-xs" 
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-bold transition-colors shadow-xs" 
                                                 title="Record Return of this Borrowed Equipment"
                                             >
                                                 <i class="fas fa-undo"></i>
                                                 <span>Return</span>
+                                            </button>
+                                        @else
+                                            <button 
+                                                type="button"
+                                                onclick="openCreateDeploymentModal({{ $deployment->asset_id ?? 'null' }})" 
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-bold transition-colors shadow-xs" 
+                                                title="Deploy this Equipment"
+                                            >
+                                                <i class="fas fa-plus"></i>
+                                                <span>Deploy</span>
                                             </button>
                                         @endif
                                     @endif
@@ -268,7 +290,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
+                            <td colspan="8" class="px-6 py-12 text-center">
                                 <x-empty-state 
                                     icon="fas fa-truck-ramp-box" 
                                     title="No deployments found" 
@@ -399,7 +421,7 @@
             />
 
             <div class="flex gap-3 mt-6">
-                <x-button variant="primary" type="submit" class="flex-1" :disabled="$availableAssets->isEmpty()">
+                <x-button variant="success" type="submit" class="flex-1" :disabled="$availableAssets->isEmpty()">
                     <i class="fas fa-truck mr-1.5"></i> Confirm Deployment
                 </x-button>
                 <x-button variant="secondary" type="button" onclick="window.closeModal('create-deployment-modal')" class="flex-1">
@@ -790,7 +812,7 @@
             <div class="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
                 @if(!$isReadOnlyStaff)
                     <div class="flex items-center gap-2">
-                        <button type="button" id="dossier_process_return_btn" onclick="closeDeploymentDetailsAndReturn()" class="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                        <button type="button" id="dossier_process_return_btn" onclick="closeDeploymentDetailsAndReturn()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                             <i class="fas fa-undo"></i>
                             <span>Process Return of Asset</span>
                         </button>
@@ -814,7 +836,11 @@
             let currentDeploymentModalData = null;
 
             @if(!$isReadOnlyStaff)
-            function openCreateDeploymentModal() {
+            function openCreateDeploymentModal(assetId = null) {
+                const assetSelect = document.querySelector('#create-deployment-modal select[name="asset_id"]');
+                if (assetSelect) {
+                    assetSelect.value = assetId ? String(assetId) : '';
+                }
                 window.openModal('create-deployment-modal');
             }
 
@@ -933,9 +959,9 @@
                 // Status Badge
                 const status = deployment.status || 'active';
                 const statusBadges = {
-                    'active': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Active in Field</span>',
+                    'active': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">Active in Field</span>',
                     'pending_return': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">Pending Return</span>',
-                    'returned': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800 border border-purple-200">Returned</span>'
+                    'returned': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Available</span>'
                 };
                 let statusHtml = statusBadges[status] || `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">${status}</span>`;
 
@@ -1100,9 +1126,9 @@
                 const statusBadge = document.getElementById('edit_status_display');
                 if (statusBadge) {
                     const st = deployment.status || 'active';
-                    statusBadge.textContent = st.replace(/_/g, ' ').toUpperCase();
+                    statusBadge.textContent = st === 'returned' ? 'AVAILABLE' : st.replace(/_/g, ' ').toUpperCase();
                     statusBadge.className = 'font-bold text-xs uppercase px-2.5 py-0.5 rounded-full inline-block mt-0.5 ' + 
-                        (st === 'returned' ? 'bg-purple-100 text-purple-800 border border-purple-200' : 
+                        (st === 'returned' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 
                         (st === 'pending_return' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-blue-100 text-blue-800 border border-blue-200'));
                 }
 

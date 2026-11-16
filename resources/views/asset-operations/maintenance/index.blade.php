@@ -179,11 +179,11 @@
                     </button>
                     <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
                         <a href="{{ route('maintenance.index', array_merge(request()->except('record_type', 'logs_page'), ['tab' => 'logs', 'record_type' => 'all'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentRecordType === 'all' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Records</a>
-                        <a href="{{ route('maintenance.index', array_merge(request()->except('record_type', 'logs_page'), ['tab' => 'logs', 'record_type' => 'work_orders'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentRecordType === 'work_orders' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">
-                            <i class="fas fa-tools text-blue-500 mr-1.5"></i>Work Orders (WO)
-                        </a>
                         <a href="{{ route('maintenance.index', array_merge(request()->except('record_type', 'logs_page'), ['tab' => 'logs', 'record_type' => 'schedules'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentRecordType === 'schedules' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">
                             <i class="fas fa-calendar-check text-purple-500 mr-1.5"></i>Maintenance Schedules (SCHED)
+                        </a>
+                        <a href="{{ route('maintenance.index', array_merge(request()->except('record_type', 'logs_page'), ['tab' => 'logs', 'record_type' => 'work_orders'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentRecordType === 'work_orders' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">
+                            <i class="fas fa-tools text-blue-500 mr-1.5"></i>Work Orders (WO)
                         </a>
                     </div>
                 </div>
@@ -196,7 +196,6 @@
                     </button>
                     <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
                         <a href="{{ route('maintenance.index', array_merge(request()->except('type', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !request('type') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Types</a>
-                        <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'type' => 'preventive'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('type') === 'preventive' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">Preventive (Schedules)</a>
                         @foreach($maintenanceTypes as $t)
                             <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'type' => $t])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('type') === $t ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ ucfirst($t) }}</a>
                         @endforeach

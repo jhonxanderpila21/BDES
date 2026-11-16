@@ -91,10 +91,10 @@ class MaintenanceController extends Controller
                 $schedulesQuery->whereRaw('1 = 0');
             }
         }
-        $schedules = $schedulesQuery->latest('id')->paginate(10, ['*'], 'schedules_page')->withQueryString();
+        $schedules = $schedulesQuery->orderBy('id', 'asc')->paginate(10, ['*'], 'schedules_page')->withQueryString();
         $assetTypes = MaintenanceSchedule::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
-        $intervalTypes = MaintenanceScheduleService::intervalTypes();
-        $scheduleStatuses = MaintenanceScheduleService::statuses();
+        $intervalTypes = collect(MaintenanceScheduleService::intervalTypes())->sort()->values()->all();
+        $scheduleStatuses = collect(MaintenanceScheduleService::statuses())->sort()->values()->all();
 
         // 2. Maintenance Logs & Work Orders Tab Data
         $maintenancesQuery = Maintenance::with([
@@ -168,7 +168,7 @@ class MaintenanceController extends Controller
             });
         }
 
-        $mergedCollection = $workOrders->concat($scheduleItems)->sortByDesc('sort_date')->values();
+        $mergedCollection = $workOrders->concat($scheduleItems)->sortBy('sort_date')->values();
         $page = (int) $request->get('logs_page', 1);
         $perPage = 10;
         $maintenances = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -182,9 +182,9 @@ class MaintenanceController extends Controller
                 'query' => $request->query(),
             ]
         );
-        $maintenanceTypes = ['routine', 'preventive', 'repair', 'inspection', 'overhaul', 'emergency'];
-        $maintenanceStatuses = ['scheduled', 'in_progress', 'completed', 'pending'];
-        $priorityLevels = ['low', 'medium', 'high', 'urgent'];
+        $maintenanceTypes = ['emergency', 'inspection', 'overhaul', 'preventive', 'repair', 'routine'];
+        $maintenanceStatuses = ['completed', 'in_progress', 'pending', 'scheduled'];
+        $priorityLevels = ['high', 'low', 'medium', 'urgent'];
 
         // 3. Inspections Tab Data
         $inspectionsQuery = Inspection::with(['asset.category', 'asset.type', 'workOrders', 'receipts']);
@@ -207,9 +207,9 @@ class MaintenanceController extends Controller
         } elseif ($request->filled('status') && $activeTab === 'inspections' && in_array($request->status, ['completed', 'scheduled', 'overdue'], true)) {
             $inspectionsQuery->where('status', $request->status);
         }
-        $inspections = $inspectionsQuery->latest('id')->paginate(10, ['*'], 'inspections_page')->withQueryString();
-        $inspectionResults = ['passed', 'failed', 'conditional_pass'];
-        $inspectionStatuses = ['scheduled', 'completed', 'overdue'];
+        $inspections = $inspectionsQuery->orderBy('id', 'asc')->paginate(10, ['*'], 'inspections_page')->withQueryString();
+        $inspectionResults = ['conditional_pass', 'failed', 'passed'];
+        $inspectionStatuses = ['completed', 'overdue', 'scheduled'];
 
         // 4. Spare Parts & Components Inventory for Parts Selector
         $invAttachments = \App\Models\Attachment::where('quantity', '>', 0)->orderBy('name')->get()->map(function ($att) {

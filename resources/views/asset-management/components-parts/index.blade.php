@@ -113,7 +113,7 @@
         @else
             <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
-                @foreach(['good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
+                @foreach(['fair' => 'Fair', 'good' => 'Good', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>

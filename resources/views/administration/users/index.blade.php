@@ -49,8 +49,8 @@
             <select name="status" onchange="this.form.submit()" class="flex items-center gap-2 pl-4 pr-10 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <option value="">All Statuses</option>
                 <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Active</option>
-                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
                 <option value="archived" {{ request('status') === 'archived' ? 'selected' : '' }}>Archived (Deleted)</option>
+                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
         </form>
     </div>

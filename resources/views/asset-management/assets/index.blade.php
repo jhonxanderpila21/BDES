@@ -196,21 +196,21 @@
 
             <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
-                @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
+                @foreach(['excellent' => 'Excellent', 'fair' => 'Fair', 'good' => 'Good', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
 
             <select name="status" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Statuses</option>
-                @foreach(['available' => 'Available', 'deployed' => 'Deployed in Field', 'under_maintenance' => 'Under Maintenance', 'out_of_service' => 'Out of Service'] as $key => $label)
+                @foreach(['available' => 'Available', 'deployed' => 'Deployed in Field', 'out_of_service' => 'Out of Service', 'under_maintenance' => 'Under Maintenance'] as $key => $label)
                     <option value="{{ $key }}" {{ request('status') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
 
             <select name="sort_by" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="id" {{ request('sort_by') === 'id' ? 'selected' : '' }}>Sort: Default</option>
                 <option value="code" {{ request('sort_by') === 'code' ? 'selected' : '' }}>Sort: Asset Code</option>
+                <option value="id" {{ request('sort_by') === 'id' || !request('sort_by') ? 'selected' : '' }}>Sort: Default</option>
                 <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Name</option>
                 <option value="purchase_date" {{ request('sort_by') === 'purchase_date' ? 'selected' : '' }}>Sort: Purchase Date</option>
             </select>

@@ -62,7 +62,7 @@ class ReportedAssetController extends Controller
             $query->whereDate('reported_date', '<=', $request->date_to);
         }
 
-        $reports = $query->latest()->paginate(10)->withQueryString();
+        $reports = $query->orderBy('id', 'asc')->paginate(10)->withQueryString();
 
         // Dashboard summary — counts per status
         $statusCounts = [];
@@ -70,10 +70,10 @@ class ReportedAssetController extends Controller
             $statusCounts[$status] = ReportedAsset::where('status', $status)->count();
         }
 
-        // Dropdown data
+        // Dropdown data (sorted in ascending order)
         $assetCategories = ReportedAsset::select('asset_category')->distinct()->orderBy('asset_category')->pluck('asset_category');
-        $reportedTypes = ReportedAssetService::reportedTypes();
-        $statuses = ReportedAssetService::statuses();
+        $reportedTypes = collect(ReportedAssetService::reportedTypes())->sort()->values()->all();
+        $statuses = collect(ReportedAssetService::statuses())->sort()->values()->all();
         $assets = Asset::with('category')->orderBy('name')->get();
         $locations = \App\Models\Location::orderBy('name')->pluck('name');
         $personnelOptions = User::where('is_active', true)->orderBy('name')->get();

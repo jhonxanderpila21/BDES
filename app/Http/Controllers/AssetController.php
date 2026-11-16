@@ -94,7 +94,7 @@ class AssetController extends Controller
         // Sorting
         $allowedSorts = ['id', 'code', 'name', 'purchase_date', 'condition', 'status', 'acquisition_cost'];
         $sortBy = in_array($request->get('sort_by'), $allowedSorts, true) ? $request->get('sort_by') : 'id';
-        $sortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $sortDir = strtolower($request->get('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
 
         $assets = $assetsQuery->orderBy($sortBy, $sortDir)->paginate(10, ['*'], 'assets_page')->withQueryString();
 

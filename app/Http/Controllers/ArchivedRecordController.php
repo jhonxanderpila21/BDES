@@ -40,7 +40,7 @@ class ArchivedRecordController extends Controller
 
         $records = ArchiveService::getArchivedRecords($filters, 15);
         $metrics = ArchiveService::getMetrics();
-        $modules = ArchiveService::registry();
+        $modules = collect(ArchiveService::registry())->sortBy('label')->all();
         $users = User::orderBy('name')->get();
 
         return view('tracking-and-reporting.archived-records.index', compact(

@@ -54,7 +54,7 @@ class DeploymentController extends Controller
             $query->where('status', $request->status);
         }
 
-        $deployments = $query->latest('id')->paginate(10)->withQueryString();
+        $deployments = $query->orderBy('id', 'asc')->paginate(10)->withQueryString();
 
         // Status counts for summary metric cards
         $statusCounts = [
@@ -68,13 +68,14 @@ class DeploymentController extends Controller
         $availableAssets = Asset::with('category')
             ->where('status', 'available')
             ->whereNotIn('condition', ['fair', 'poor'])
+            ->orderBy('code')
             ->orderBy('name')
             ->get();
 
         // Active deployments for quick return modal
         $activeDeployments = Deployment::with(['asset.category', 'asset.type', 'approvedByUser'])
             ->where('status', '!=', 'returned')
-            ->orderBy('id', 'desc')
+            ->orderBy('id', 'asc')
             ->get();
 
         $locations = Location::orderBy('name')->get();
@@ -319,13 +320,9 @@ class DeploymentController extends Controller
             // Update asset status and condition
             $asset = $deployment->asset;
             if ($asset) {
-                $newAssetStatus = match ($validated['condition']) {
-                    'fair' => 'under_maintenance',
-                    'poor' => 'out_of_service',
-                    default => 'available',
-                };
+                $newAssetStatus = 'available';
                 $asset->status = $newAssetStatus;
-                $asset->condition = $newAssetStatus === 'available' ? 'excellent' : $validated['condition'];
+                $asset->condition = $validated['condition'];
 
                 // Sync location if matched
                 if (!empty($validated['actual_location'])) {

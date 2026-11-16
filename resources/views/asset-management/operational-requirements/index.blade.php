@@ -98,14 +98,14 @@
 
         <select name="asset_type" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             <option value="">Asset Type</option>
-            @foreach($needAssetTypes->merge($assetTypes->pluck('name'))->unique() as $t)
+            @foreach($needAssetTypes->merge($assetTypes->pluck('name'))->unique()->sort(SORT_NATURAL | SORT_FLAG_CASE) as $t)
                 <option value="{{ $t }}" {{ request('asset_type') == $t ? 'selected' : '' }}>{{ $t }}</option>
             @endforeach
         </select>
 
         <select name="unit" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
             <option value="">Unit</option>
-            @foreach($units as $u)
+            @foreach(collect($units)->sort(SORT_NATURAL | SORT_FLAG_CASE) as $u)
                 <option value="{{ $u }}" {{ request('unit') == $u ? 'selected' : '' }}>{{ $u }}</option>
             @endforeach
         </select>

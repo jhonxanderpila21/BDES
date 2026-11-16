@@ -22,7 +22,7 @@ class ExpenseController extends Controller
             'max_amount'   => $request->get('max_amount'),
             'has_receipts' => $request->boolean('has_receipts'),
             'sort_by'      => $request->get('sort_by', 'date'),
-            'sort_dir'     => $request->get('sort_dir', 'desc'),
+            'sort_dir'     => $request->get('sort_dir', 'asc'),
         ];
 
         $fullLedger = ExpenseLedgerService::getLedger($filters);
@@ -51,7 +51,7 @@ class ExpenseController extends Controller
             'max_amount'   => $request->get('max_amount'),
             'has_receipts' => $request->boolean('has_receipts'),
             'sort_by'      => $request->get('sort_by', 'date'),
-            'sort_dir'     => $request->get('sort_dir', 'desc'),
+            'sort_dir'     => $request->get('sort_dir', 'asc'),
         ];
 
         $ledger = ExpenseLedgerService::getLedger($filters);

@@ -105,11 +105,11 @@
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Expense Type</label>
                     <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
                         <option value="all" {{ request('category') === 'all' || !request('category') ? 'selected' : '' }}>All Types</option>
+                        <option value="accessory" {{ request('category') === 'accessory' ? 'selected' : '' }}>Accessories</option>
                         <option value="asset" {{ request('category') === 'asset' ? 'selected' : '' }}>Asset Purchases</option>
+                        <option value="attachment" {{ request('category') === 'attachment' ? 'selected' : '' }}>Attachments</option>
                         <option value="maintenance" {{ request('category') === 'maintenance' ? 'selected' : '' }}>Maintenance & Repairs</option>
                         <option value="operational_requirement" {{ request('category') === 'operational_requirement' ? 'selected' : '' }}>Supplies & Restocks</option>
-                        <option value="accessory" {{ request('category') === 'accessory' ? 'selected' : '' }}>Accessories</option>
-                        <option value="attachment" {{ request('category') === 'attachment' ? 'selected' : '' }}>Attachments</option>
                     </select>
                 </div>
 
@@ -117,9 +117,9 @@
                 <div>
                     <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Sort By</label>
                     <select name="sort_by" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
-                        <option value="date" {{ request('sort_by') === 'date' || !request('sort_by') ? 'selected' : '' }}>Date (Newest First)</option>
-                        <option value="total_cost" {{ request('sort_by') === 'total_cost' ? 'selected' : '' }}>Total Cost (Highest First)</option>
+                        <option value="date" {{ request('sort_by') === 'date' || !request('sort_by') ? 'selected' : '' }}>Date (Ascending)</option>
                         <option value="item_name" {{ request('sort_by') === 'item_name' ? 'selected' : '' }}>Item Name (A to Z)</option>
+                        <option value="total_cost" {{ request('sort_by') === 'total_cost' ? 'selected' : '' }}>Total Cost (Ascending)</option>
                     </select>
                 </div>
             </div>

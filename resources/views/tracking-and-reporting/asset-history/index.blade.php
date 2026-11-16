@@ -113,10 +113,10 @@
         <select name="event" onchange="this.form.submit()" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
             <option value="">All Event Types</option>
             <option value="created" {{ request('event') === 'created' ? 'selected' : '' }}>Created</option>
-            <option value="updated" {{ request('event') === 'updated' ? 'selected' : '' }}>Updated</option>
+            <option value="deleted" {{ request('event') === 'deleted' ? 'selected' : '' }}>Deleted</option>
             <option value="location_changed" {{ request('event') === 'location_changed' ? 'selected' : '' }}>Location Changed</option>
             <option value="status_changed" {{ request('event') === 'status_changed' ? 'selected' : '' }}>Status Changed</option>
-            <option value="deleted" {{ request('event') === 'deleted' ? 'selected' : '' }}>Deleted</option>
+            <option value="updated" {{ request('event') === 'updated' ? 'selected' : '' }}>Updated</option>
         </select>
 
         @if(auth()->user()->isAdmin() || $isReadOnlyStaff)

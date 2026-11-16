@@ -93,10 +93,10 @@
             <div class="w-full sm:w-48">
                 <select name="type" onchange="this.form.submit()" class="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                     <option value="">All Facility Types</option>
-                    <option value="storage" {{ request('type') === 'storage' ? 'selected' : '' }}>Storage</option>
-                    <option value="office" {{ request('type') === 'office' ? 'selected' : '' }}>Office</option>
                     <option value="depot" {{ request('type') === 'depot' ? 'selected' : '' }}>Depot</option>
                     <option value="field" {{ request('type') === 'field' ? 'selected' : '' }}>Field Station</option>
+                    <option value="office" {{ request('type') === 'office' ? 'selected' : '' }}>Office</option>
+                    <option value="storage" {{ request('type') === 'storage' ? 'selected' : '' }}>Storage</option>
                 </select>
             </div>
 

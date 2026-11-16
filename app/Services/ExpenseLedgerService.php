@@ -257,7 +257,7 @@ class ExpenseLedgerService
         }
 
         // 6. Sorting
-        $sortDir = strtolower($filters['sort_dir'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+        $sortDir = strtolower($filters['sort_dir'] ?? 'asc') === 'desc' ? 'desc' : 'asc';
         $sortBy = $filters['sort_by'] ?? 'date';
 
         if ($sortBy === 'total_cost') {

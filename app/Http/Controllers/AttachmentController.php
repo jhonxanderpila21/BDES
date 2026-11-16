@@ -46,7 +46,7 @@ class AttachmentController extends Controller
         ];
 
         // Reference Datasets
-        $assets = Asset::with('type')->orderBy('name')->get();
+        $assets = Asset::with('type')->orderBy('code')->orderBy('name')->get();
         $assetTypes = AssetType::orderBy('name')->get();
 
         // 1. Attachments Data Query
@@ -118,38 +118,38 @@ class AttachmentController extends Controller
         }
 
         // Sorting & Pagination handling
-        $sortDir = strtolower($request->get('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $sortDir = strtolower($request->get('sort_dir', 'asc')) === 'desc' ? 'desc' : 'asc';
         $sortBy = $request->get('sort_by');
 
         if ($activeTab === 'attachments') {
             $allowedSorts = ['id', 'name', 'type', 'quantity', 'condition', 'created_at'];
             $sortColumn = in_array($sortBy, $allowedSorts, true) ? $sortBy : 'id';
             $attachments = $attachmentsQuery->orderBy($sortColumn, $sortDir)->paginate(10, ['*'], 'attachments_page')->withQueryString();
-            $accessories = AssetAccessory::with('asset')->latest('id')->paginate(10, ['*'], 'accessories_page');
+            $accessories = AssetAccessory::with('asset')->orderBy('id', 'asc')->paginate(10, ['*'], 'accessories_page');
             $items = $attachments;
         } elseif ($activeTab === 'accessories') {
             $allowedAccessorySorts = ['id', 'accessory_name', 'asset_type', 'quantity', 'unit_cost', 'status', 'created_at'];
             $accSortColumn = in_array($sortBy, $allowedAccessorySorts, true) ? $sortBy : 'id';
             $accessories = $accessoriesQuery->orderBy($accSortColumn, $sortDir)->paginate(10, ['*'], 'accessories_page')->withQueryString();
-            $attachments = Attachment::with(['asset', 'assetType'])->latest('id')->paginate(10, ['*'], 'attachments_page');
+            $attachments = Attachment::with(['asset', 'assetType'])->orderBy('id', 'asc')->paginate(10, ['*'], 'attachments_page');
             $items = $accessories;
         } else {
             // 'all' tab: Merge both into unified collection
-            $attList = $attachmentsQuery->latest('id')->get()->map(function ($att) {
+            $attList = $attachmentsQuery->orderBy('id', 'asc')->get()->map(function ($att) {
                 $att->is_accessory = false;
                 $att->display_name = $att->name;
                 $att->classification = $att->type ?: 'Attachment';
                 $att->for_asset_type = $att->assetType->name ?? 'Any';
-                $att->sort_date = $att->created_at ? $att->created_at->timestamp : $att->id;
+                $att->sort_date = $att->id;
                 return $att;
             });
 
-            $accList = $accessoriesQuery->latest('id')->get()->map(function ($acc) {
+            $accList = $accessoriesQuery->orderBy('id', 'asc')->get()->map(function ($acc) {
                 $acc->is_accessory = true;
                 $acc->display_name = $acc->accessory_name;
                 $acc->classification = 'Accessory';
                 $acc->for_asset_type = $acc->asset_type ?: 'Any';
-                $acc->sort_date = $acc->created_at ? $acc->created_at->timestamp : $acc->id;
+                $acc->sort_date = $acc->id;
                 return $acc;
             });
 
@@ -194,7 +194,7 @@ class AttachmentController extends Controller
                 return $itemGroup->sum('total_value');
             });
         $accessoryAssetTypes = AssetAccessory::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
-        $accessoryStatuses = AssetAccessoryService::statuses();
+        $accessoryStatuses = collect(AssetAccessoryService::statuses())->sort()->values()->all();
 
         return view('asset-management.components-parts.index', compact(
             'activeTab',

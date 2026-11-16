@@ -52,7 +52,7 @@ class OperationalRequirementController extends Controller
             $reqQuery->whereColumn('current_level', '<=', 'minimum_level');
         }
 
-        $requirements = $reqQuery->latest('id')->paginate(10, ['*'], 'requirements_page')->withQueryString();
+        $requirements = $reqQuery->orderBy('requirement_type', 'asc')->paginate(10, ['*'], 'requirements_page')->withQueryString();
         $assetTypes = AssetType::where('name', 'not like', '%Fire Extinguisher%')->orderBy('name')->get();
 
         // 2. Equipment Supply Needs & Allocations Query
@@ -88,10 +88,10 @@ class OperationalRequirementController extends Controller
             $needsQuery->whereIn('status', ['Requires Maintenance', 'Under Maintenance']);
         }
 
-        $assetNeeds = $needsQuery->latest('id')->paginate(10, ['*'], 'needs_page')->withQueryString();
+        $assetNeeds = $needsQuery->orderBy('requirement', 'asc')->paginate(10, ['*'], 'needs_page')->withQueryString();
         $needAssetTypes = \App\Models\AssetNeed::select('asset_type')->distinct()->orderBy('asset_type')->pluck('asset_type');
-        $units = \App\Services\AssetNeedStatusService::units();
-        $statuses = \App\Services\AssetNeedStatusService::statuses();
+        $units = collect(\App\Services\AssetNeedStatusService::units())->sort()->values()->all();
+        $statuses = collect(\App\Services\AssetNeedStatusService::statuses())->sort()->values()->all();
         $assets = \App\Models\Asset::with('type')
             ->whereDoesntHave('type', function ($q) {
                 $q->where('name', 'like', '%Fire Extinguisher%');
@@ -140,7 +140,7 @@ class OperationalRequirementController extends Controller
             ]);
         }
 
-        $sortedItems = $mergedCollection->sortByDesc('created_at')->values();
+        $sortedItems = $mergedCollection->sortBy(fn($item) => strtolower($item->name))->values();
 
         // Paginate unified list
         $page = (int) $request->get('page', 1);
