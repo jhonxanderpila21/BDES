@@ -22,22 +22,17 @@
             <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">
                 Username
             </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <i class="fas fa-user text-sm"></i>
-                </div>
-                <input
-                    id="username"
-                    type="text"
-                    name="username"
-                    value="{{ old('username') }}"
-                    required
-                    autofocus
-                    autocomplete="username"
-                    placeholder="Enter your username"
-                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                />
-            </div>
+            <input
+                id="username"
+                type="text"
+                name="username"
+                value="{{ old('username') }}"
+                required
+                autofocus
+                autocomplete="username"
+                placeholder="Enter your username"
+                class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
             <x-input-error :messages="$errors->get('username')" class="mt-1.5 text-xs text-red-600" />
             <x-input-error :messages="$errors->get('email')" class="mt-1.5 text-xs text-red-600" />
         </div>
@@ -47,20 +42,15 @@
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">
                 Password
             </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <i class="fas fa-lock text-sm"></i>
-                </div>
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    autocomplete="current-password"
-                    placeholder="••••••••"
-                    class="w-full pl-10 pr-10 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                />
-            </div>
+            <input
+                id="password"
+                type="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
             <x-input-error :messages="$errors->get('password')" class="mt-1.5 text-xs text-red-600" />
         </div>
 

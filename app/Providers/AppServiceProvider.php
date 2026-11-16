@@ -34,10 +34,10 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Deployment::class, DeploymentPolicy::class);
         Gate::policy(Maintenance::class, MaintenancePolicy::class);
 
-        // Share real-time notifications with the admin top navigation bar
-        View::composer('admin.partials.navbar', function ($view) {
+        // Share real-time notifications with the top navigation bar and sidebar
+        View::composer(['partials.navbar', 'partials.sidebar', 'admin.partials.navbar'], function ($view) {
             $notificationService = app(NotificationService::class);
-            $view->with('navbarNotifications', $notificationService->getRecentNotifications(15));
+            $view->with('navbarNotifications', $notificationService->getRecentNotifications(20));
         });
     }
 

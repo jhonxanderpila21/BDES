@@ -61,7 +61,7 @@ class ArchiveService
             ],
             'maintenances' => [
                 'key'         => 'maintenances',
-                'label'       => 'Maintenance & Work Orders',
+                'label'       => 'Maintenance',
                 'model'       => Maintenance::class,
                 'name_field'  => 'type',
                 'code_field'  => 'work_order_number',

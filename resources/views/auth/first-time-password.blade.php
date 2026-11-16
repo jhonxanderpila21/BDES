@@ -20,21 +20,16 @@
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1.5">
                 New Password
             </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <i class="fas fa-lock text-sm"></i>
-                </div>
-                <input
-                    id="password"
-                    type="password"
-                    name="password"
-                    required
-                    autofocus
-                    autocomplete="new-password"
-                    placeholder="Enter new strong password"
-                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                />
-            </div>
+            <input
+                id="password"
+                type="password"
+                name="password"
+                required
+                autofocus
+                autocomplete="new-password"
+                placeholder="Enter new strong password"
+                class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
             <p class="mt-1 text-[11px] text-gray-500">
                 Must be at least 8 characters and include uppercase, lowercase, and numbers.
             </p>
@@ -46,20 +41,15 @@
             <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1.5">
                 Confirm Password
             </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <i class="fas fa-check-double text-sm"></i>
-                </div>
-                <input
-                    id="password_confirmation"
-                    type="password"
-                    name="password_confirmation"
-                    required
-                    autocomplete="new-password"
-                    placeholder="Re-enter new password"
-                    class="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                />
-            </div>
+            <input
+                id="password_confirmation"
+                type="password"
+                name="password_confirmation"
+                required
+                autocomplete="new-password"
+                placeholder="Re-enter new password"
+                class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-1.5 text-xs text-red-600" />
         </div>
 
@@ -88,4 +78,3 @@
         </form>
     </div>
 </x-guest-layout>
-

@@ -14,6 +14,12 @@
         <p class="text-xs text-gray-400 mt-1">
             For your security, the code expires in 5 minutes.
         </p>
+        @if (! app()->environment('production') && config('services.sms.demo_otp'))
+            <div class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-medium text-blue-700">
+                <i class="fas fa-flask text-[11px]"></i>
+                <span>Demo OTP Code: <strong class="tracking-wider">{{ config('services.sms.demo_otp') }}</strong></span>
+            </div>
+        @endif
     </div>
 
     <!-- Verify OTP Form -->

@@ -76,6 +76,17 @@
     class="fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-auto flex-shrink-0 h-screen bg-[#003366] text-white border-r border-[#002244] overflow-hidden shadow-2xl lg:shadow-md select-none"
 >
     <nav class="h-screen overflow-y-auto">
+        {{-- Top-Left Brand Logo Header (aligned with top navbar height) --}}
+        <div class="px-4 h-[68px] border-b border-white/10 flex items-center">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0">
+                <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-10 h-10 object-cover aspect-square rounded-full ring-2 ring-white/20 shadow-sm shrink-0">
+                <div class="min-w-0">
+                    <h2 class="text-base font-extrabold text-white tracking-wide leading-tight truncate">BDES</h2>
+                    <p class="text-xs font-medium text-[#60A5FA] leading-tight truncate">Disaster Assets</p>
+                </div>
+            </a>
+        </div>
+
         {{-- Sidebar Content --}}
         <div class="p-4 space-y-2">
 
@@ -86,6 +97,25 @@
             >
                 <i class="fas fa-th-large w-5 text-center {{ $directIconClass($isActive('dashboard')) }}"></i>
                 <span>Dashboard</span>
+            </a>
+
+            {{-- 1b. Notifications & Equipment Updates (Direct Link with Unread Badge) --}}
+            @php
+                $sidebarUnreadCount = (int) ($navbarNotifications['unread_count'] ?? 0);
+            @endphp
+            <a
+                href="{{ route('notifications.index') }}"
+                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm font-medium {{ $directLinkClass($isActive('notifications.*')) }}"
+            >
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-bell w-5 text-center {{ $directIconClass($isActive('notifications.*')) }}"></i>
+                    <span>Notifications</span>
+                </div>
+                @if($sidebarUnreadCount > 0)
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shadow-xs">
+                        {{ $sidebarUnreadCount > 99 ? '99+' : $sidebarUnreadCount }}
+                    </span>
+                @endif
             </a>
 
             {{-- 2. Asset Management Dropdown --}}

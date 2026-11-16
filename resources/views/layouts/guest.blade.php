@@ -16,6 +16,21 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        <style>
+            body, p, span, label, input, select, textarea, button, a,
+            .text-xs, .text-sm, .text-\[10px\], .text-\[11px\], .text-\[12px\] {
+                font-size: 14px !important;
+                line-height: 1.45 !important;
+            }
+            h1, .text-2xl {
+                font-size: 1.5rem !important;
+                line-height: 2rem !important;
+            }
+            h2, .text-xl {
+                font-size: 1.25rem !important;
+                line-height: 1.75rem !important;
+            }
+        </style>
     </head>
     <body class="font-sans text-gray-900 antialiased bg-gray-50 min-h-screen">
         <div class="min-h-screen flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
