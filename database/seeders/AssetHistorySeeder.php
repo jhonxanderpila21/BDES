@@ -15,7 +15,7 @@ class AssetHistorySeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::where('role', 'administrator')->first() ?? User::first();
+        $admin  = User::where('role', 'administrator')->first() ?? User::first();
         $member = User::where('role', 'inventory_officer')->first() ?? User::where('role', 'bdrrmc_officer')->first() ?? $admin;
 
         $assets = Asset::all()->keyBy('code');
@@ -27,104 +27,122 @@ class AssetHistorySeeder extends Seeder
         $now = Carbon::now();
 
         $logs = [
-            // Generator events
+            // Fire Truck – Tanker events
             [
-                'code'        => 'GEN-001',
+                'code'        => 'TRK-001',
                 'user_id'     => $admin?->id,
                 'event'       => 'created',
-                'description' => 'Initial asset registration and commissioning into disaster inventory details.',
+                'description' => 'Registered Fire Truck – Tanker with 7x 1½-inch hoses, 3x 2½-inch hoses, 1x 2½-inch hose peed, spanner, yabie tubo, vice grip, cutter pliers, and electrical pliers.',
                 'old_values'  => null,
-                'new_values'  => ['status' => 'available', 'condition' => 'excellent', 'location_id' => 1],
+                'new_values'  => ['status' => 'available', 'condition' => 'good', 'location_id' => 2],
                 'created_at'  => $now->copy()->subMonths(6),
             ],
             [
-                'code'        => 'GEN-001',
-                'user_id'     => $member?->id,
-                'event'       => 'status_changed',
-                'description' => 'Dispatched generator to Barangay Evacuation Center during Typhoon advisory standby.',
-                'old_values'  => ['status' => 'available'],
-                'new_values'  => ['status' => 'deployed'],
-                'created_at'  => $now->copy()->subMonths(3),
-            ],
-            [
-                'code'        => 'GEN-001',
-                'user_id'     => $member?->id,
-                'event'       => 'status_changed',
-                'description' => 'Returned from evacuation center post-standby in clean, operational condition.',
-                'old_values'  => ['status' => 'deployed'],
-                'new_values'  => ['status' => 'available'],
-                'created_at'  => $now->copy()->subMonths(2)->subDays(10),
-            ],
-            [
-                'code'        => 'GEN-001',
+                'code'        => 'TRK-001',
                 'user_id'     => $member?->id,
                 'event'       => 'updated',
-                'description' => 'Preventive maintenance oil and air filter replacement performed by BDRRMC mechanics.',
-                'old_values'  => ['notes' => 'Portable generator for evacuation center use'],
-                'new_values'  => ['notes' => 'Synthetic engine oil replaced, spark plug cleaned.'],
+                'description' => 'Completed monthly pump test and verified all 7x 1½-inch and 3x 2½-inch fire hoses onboard.',
+                'old_values'  => ['notes' => 'Initial apparatus commissioning'],
+                'new_values'  => ['notes' => 'Pump pressure tested at 150 PSI; all hoses and truck hand tools accounted for.'],
                 'created_at'  => $now->copy()->subDays(12),
             ],
 
-            // Rescue Boat events
+            // Fire Truck – Penetrator events
             [
-                'code'        => 'BOT-001',
+                'code'        => 'TRK-002',
                 'user_id'     => $admin?->id,
                 'event'       => 'created',
-                'description' => 'Registered marine rescue asset: 19ft fiberglass hull with 15HP outboard engine.',
+                'description' => 'Registered Fire Truck – Penetrator with 6x 1½-inch hoses, 2x 2½-inch hoses, 1x 2½-inch hose peed, and complete truck tool set.',
                 'old_values'  => null,
-                'new_values'  => ['status' => 'available', 'condition' => 'good', 'acquisition_cost' => 285000.00],
-                'created_at'  => $now->copy()->subMonths(10),
+                'new_values'  => ['status' => 'available', 'condition' => 'good', 'location_id' => 2],
+                'created_at'  => $now->copy()->subMonths(5),
             ],
             [
-                'code'        => 'BOT-001',
+                'code'        => 'TRK-002',
                 'user_id'     => $member?->id,
                 'event'       => 'status_changed',
-                'description' => 'Mobilized for riverbank flood rescue drills at Sector 4.',
+                'description' => 'Dispatched Penetrator Fire Truck for grass fire containment at Purok C.',
                 'old_values'  => ['status' => 'available'],
                 'new_values'  => ['status' => 'deployed'],
-                'created_at'  => $now->copy()->subMonths(1),
+                'created_at'  => $now->copy()->subDays(10),
             ],
             [
-                'code'        => 'BOT-001',
+                'code'        => 'TRK-002',
                 'user_id'     => $member?->id,
                 'event'       => 'status_changed',
-                'description' => 'Returned to Marine Depot Station; hull washed down with fresh water.',
+                'description' => 'Returned Penetrator to Purok A Fire Station; all 6x 1½-inch and 2x 2½-inch hoses washed and dried.',
                 'old_values'  => ['status' => 'deployed'],
                 'new_values'  => ['status' => 'available'],
-                'created_at'  => $now->copy()->subDays(20),
+                'created_at'  => $now->copy()->subDays(9),
             ],
 
-            // Chainsaw events
+            // Chainsaws (2 large, 2 small) events
             [
                 'code'        => 'SAW-001',
                 'user_id'     => $member?->id,
+                'event'       => 'updated',
+                'description' => 'Inspected all 4 chainsaws (2 large, 2 small) and topped up 2-stroke fuel premix and bar oil.',
+                'old_values'  => ['condition' => 'good'],
+                'new_values'  => ['condition' => 'good', 'notes' => '2 large and 2 small chainsaws ready for storm clearing.'],
+                'created_at'  => $now->copy()->subDays(7),
+            ],
+
+            // 1½-inch Fire Hose – 1 (FH-005) — Complete System Damage Workflow
+            [
+                'code'        => 'FH-005',
+                'user_id'     => $admin?->id,
+                'event'       => 'created',
+                'description' => 'Initial asset registration into Purok A Fire Station inventory.',
+                'old_values'  => null,
+                'new_values'  => ['status' => 'available', 'condition' => 'good', 'location_id' => 2],
+                'created_at'  => $now->copy()->subMonths(4),
+            ],
+            [
+                'code'        => 'FH-005',
+                'user_id'     => $member?->id,
                 'event'       => 'status_changed',
-                'description' => 'Flagged out of service following hard clearing operations: Carburetor clogged.',
-                'old_values'  => ['status' => 'available', 'condition' => 'fair'],
+                'description' => 'Deployed to [Purok B Residential Fire Incident] with Alpha Fire Suppression Crew.',
+                'old_values'  => ['status' => 'available'],
+                'new_values'  => ['status' => 'deployed'],
+                'created_at'  => $now->copy()->subDays(6),
+            ],
+            [
+                'code'        => 'FH-005',
+                'user_id'     => $member?->id,
+                'event'       => 'status_changed',
+                'description' => 'Asset returned from deployment to [Purok B Residential Fire Incident]. Post-operation condition: [poor]. Returned to: Purok A Fire Station',
+                'old_values'  => ['status' => 'deployed', 'condition' => 'good'],
                 'new_values'  => ['status' => 'out_of_service', 'condition' => 'poor'],
                 'created_at'  => $now->copy()->subDays(5),
             ],
 
-            // Zoll AED events
+            // 2½-inch Fire Hose – 1 (FH-006) — Complete System Damage Workflow
             [
-                'code'        => 'AED-001',
+                'code'        => 'FH-006',
                 'user_id'     => $admin?->id,
-                'event'       => 'updated',
-                'description' => 'Semi-annual calibration check passed: Self-test diagnostic status verified operational.',
-                'old_values'  => ['notes' => 'Batteries replaced 2024'],
-                'new_values'  => ['notes' => 'Diagnostic test passed; defibrillation pads verified sealed.'],
-                'created_at'  => $now->copy()->subHours(8),
+                'event'       => 'created',
+                'description' => 'Initial asset registration into Purok A Fire Station inventory.',
+                'old_values'  => null,
+                'new_values'  => ['status' => 'available', 'condition' => 'good', 'location_id' => 2],
+                'created_at'  => $now->copy()->subMonths(4),
             ],
-
-            // Patrol Vehicle events
             [
-                'code'        => 'VEH-001',
+                'code'        => 'FH-006',
                 'user_id'     => $member?->id,
                 'event'       => 'status_changed',
-                'description' => 'Deployed Multicab on routine barangay disaster mitigation and flood monitoring rounds.',
+                'description' => 'Deployed to [Zone 2 Warehouse Fire Hydrant Relay] with Rapid Intervention Fire Unit.',
                 'old_values'  => ['status' => 'available'],
                 'new_values'  => ['status' => 'deployed'],
-                'created_at'  => $now->copy()->subHours(2),
+                'created_at'  => $now->copy()->subDays(4),
+            ],
+            [
+                'code'        => 'FH-006',
+                'user_id'     => $member?->id,
+                'event'       => 'status_changed',
+                'description' => 'Asset returned from deployment to [Zone 2 Warehouse Fire Hydrant Relay]. Post-operation condition: [poor]. Returned to: Purok A Fire Station',
+                'old_values'  => ['status' => 'deployed', 'condition' => 'good'],
+                'new_values'  => ['status' => 'out_of_service', 'condition' => 'poor'],
+                'created_at'  => $now->copy()->subDays(3),
             ],
         ];
 
@@ -149,4 +167,3 @@ class AssetHistorySeeder extends Seeder
         }
     }
 }
-
