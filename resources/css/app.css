@@ -38,6 +38,54 @@
 body {
     background-color: var(--bdes-soft-white) !important;
     color: var(--bdes-charcoal);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Enforce 14px minimum readable typography across content, tables, forms, and UI elements */
+main,
+main p,
+main span,
+main td,
+main th,
+main label,
+main input,
+main select,
+main textarea,
+main button,
+main a,
+.text-xs,
+.text-sm,
+.text-\[10px\],
+.text-\[11px\],
+.text-\[12px\],
+.text-\[13px\],
+.text-\[14px\] {
+    font-size: 14px !important;
+    line-height: 1.45 !important;
+}
+
+/* Enforce compact table cell padding so wide tables fit cleanly inside cards without clipping */
+main table th,
+main table td {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+}
+
+/* Preserve larger headings above 14px */
+h1, .text-3xl, .text-2xl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+}
+
+h2, .text-xl {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+}
+
+h3, .text-lg, .text-base {
+    font-size: 1.05rem !important;
+    line-height: 1.5rem !important;
 }
 
 /* Page titles & Headings */

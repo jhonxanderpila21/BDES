@@ -11,7 +11,7 @@
     <x-page-header 
         title="Asset Components and Parts"
         icon="fas fa-puzzle-piece"
-        subtitle="Unified registry and lifecycle tracking for asset components, replacement parts, and equipment hardware"
+        subtitle="Track and manage equipment components, replacement parts, and accessories"
         :breadcrumbs="[
             ['label' => 'Dashboard', 'url' => route('dashboard')],
             ['label' => 'Asset Management'],
@@ -56,7 +56,7 @@
             :value="$metrics['total_components']" 
             icon="fas fa-puzzle-piece" 
             color="blue" 
-            subtitle="Distinct items registered" 
+            subtitle="Total registered items" 
             :href="route('attachments.index', ['tab' => 'all'])" 
         />
         <x-kpi-card 
@@ -64,21 +64,21 @@
             :value="$metrics['total_available_units']" 
             icon="fas fa-boxes-stacked" 
             color="indigo" 
-            subtitle="Total physical inventory" 
+            subtitle="Items currently in stock" 
         />
         <x-kpi-card 
             title="Available In-Service" 
             :value="$metrics['available_components'] ?? 0" 
             icon="fas fa-check-circle" 
             color="emerald" 
-            subtitle="Ready for deployment" 
+            subtitle="Ready to use" 
         />
         <x-kpi-card 
             title="Total Valuation" 
             :value="'₱' . number_format($metrics['total_inventory_value'], 2)" 
             icon="fas fa-coins" 
             color="purple" 
-            subtitle="Recorded parts valuation" 
+            subtitle="Total recorded value" 
         />
     </div>
 
@@ -91,7 +91,7 @@
                 type="text" 
                 name="search" 
                 value="{{ request('search') }}" 
-                placeholder="{{ $activeTab === 'accessories' ? 'Search accessory name, asset type, or linked asset...' : ($activeTab === 'attachments' ? 'Search attachment name, type, or linked asset...' : 'Search component or part name, type, or linked asset...') }}"
+                placeholder="Search component or part name, asset type, or linked asset..."
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
         </div>
@@ -110,31 +110,10 @@
                     <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ $s }}</option>
                 @endforeach
             </select>
-        @elseif($activeTab === 'attachments')
-            <select name="type" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">All Types</option>
-                @foreach(['Hose', 'Bracket', 'Cable', 'Mount', 'Hardware', 'Adapter', 'Rope', 'Strap', 'Nozzle'] as $t)
-                    <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
-                @endforeach
-            </select>
-
-            <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">All Conditions</option>
-                @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
-                    <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
-                @endforeach
-            </select>
         @else
-            <select name="type" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">All Classifications</option>
-                @foreach(['Hose', 'Bracket', 'Cable', 'Mount', 'Hardware', 'Adapter', 'Rope', 'Strap', 'Nozzle', 'Accessory'] as $t)
-                    <option value="{{ $t }}" {{ request('type') === $t ? 'selected' : '' }}>{{ $t }}</option>
-                @endforeach
-            </select>
-
             <select name="condition" onchange="this.form.submit()" class="pl-3 pr-9 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                 <option value="">All Conditions</option>
-                @foreach(['excellent' => 'Excellent', 'good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
+                @foreach(['good' => 'Good', 'fair' => 'Fair', 'poor' => 'Poor'] as $key => $label)
                     <option value="{{ $key }}" {{ request('condition') === $key ? 'selected' : '' }}>{{ $label }}</option>
                 @endforeach
             </select>
@@ -155,11 +134,9 @@
                 <option value="accessory_name" {{ request('sort_by') === 'accessory_name' ? 'selected' : '' }}>Sort: Accessory Name</option>
                 <option value="asset_type" {{ request('sort_by') === 'asset_type' ? 'selected' : '' }}>Sort: Asset Type</option>
                 <option value="quantity" {{ request('sort_by') === 'quantity' ? 'selected' : '' }}>Sort: Quantity</option>
-                <option value="unit_cost" {{ request('sort_by') === 'unit_cost' ? 'selected' : '' }}>Sort: Unit Cost</option>
                 <option value="status" {{ request('sort_by') === 'status' ? 'selected' : '' }}>Sort: Status</option>
             @elseif($activeTab === 'attachments')
                 <option value="name" {{ request('sort_by') === 'name' ? 'selected' : '' }}>Sort: Attachment Name</option>
-                <option value="type" {{ request('sort_by') === 'type' ? 'selected' : '' }}>Sort: Type</option>
                 <option value="quantity" {{ request('sort_by') === 'quantity' ? 'selected' : '' }}>Sort: Quantity</option>
                 <option value="condition" {{ request('sort_by') === 'condition' ? 'selected' : '' }}>Sort: Condition</option>
             @else
@@ -194,11 +171,10 @@
                                 Component / Part Name
                             @endif
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Type</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">For Asset Type</th>
                         <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Linked Asset</th>
                         <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition / Cost</th>
+                        <th class="px-6 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider">Condition</th>
                         <th class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
@@ -210,7 +186,7 @@
                             $classification = $isAccessory ? 'Accessory' : ($item->type ?: 'General');
                             $forAssetType = $isAccessory ? ($item->asset_type ?: 'Any') : ($item->assetType->name ?? 'Any');
                         @endphp
-                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group {{ $isAccessory && ($item->status === 'Not Available' || $item->quantity <= 0) ? 'opacity-75' : '' }}" onclick="{{ $isAccessory ? 'openAccessoryDetailsModal(' . json_encode($item) . '); openViewAccessoryModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\');' : 'openAttachmentDetailsModal(' . json_encode($item) . '); openViewAttachmentModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\', \'' . addslashes($item->assetType->name ?? '') . '\');' }}">
+                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group {{ $isAccessory && ($item->status === 'Not Available' || $item->quantity <= 0) ? 'opacity-75' : '' }}" onclick="{{ $isAccessory ? 'openViewAccessoryModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\');' : 'openViewAttachmentModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\', \'' . addslashes($item->assetType->name ?? '') . '\');' }}" title="Quick View">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2.5">
                                     <i class="fas fa-puzzle-piece text-blue-500 text-sm group-hover:scale-110 transition-transform"></i>
@@ -218,9 +194,6 @@
                                         <p class="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{{ $displayName }}</p>
                                     </div>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 font-medium">
-                                {{ $classification }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                 {{ $forAssetType }}
@@ -245,41 +218,30 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center font-semibold text-sm">
                                 @if($item->quantity > 0)
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                        @if($isAccessory)<i class="fas fa-check-circle text-[10px]"></i>@endif {{ $item->quantity }} Available
+                                        <i class="fas fa-check-circle text-[10px]"></i> {{ $item->quantity }} Available
                                     </span>
                                 @else
                                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
-                                        <i class="fas fa-circle-xmark text-[10px]"></i> 0 Available (Not Available)
+                                        <i class="fas fa-circle-xmark text-[10px]"></i> No Available
                                     </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if(!$isAccessory)
-                                    @php
-                                        $cond = strtolower($item->condition ?? 'good');
-                                        $condColor = match($cond) {
-                                            'excellent', 'good' => 'success',
-                                            'fair' => 'warning',
-                                            'poor' => 'danger',
-                                            default => 'secondary'
-                                        };
-                                    @endphp
-                                    <x-badge variant="{{ $condColor }}" size="sm">{{ ucfirst($cond) }}</x-badge>
-                                @else
-                                    <span class="text-xs font-medium text-gray-600">₱{{ number_format($item->unit_cost ?? 0, 2) }}</span>
-                                @endif
+                                @php
+                                    $rawCond = strtolower($item->condition ?? 'good');
+                                    $cond = ($rawCond === 'excellent') ? 'good' : $rawCond;
+                                    $condColor = match($cond) {
+                                        'good' => 'success',
+                                        'fair' => 'warning',
+                                        'poor' => 'danger',
+                                        default => 'secondary'
+                                    };
+                                @endphp
+                                <x-badge variant="{{ $condColor }}" size="sm">{{ ucfirst($cond) }}</x-badge>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-2" onclick="event.stopPropagation()">
                                     @if(!$isAccessory)
-                                        <button 
-                                            type="button"
-                                            onclick="event.stopPropagation(); openAttachmentDetailsModal(@js($item)); openViewAttachmentModal(@json($item), '{{ addslashes($item->asset->name ?? '') }}', '{{ addslashes($item->asset->code ?? '') }}', '{{ addslashes($item->assetType->name ?? '') }}');" 
-                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="Quick View"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
                                         @if(!$isReadOnlyStaff)
                                             <button 
                                                 type="button"
@@ -298,14 +260,6 @@
                                             </form>
                                         @endif
                                     @else
-                                        <button 
-                                            type="button"
-                                            onclick="event.stopPropagation(); openAccessoryDetailsModal(@js($item)); openViewAccessoryModal(@json($item), '{{ addslashes($item->asset->name ?? '') }}', '{{ addslashes($item->asset->code ?? '') }}');" 
-                                            class="p-1.5 rounded hover:bg-blue-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                            title="Quick View"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
                                         @if(!$isReadOnlyStaff)
                                             <button 
                                                 type="button"
@@ -337,7 +291,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center">
                                 <x-empty-state 
                                     icon="fas fa-puzzle-piece" 
                                     title="{{ $activeTab === 'accessories' ? 'No accessories found' : ($activeTab === 'attachments' ? 'No attachments found' : 'No components or parts found') }}" 
@@ -355,107 +309,146 @@
     </x-card>
 
     {{-- ========================================================================= --}}
-    {{-- VIEW MODAL: ATTACHMENT COMPLETE DETAILS (READ-ONLY)                        --}}
+    {{-- DETAILS MODALS: ATTACHMENT & ACCESSORY                                     --}}
     {{-- ========================================================================= --}}
-    <x-modal id="view-attachment-modal" title="Attachment Details">
-        <div class="space-y-4">
-            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <div class="flex items-start justify-between gap-3">
+    
+    {{-- Hidden compatibility elements --}}
+    <div id="attachment-details-modal" class="hidden"></div>
+    <div id="accessory-details-modal" class="hidden"></div>
+
+    {{-- Component / Part Details Modal (Attachments) --}}
+    <x-modal id="view-attachment-modal" title="Component / Part Details" maxWidth="2xl">
+        <div class="space-y-5">
+            {{-- Header info --}}
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-bold text-gray-900" id="view_attach_name"></h3>
-                        <p class="text-xs text-gray-500 mt-0.5" id="view_attach_type_text"></p>
+                        <span id="dtl_attach_type" class="hidden"></span>
+                        <h3 id="dtl_attach_name" class="text-lg font-bold text-gray-900">Component / Part Name</h3>
                     </div>
-                    <div id="view_attach_condition_badge"></div>
+                    <div class="flex items-center gap-2">
+                        <span id="dtl_attach_cond_badge"></span>
+                        <span id="dtl_attach_status_badge"></span>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-2">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Attachment Type</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_attach_type">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">For Asset Type</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_attach_asset_type">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Asset</p>
-                    <div class="mt-1">
-                        <p class="text-sm font-medium text-gray-900" id="view_attach_asset_name">-</p>
-                        <p class="text-xs font-mono text-gray-500" id="view_attach_asset_code"></p>
+            {{-- Linked Asset Card --}}
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
+                    <i class="fas fa-link text-blue-600"></i>
+                    <span>Assigned Asset</span>
+                </h4>
+                <div id="dtl_attach_asset_box" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                            <i class="fas fa-boxes-stacked"></i>
+                        </span>
+                        <div>
+                            <span id="dtl_attach_asset_code" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">CODE</span>
+                            <span id="dtl_attach_asset_name" class="font-semibold text-gray-900 text-sm ml-1">Asset Name</span>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Status / Quantity</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_attach_quantity">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Condition</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_attach_condition">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit Cost</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_attach_unit_cost">-</p>
+                    <a id="dtl_attach_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
+                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                        <span>View Asset</span>
+                    </a>
                 </div>
             </div>
 
-            <div class="flex pt-4 border-t border-gray-200">
-                <x-button variant="secondary" type="button" onclick="window.closeModal('view-attachment-modal')" class="w-full">
+            {{-- Grid specs --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity in Stock</span>
+                    <span id="dtl_attach_quantity" class="text-base font-bold text-gray-900 block mt-0.5">1</span>
+                </div>
+                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">For Asset Type</span>
+                    <span id="dtl_attach_asset_type" class="text-sm font-semibold text-gray-800 block mt-0.5">General</span>
+                </div>
+                <span id="dtl_attach_unit_cost" class="hidden"></span>
+            </div>
+
+            {{-- Actions --}}
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                @if(!$isReadOnlyStaff)
+                <button type="button" id="dtl_attach_edit_btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold border border-amber-200 transition-colors">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit Component / Part</span>
+                </button>
+                @endif
+                <button type="button" onclick="window.closeModal('view-attachment-modal'); window.closeModal('attachment-details-modal');" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
                     Close
-                </x-button>
+                </button>
             </div>
         </div>
     </x-modal>
 
-    {{-- ========================================================================= --}}
-    {{-- VIEW MODAL: ACCESSORY COMPLETE DETAILS (READ-ONLY)                         --}}
-    {{-- ========================================================================= --}}
-    <x-modal id="view-accessory-modal" title="Accessory Details">
-        <div class="space-y-4">
-            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                <div class="flex items-start justify-between gap-3">
+    {{-- Component / Part Details Modal (Accessories) --}}
+    <x-modal id="view-accessory-modal" title="Component / Part Details" maxWidth="2xl">
+        <div class="space-y-5">
+            {{-- Header info --}}
+            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <h3 class="text-base font-bold text-gray-900" id="view_acc_name"></h3>
-                        <p class="text-xs text-gray-500 mt-0.5" id="view_acc_asset_type_sub"></p>
+                        <span id="dtl_acc_type" class="hidden"></span>
+                        <h3 id="dtl_acc_name" class="text-lg font-bold text-gray-900">Component / Part Name</h3>
                     </div>
-                    <div id="view_acc_status_badge"></div>
+                    <div class="flex items-center gap-2">
+                        <span id="dtl_acc_cond_badge"></span>
+                        <span id="dtl_acc_status_badge"></span>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white p-2">
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Accessory Name</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_acc_accessory_name">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">For Asset Type</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_acc_asset_type">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Asset</p>
-                    <div class="mt-1">
-                        <p class="text-sm font-medium text-gray-900" id="view_acc_asset_name">-</p>
-                        <p class="text-xs font-mono text-gray-500" id="view_acc_asset_code"></p>
+            {{-- Linked Asset Card --}}
+            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
+                    <i class="fas fa-link text-blue-600"></i>
+                    <span>Assigned Asset</span>
+                </h4>
+                <div id="dtl_acc_asset_box" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                            <i class="fas fa-boxes-stacked"></i>
+                        </span>
+                        <div>
+                            <span id="dtl_acc_asset_code" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">CODE</span>
+                            <span id="dtl_acc_asset_name" class="font-semibold text-gray-900 text-sm ml-1">Asset Name</span>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Quantity & Status</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_acc_quantity">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Unit Cost</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_acc_unit_cost">-</p>
-                </div>
-                <div>
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Inventory Value</p>
-                    <p class="text-sm font-medium text-gray-800 mt-1" id="view_acc_total_value">-</p>
+                    <a id="dtl_acc_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
+                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                        <span>View Asset</span>
+                    </a>
                 </div>
             </div>
 
-            <div class="flex pt-4 border-t border-gray-200">
-                <x-button variant="secondary" type="button" onclick="window.closeModal('view-accessory-modal')" class="w-full">
+            {{-- Grid specs --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity in Stock</span>
+                    <span id="dtl_acc_quantity" class="text-base font-bold text-gray-900 block mt-0.5">0 units</span>
+                </div>
+                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">For Asset Type</span>
+                    <span id="dtl_acc_asset_type" class="text-sm font-semibold text-gray-800 block mt-0.5">General</span>
+                </div>
+                <span id="dtl_acc_unit_cost" class="hidden"></span>
+                <span id="dtl_acc_total_value" class="hidden"></span>
+            </div>
+
+            {{-- Actions --}}
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100">
+                @if(!$isReadOnlyStaff)
+                <button type="button" id="dtl_acc_edit_btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold border border-amber-200 transition-colors">
+                    <i class="fas fa-edit"></i>
+                    <span>Edit Component / Part</span>
+                </button>
+                @endif
+                <button type="button" onclick="window.closeModal('view-accessory-modal'); window.closeModal('accessory-details-modal');" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
                     Close
-                </x-button>
+                </button>
             </div>
         </div>
     </x-modal>
@@ -473,20 +466,16 @@
                     <input type="text" name="name" placeholder="e.g., Heavy Duty Fire Hose (30m)" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-form-group label="Attachment Type">
-                        <input type="text" name="type" placeholder="e.g., Hose, Bracket, Mount, Cable" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </x-form-group>
+                <input type="hidden" name="type" value="Component">
 
-                    <x-form-group label="For Asset Type">
-                        <select name="asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="">-- Optional Asset Type --</option>
-                            @foreach($assetTypes as $at)
-                                <option value="{{ $at->id }}">{{ $at->name }}</option>
-                            @endforeach
-                        </select>
-                    </x-form-group>
-                </div>
+                <x-form-group label="For Asset Type">
+                    <select name="asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="">-- Optional Asset Type --</option>
+                        @foreach($assetTypes as $at)
+                            <option value="{{ $at->id }}">{{ $at->name }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
@@ -510,7 +499,6 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <x-form-group label="Condition" required>
                         <select name="condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="excellent">Excellent</option>
                             <option value="good" selected>Good</option>
                             <option value="fair">Fair</option>
                             <option value="poor">Poor</option>
@@ -542,20 +530,16 @@
                     <input type="text" name="name" id="edit_attach_name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </x-form-group>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <x-form-group label="Attachment Type">
-                        <input type="text" name="type" id="edit_attach_type" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </x-form-group>
+                <input type="hidden" name="type" id="edit_attach_type" value="Component">
 
-                    <x-form-group label="For Asset Type">
-                        <select name="asset_type_id" id="edit_attach_asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                            <option value="">-- Optional Asset Type --</option>
-                            @foreach($assetTypes as $at)
-                                <option value="{{ $at->id }}">{{ $at->name }}</option>
-                            @endforeach
-                        </select>
-                    </x-form-group>
-                </div>
+                <x-form-group label="For Asset Type">
+                    <select name="asset_type_id" id="edit_attach_asset_type_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                        <option value="">-- Optional Asset Type --</option>
+                        @foreach($assetTypes as $at)
+                            <option value="{{ $at->id }}">{{ $at->name }}</option>
+                        @endforeach
+                    </select>
+                </x-form-group>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="md:col-span-2">
@@ -578,7 +562,6 @@
 
                 <x-form-group label="Condition" required>
                     <select name="condition" id="edit_attach_condition" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                        <option value="excellent">Excellent</option>
                         <option value="good">Good</option>
                         <option value="fair">Fair</option>
                         <option value="poor">Poor</option>
@@ -712,229 +695,161 @@
         </x-modal>
     @endif
 
-    {{-- Attachment Details Modal --}}
-    <x-modal id="attachment-details-modal" title="Asset Attachment Details" maxWidth="2xl">
-        <div class="space-y-5">
-            {{-- Header info --}}
-            <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-1">
-                            <i class="fas fa-paperclip text-[10px]"></i>
-                            <span id="dtl_attach_type">Attachment</span>
-                        </span>
-                        <h3 id="dtl_attach_name" class="text-lg font-bold text-gray-900">Attachment Name</h3>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span id="dtl_attach_cond_badge"></span>
-                        <span id="dtl_attach_status_badge"></span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Linked Asset Card --}}
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
-                    <i class="fas fa-link text-blue-600"></i>
-                    <span>Linked Asset Assignment</span>
-                </h4>
-                <div id="dtl_attach_asset_box" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
-                            <i class="fas fa-boxes-stacked"></i>
-                        </span>
-                        <div>
-                            <span id="dtl_attach_asset_code" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">CODE</span>
-                            <span id="dtl_attach_asset_name" class="font-semibold text-gray-900 text-sm ml-1">Asset Name</span>
-                        </div>
-                    </div>
-                    <a id="dtl_attach_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold border border-blue-200 transition-colors">
-                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                        <span>View Asset Details</span>
-                    </a>
-                </div>
-            </div>
-
-            {{-- Grid specs --}}
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Quantity Units</span>
-                    <span id="dtl_attach_quantity" class="text-base font-bold text-gray-900 block mt-0.5">1</span>
-                </div>
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Compatible Asset Type</span>
-                    <span id="dtl_attach_asset_type" class="text-sm font-semibold text-gray-800 block mt-0.5">General</span>
-                </div>
-            </div>
-
-            {{-- Actions --}}
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100">
-                @if(!$isReadOnlyStaff)
-                <button type="button" id="dtl_attach_edit_btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold border border-amber-200 transition-colors">
-                    <i class="fas fa-edit"></i>
-                    <span>Edit Attachment</span>
-                </button>
-                @endif
-                <button type="button" onclick="window.closeModal('attachment-details-modal')" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
-                    Close
-                </button>
-            </div>
-        </div>
-    </x-modal>
-
-    {{-- Accessory Details Modal --}}
-    <x-modal id="accessory-details-modal" title="Asset Accessory Details" maxWidth="2xl">
-        <div class="space-y-5">
-            {{-- Header info --}}
-            <div class="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 mb-1">
-                            <i class="fas fa-tools text-[10px]"></i>
-                            <span id="dtl_acc_type">Accessory</span>
-                        </span>
-                        <h3 id="dtl_acc_name" class="text-lg font-bold text-gray-900">Accessory Name</h3>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span id="dtl_acc_status_badge"></span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Linked Asset Card --}}
-            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-gray-600 flex items-center gap-2">
-                    <i class="fas fa-link text-purple-600"></i>
-                    <span>Linked Asset Assignment</span>
-                </h4>
-                <div id="dtl_acc_asset_box" class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-3 rounded-lg border border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <span class="w-9 h-9 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
-                            <i class="fas fa-box"></i>
-                        </span>
-                        <div>
-                            <span id="dtl_acc_asset_code" class="font-mono text-xs font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded">CODE</span>
-                            <span id="dtl_acc_asset_name" class="font-semibold text-gray-900 text-sm ml-1">Asset Name</span>
-                        </div>
-                    </div>
-                    <a id="dtl_acc_asset_link" href="#" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200 transition-colors">
-                        <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
-                        <span>View Asset Details</span>
-                    </a>
-                </div>
-            </div>
-
-            {{-- Grid specs --}}
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Available Quantity</span>
-                    <span id="dtl_acc_quantity" class="text-base font-bold text-gray-900 block mt-0.5">0 units</span>
-                </div>
-                <div class="bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Unit Cost (₱)</span>
-                    <span id="dtl_acc_unit_cost" class="text-base font-bold text-gray-900 block mt-0.5">₱0.00</span>
-                </div>
-            </div>
-
-            {{-- Actions --}}
-            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-gray-100">
-                @if(!$isReadOnlyStaff)
-                <button type="button" id="dtl_acc_edit_btn" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold border border-amber-200 transition-colors">
-                    <i class="fas fa-edit"></i>
-                    <span>Edit Accessory</span>
-                </button>
-                @endif
-                <button type="button" onclick="window.closeModal('accessory-details-modal')" class="w-full sm:w-auto px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-medium transition-colors">
-                    Close
-                </button>
-            </div>
-        </div>
-    </x-modal>
-
     @push('scripts')
         <script>
-            // View Attachment Modal (Available for all roles)
+            // Unified View Attachment Modal (Available for all roles)
             function openViewAttachmentModal(attachment, assetName, assetCode, typeName) {
-                document.getElementById('view_attach_name').textContent = attachment.name || 'Unnamed Attachment';
-                document.getElementById('view_attach_type_text').textContent = attachment.type ? 'Type: ' + attachment.type : 'General Attachment';
-                document.getElementById('view_attach_type').textContent = attachment.type || 'General';
-                document.getElementById('view_attach_asset_type').textContent = typeName || 'Any';
+                document.getElementById('dtl_attach_name').textContent = attachment.name || 'Unnamed Attachment';
+                document.getElementById('dtl_attach_type').textContent = attachment.type || 'General Attachment';
+                
+                const qty = parseInt(attachment.quantity || 0, 10);
+                document.getElementById('dtl_attach_quantity').textContent = qty > 0 ? `${qty} unit(s)` : 'No Available';
+                
+                const compatibleType = typeName || (attachment.asset_type && attachment.asset_type.name ? attachment.asset_type.name : (attachment.assetType ? attachment.assetType.name : 'General'));
+                document.getElementById('dtl_attach_asset_type').textContent = compatibleType;
 
-                const assetNameElem = document.getElementById('view_attach_asset_name');
-                const assetCodeElem = document.getElementById('view_attach_asset_code');
-                if (assetName && assetName.trim() !== '') {
-                    assetNameElem.textContent = assetName;
-                    assetCodeElem.textContent = assetCode || '';
-                    assetCodeElem.classList.remove('hidden');
+                // Condition Badge
+                let cond = (attachment.condition || 'good').toLowerCase();
+                if (cond === 'excellent') cond = 'good';
+                const condBadge = cond === 'good'
+                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">GOOD</span>'
+                    : (cond === 'fair'
+                        ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">FAIR</span>'
+                        : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">POOR</span>');
+                document.getElementById('dtl_attach_cond_badge').innerHTML = condBadge;
+
+                // Status Badge
+                if (qty > 0) {
+                    document.getElementById('dtl_attach_status_badge').innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> Available</span>';
                 } else {
-                    assetNameElem.textContent = 'Unassigned';
-                    assetCodeElem.textContent = '';
-                    assetCodeElem.classList.add('hidden');
+                    document.getElementById('dtl_attach_status_badge').innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><i class="fas fa-circle-xmark text-[9px]"></i> No Available</span>';
                 }
 
-                const qty = parseInt(attachment.quantity || 0, 10);
-                document.getElementById('view_attach_quantity').textContent = `${qty} Available`;
+                // Linked Asset
+                const aName = assetName || (attachment.asset ? attachment.asset.name : '');
+                const aCode = assetCode || (attachment.asset ? attachment.asset.code : '');
+                const aId = attachment.asset_id || (attachment.asset ? attachment.asset.id : null);
 
-                const cond = (attachment.condition || 'good').toLowerCase();
-                const condFormatted = cond.charAt(0).toUpperCase() + cond.slice(1);
-                document.getElementById('view_attach_condition').textContent = condFormatted;
+                if (aName && aName.trim() !== '') {
+                    document.getElementById('dtl_attach_asset_code').textContent = aCode || 'CODE';
+                    document.getElementById('dtl_attach_asset_code').classList.remove('hidden');
+                    document.getElementById('dtl_attach_asset_name').textContent = aName;
+                    if (aId) {
+                        document.getElementById('dtl_attach_asset_link').href = `/assets/${aId}`;
+                        document.getElementById('dtl_attach_asset_link').classList.remove('hidden');
+                    } else {
+                        document.getElementById('dtl_attach_asset_link').classList.add('hidden');
+                    }
+                } else {
+                    document.getElementById('dtl_attach_asset_code').textContent = '—';
+                    document.getElementById('dtl_attach_asset_name').textContent = 'Not assigned to any asset';
+                    document.getElementById('dtl_attach_asset_link').classList.add('hidden');
+                }
 
-                let badgeClass = 'bg-gray-100 text-gray-800 border-gray-200';
-                if (cond === 'excellent' || cond === 'good') badgeClass = 'bg-emerald-100 text-emerald-800 border-emerald-200';
-                else if (cond === 'fair') badgeClass = 'bg-amber-100 text-amber-800 border-amber-200';
-                else if (cond === 'poor') badgeClass = 'bg-rose-100 text-rose-800 border-rose-200';
+                const unitCost = parseFloat(attachment.unit_cost || 0);
+                const unitCostElem = document.getElementById('dtl_attach_unit_cost');
+                if (unitCostElem) {
+                    unitCostElem.textContent = unitCost > 0
+                        ? '₱' + unitCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})
+                        : '₱0.00';
+                }
 
-                document.getElementById('view_attach_condition_badge').innerHTML = 
-                    `<span class="px-2.5 py-1 text-xs font-bold rounded-full border ${badgeClass}">${condFormatted}</span>`;
-
-                const cost = parseFloat(attachment.unit_cost || 0);
-                document.getElementById('view_attach_unit_cost').textContent = cost > 0 
-                    ? '₱' + cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    : '₱0.00';
+                @if(!$isReadOnlyStaff)
+                const editBtn = document.getElementById('dtl_attach_edit_btn');
+                if (editBtn) {
+                    editBtn.onclick = function() {
+                        window.closeModal('view-attachment-modal');
+                        window.closeModal('attachment-details-modal');
+                        openEditAttachmentModal(attachment);
+                    };
+                }
+                @endif
 
                 window.openModal('view-attachment-modal');
             }
 
-            // View Accessory Modal (Available for all roles)
+            function openAttachmentDetailsModal(attachment) {
+                openViewAttachmentModal(attachment);
+            }
+
+            // Unified View Accessory Modal (Available for all roles)
             function openViewAccessoryModal(acc, assetName, assetCode) {
-                document.getElementById('view_acc_name').textContent = acc.accessory_name || 'Unnamed Accessory';
-                document.getElementById('view_acc_asset_type_sub').textContent = 'For Asset Type: ' + (acc.asset_type || 'General');
-                document.getElementById('view_acc_accessory_name').textContent = acc.accessory_name || 'N/A';
-                document.getElementById('view_acc_asset_type').textContent = acc.asset_type || 'N/A';
-
-                const assetNameElem = document.getElementById('view_acc_asset_name');
-                const assetCodeElem = document.getElementById('view_acc_asset_code');
-                if (assetName && assetName.trim() !== '') {
-                    assetNameElem.textContent = assetName;
-                    assetCodeElem.textContent = assetCode || '';
-                    assetCodeElem.classList.remove('hidden');
-                } else {
-                    assetNameElem.textContent = 'Unassigned';
-                    assetCodeElem.textContent = '';
-                    assetCodeElem.classList.add('hidden');
-                }
-
+                document.getElementById('dtl_acc_name').textContent = acc.accessory_name || 'Unnamed Accessory';
+                document.getElementById('dtl_acc_type').textContent = acc.asset_type || 'Accessory';
+                
                 const qty = parseInt(acc.quantity || 0, 10);
-                const statusText = qty > 0 ? `${qty} Available` : '0 Available (Not Available)';
-                document.getElementById('view_acc_quantity').textContent = statusText;
+                document.getElementById('dtl_acc_quantity').textContent = qty > 0 ? `${qty} unit(s)` : 'No Available';
 
-                const badgeClass = qty > 0 
-                    ? 'bg-emerald-100 text-emerald-800 border-emerald-200' 
-                    : 'bg-rose-100 text-rose-800 border-rose-200';
-                document.getElementById('view_acc_status_badge').innerHTML = 
-                    `<span class="px-2.5 py-1 text-xs font-bold rounded-full border ${badgeClass}">${qty > 0 ? 'Available' : 'Not Available'}</span>`;
+                const accAssetType = acc.asset_type || (acc.asset && acc.asset.type ? acc.asset.type.name : 'General');
+                const dtlAccAssetType = document.getElementById('dtl_acc_asset_type');
+                if (dtlAccAssetType) dtlAccAssetType.textContent = accAssetType;
 
                 const unitCost = parseFloat(acc.unit_cost || 0);
-                document.getElementById('view_acc_unit_cost').textContent = unitCost > 0 
-                    ? '₱' + unitCost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                document.getElementById('dtl_acc_unit_cost').textContent = unitCost > 0 
+                    ? '₱' + unitCost.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})
                     : '₱0.00';
 
                 const totalVal = parseFloat(acc.total_value || (qty * unitCost) || 0);
-                document.getElementById('view_acc_total_value').textContent = totalVal > 0 
-                    ? '₱' + totalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                    : '₱0.00';
+                const totalValElem = document.getElementById('dtl_acc_total_value');
+                if (totalValElem) {
+                    totalValElem.textContent = totalVal > 0 
+                        ? '₱' + totalVal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                        : '₱0.00';
+                }
+
+                // Condition Badge
+                let accCond = (acc.condition || 'good').toLowerCase();
+                if (accCond === 'excellent') accCond = 'good';
+                const accCondBadge = accCond === 'good'
+                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">GOOD</span>'
+                    : (accCond === 'fair'
+                        ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">FAIR</span>'
+                        : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">POOR</span>');
+                document.getElementById('dtl_acc_cond_badge').innerHTML = accCondBadge;
+
+                // Status Badge
+                if (qty > 0) {
+                    document.getElementById('dtl_acc_status_badge').innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> Available</span>';
+                } else {
+                    document.getElementById('dtl_acc_status_badge').innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><i class="fas fa-circle-xmark text-[9px]"></i> No Available</span>';
+                }
+
+                // Linked Asset
+                const aName = assetName || (acc.asset ? acc.asset.name : '');
+                const aCode = assetCode || (acc.asset ? acc.asset.code : '');
+                const aId = acc.asset_id || (acc.asset ? acc.asset.id : null);
+
+                if (aName && aName.trim() !== '') {
+                    document.getElementById('dtl_acc_asset_code').textContent = aCode || 'CODE';
+                    document.getElementById('dtl_acc_asset_name').textContent = aName;
+                    if (aId) {
+                        document.getElementById('dtl_acc_asset_link').href = `/assets/${aId}`;
+                        document.getElementById('dtl_acc_asset_link').classList.remove('hidden');
+                    } else {
+                        document.getElementById('dtl_acc_asset_link').classList.add('hidden');
+                    }
+                } else {
+                    document.getElementById('dtl_acc_asset_code').textContent = '—';
+                    document.getElementById('dtl_acc_asset_name').textContent = 'Not assigned to any asset';
+                    document.getElementById('dtl_acc_asset_link').classList.add('hidden');
+                }
+
+                @if(!$isReadOnlyStaff)
+                const editBtn = document.getElementById('dtl_acc_edit_btn');
+                if (editBtn) {
+                    editBtn.onclick = function() {
+                        window.closeModal('view-accessory-modal');
+                        window.closeModal('accessory-details-modal');
+                        openEditAccessoryModal(acc);
+                    };
+                }
+                @endif
 
                 window.openModal('view-accessory-modal');
+            }
+
+            function openAccessoryDetailsModal(acc) {
+                openViewAccessoryModal(acc);
             }
 
             @if(!$isReadOnlyStaff)
@@ -951,7 +866,9 @@
                     document.getElementById('edit_attach_asset_type_id').value = attachment.asset_type_id || '';
                     document.getElementById('edit_attach_asset_id').value = attachment.asset_id || '';
                     document.getElementById('edit_attach_quantity').value = attachment.quantity || 1;
-                    document.getElementById('edit_attach_condition').value = attachment.condition || 'good';
+                    let editCond = (attachment.condition || 'good').toLowerCase();
+                    if (editCond === 'excellent') editCond = 'good';
+                    document.getElementById('edit_attach_condition').value = editCond;
                     window.openModal('edit-attachment-modal');
                 }
 
@@ -986,87 +903,13 @@
                 }
             @endif
 
-            // Interactive Details Modals
+            // Interactive Details Modals / Backward-compatibility Aliases
             function openAttachmentDetailsModal(attachment) {
-                document.getElementById('dtl_attach_name').textContent = attachment.name;
-                document.getElementById('dtl_attach_type').textContent = attachment.type || 'General Attachment';
-                document.getElementById('dtl_attach_quantity').textContent = `${attachment.quantity || 1} unit(s)`;
-                document.getElementById('dtl_attach_asset_type').textContent = (attachment.asset_type && attachment.asset_type.name) ? attachment.asset_type.name : (attachment.assetType ? attachment.assetType.name : 'Any Compatible Type');
-
-                // Badges
-                const cond = (attachment.condition || 'good').toLowerCase();
-                const condBadge = cond === 'excellent' || cond === 'good'
-                    ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">' + cond.toUpperCase() + '</span>'
-                    : (cond === 'fair'
-                        ? '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">FAIR</span>'
-                        : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">POOR</span>');
-                document.getElementById('dtl_attach_cond_badge').innerHTML = condBadge;
-                document.getElementById('dtl_attach_status_badge').innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> Available</span>';
-
-                // Linked Asset
-                const assetBox = document.getElementById('dtl_attach_asset_box');
-                if (attachment.asset) {
-                    document.getElementById('dtl_attach_asset_code').textContent = attachment.asset.code;
-                    document.getElementById('dtl_attach_asset_name').textContent = attachment.asset.name;
-                    document.getElementById('dtl_attach_asset_link').href = `/assets/${attachment.asset.id}`;
-                    document.getElementById('dtl_attach_asset_link').classList.remove('hidden');
-                } else {
-                    document.getElementById('dtl_attach_asset_code').textContent = '—';
-                    document.getElementById('dtl_attach_asset_name').textContent = 'Currently Unassigned / Standalone';
-                    document.getElementById('dtl_attach_asset_link').classList.add('hidden');
-                }
-
-                @if(!$isReadOnlyStaff)
-                // Edit button hook
-                const editBtn = document.getElementById('dtl_attach_edit_btn');
-                if (editBtn) {
-                    editBtn.onclick = function() {
-                        window.closeModal('attachment-details-modal');
-                        openEditAttachmentModal(attachment);
-                    };
-                }
-                @endif
-
-                window.openModal('attachment-details-modal');
+                openViewAttachmentModal(attachment);
             }
 
             function openAccessoryDetailsModal(acc) {
-                document.getElementById('dtl_acc_name').textContent = acc.accessory_name;
-                document.getElementById('dtl_acc_type').textContent = acc.asset_type || 'Accessory';
-                document.getElementById('dtl_acc_quantity').textContent = `${acc.quantity || 0} unit(s)`;
-                document.getElementById('dtl_acc_unit_cost').textContent = '₱' + parseFloat(acc.unit_cost || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-                // Status badge
-                if ((acc.quantity || 0) > 0) {
-                    document.getElementById('dtl_acc_status_badge').innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fas fa-check-circle text-[9px]"></i> Available</span>';
-                } else {
-                    document.getElementById('dtl_acc_status_badge').innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><i class="fas fa-circle-xmark text-[9px]"></i> Not Available</span>';
-                }
-
-                // Linked Asset
-                if (acc.asset) {
-                    document.getElementById('dtl_acc_asset_code').textContent = acc.asset.code;
-                    document.getElementById('dtl_acc_asset_name').textContent = acc.asset.name;
-                    document.getElementById('dtl_acc_asset_link').href = `/assets/${acc.asset.id}`;
-                    document.getElementById('dtl_acc_asset_link').classList.remove('hidden');
-                } else {
-                    document.getElementById('dtl_acc_asset_code').textContent = '—';
-                    document.getElementById('dtl_acc_asset_name').textContent = 'Currently Unassigned / General Component';
-                    document.getElementById('dtl_acc_asset_link').classList.add('hidden');
-                }
-
-                @if(!$isReadOnlyStaff)
-                // Edit button hook
-                const editBtn = document.getElementById('dtl_acc_edit_btn');
-                if (editBtn) {
-                    editBtn.onclick = function() {
-                        window.closeModal('accessory-details-modal');
-                        openEditAccessoryModal(acc);
-                    };
-                }
-                @endif
-
-                window.openModal('accessory-details-modal');
+                openViewAccessoryModal(acc);
             }
         </script>
     @endpush

@@ -246,7 +246,7 @@
                         @forelse($assets as $asset)
                             <tr class="hover:bg-blue-50/50 cursor-pointer transition-colors group"
                                 onclick="if(!event.target.closest('button, a, form, input')) openViewAssetModal(@js($asset), @js($asset->category->name ?? 'N/A'), @js($asset->type->name ?? 'N/A'), @js($asset->location->name ?? 'N/A'));"
-                                title="Click to view {{ $asset->name }} details">
+                                title="Quick View">
                                 <td class="px-5 py-3.5 whitespace-nowrap">
                                     <a href="{{ route('assets.show', $asset) }}" class="font-mono text-xs font-bold text-blue-700 bg-blue-50 group-hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors">
                                         {{ $asset->code }}
@@ -310,15 +310,6 @@
                                 </td>
                                 <td class="px-5 py-3.5 align-middle whitespace-nowrap text-right text-sm">
                                     <div class="flex items-center justify-end gap-1.5">
-                                        {{-- Quick View Modal --}}
-                                        <button 
-                                            onclick="openViewAssetModal({{ json_encode($asset) }}, '{{ $asset->category->name ?? 'N/A' }}', '{{ $asset->type->name ?? 'N/A' }}', '{{ $asset->location->name ?? 'N/A' }}')" 
-                                            class="p-1.5 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors" 
-                                            title="Quick View"
-                                        >
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-
                                         @if(!$isReadOnlyStaff)
                                             {{-- Edit Modal --}}
                                             <button 
@@ -800,7 +791,7 @@
                         <span>Open Full Details</span>
                     </a>
                     @if(!$isReadOnlyStaff)
-                        <a id="view_asset_deploy_btn" href="#" class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors hidden sm:inline-flex">
+                        <a id="view_asset_deploy_btn" href="#" style="display: none;" class="hidden items-center justify-center gap-1.5 px-3.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-bold transition-colors">
                             <i class="fas fa-truck-fast"></i>
                             <span>Deploy</span>
                         </a>
@@ -1283,11 +1274,16 @@
 
                 const deployBtn = document.getElementById('view_asset_deploy_btn');
                 if (deployBtn) {
-                    if (asset.status === 'available') {
+                    if (asset.status === 'available' && asset.condition !== 'fair' && asset.condition !== 'poor') {
                         deployBtn.href = '/deployment/create?asset_id=' + asset.id;
                         deployBtn.classList.remove('hidden');
+                        deployBtn.classList.add('inline-flex');
+                        deployBtn.style.display = 'inline-flex';
                     } else {
+                        deployBtn.href = '#';
+                        deployBtn.classList.remove('inline-flex');
                         deployBtn.classList.add('hidden');
+                        deployBtn.style.display = 'none';
                     }
                 }
 

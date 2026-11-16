@@ -430,7 +430,7 @@ class ReportedAssetTest extends TestCase
             'asset_name'     => 'BOAT-01 — Inflatable Rescue Boat',
             'reported_by'    => $this->user->id,
             'reported_type'  => 'Malfunction',
-            'status'         => 'Escalated',
+            'status'         => 'Ongoing',
             'location'       => 'River Station Alpha',
             'description'    => 'Puncture on starboard pontoon',
             'reported_date'  => Carbon::yesterday(),
@@ -455,7 +455,7 @@ class ReportedAssetTest extends TestCase
         $typeResponse->assertDontSee('Inflatable Rescue Boat');
 
         // Filter by status
-        $statusResponse = $this->actingAs($this->staff)->get(route('reported-assets.index', ['status' => 'Escalated']));
+        $statusResponse = $this->actingAs($this->staff)->get(route('reported-assets.index', ['status' => 'Ongoing']));
         $statusResponse->assertStatus(200);
         $statusResponse->assertSee('Inflatable Rescue Boat');
         $statusResponse->assertDontSee('Test Generator');

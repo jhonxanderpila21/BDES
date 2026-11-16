@@ -408,10 +408,6 @@
                         </div>
                         <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
                             <span class="font-semibold text-emerald-700">Done</span>
-                            <span class="text-gray-400">→ Closed</span>
-                        </div>
-                        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
-                            <span class="font-semibold text-gray-600">Closed</span>
                             <span class="text-gray-400">(Terminal State)</span>
                         </div>
                     </div>

@@ -16,9 +16,10 @@ class ReportedAssetSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = User::where('role', 'administrator')->first();
-        $staff = User::where('role', 'viewer')->first() ?? User::where('role', 'bdrrmc_officer')->first();
-        $reporter = $staff ?? $admin;
+        $admin        = User::where('role', 'administrator')->first();
+        $maintOfficer = User::where('role', 'maintenance_officer')->first() ?? $admin;
+        $staff        = User::where('role', 'viewer')->first() ?? User::where('role', 'bdrrmc_officer')->first();
+        $reporter     = $staff ?? $admin;
 
         if (!$reporter) {
             return;
@@ -34,149 +35,125 @@ class ReportedAssetSeeder extends Seeder
         };
 
         $reports = [
-            // 1. Generator Damage — Ongoing
+            // 1. 1½-inch Fire Hose – 1 (FH-005) — Damage Report (Confirmed & Ongoing)
             [
-                'asset'         => $findAsset('GEN-001'),
+                'asset'         => $findAsset('FH-005'),
                 'reported_type' => 'Damage',
                 'target_status' => 'Ongoing',
-                'location'      => 'Evacuation Center 1',
-                'description'   => "Generator won't start. Fuel line blockage and spark plug fouling detected.",
-                'action'        => 'Repair/Refill',
+                'confirmed'     => true,
+                'location'      => 'Purok A Fire Station',
+                'description'   => '1½-inch Fire Hose – 1 returned from Purok B fire suppression with punctured inner rubber lining and abraded outer canvas jacket. Failed post-operation pressure test.',
+                'action'        => 'Assigned to BFP Hose Maintenance Unit under Work Order WO-2026-001',
                 'reported_date' => Carbon::now()->subDays(5)->format('Y-m-d'),
                 'transitions'   => [
-                    ['to' => 'For Review', 'notes' => 'Submitted for admin review.'],
-                    ['to' => 'Ongoing', 'notes' => 'Approved. Field technician dispatched.'],
+                    ['to' => 'For Review', 'notes' => 'Post-deployment damage report and failed inspection findings submitted for review.'],
+                    ['to' => 'Ongoing', 'notes' => 'Report confirmed by Administrator. Asset marked Poor & Out of Service; repair work order WO-2026-001 dispatched.'],
                 ],
             ],
 
-            // 2. AED Missing — Escalated
+            // 2. 2½-inch Fire Hose – 1 (FH-006) — Damage Report (For Review)
             [
-                'asset'         => $findAsset('AED-001'),
-                'reported_type' => 'Missing',
-                'target_status' => 'Escalated',
-                'location'      => 'Barangay Hall',
-                'description'   => 'Automated External Defibrillator unit not found in assigned emergency bay.',
-                'action'        => 'Report to city DRRMO',
-                'reported_date' => Carbon::now()->subDays(3)->format('Y-m-d'),
-                'transitions'   => [
-                    ['to' => 'Ongoing', 'notes' => 'Internal inventory investigation initiated.'],
-                    ['to' => 'Escalated', 'notes' => 'Cannot locate after site search. Escalated to City Disaster Risk Office.'],
-                ],
-            ],
-
-            // 3. Radio Malfunction — Pending
-            [
-                'asset'         => $findAsset('RAD-001'),
-                'reported_type' => 'Malfunction',
-                'target_status' => 'Pending',
-                'location'      => 'Coastal Watch Tower',
-                'description'   => 'Handheld VHF radio emitting continuous static noise on Emergency Channel 16.',
-                'action'        => 'Awaiting technical inspection',
-                'reported_date' => Carbon::now()->format('Y-m-d'),
-                'transitions'   => [],
-            ],
-
-            // 4. Chainsaw Damage — For Review
-            [
-                'asset'         => $findAsset('SAW-001'),
+                'asset'         => $findAsset('FH-006'),
                 'reported_type' => 'Damage',
                 'target_status' => 'For Review',
-                'location'      => 'Main Depot Workshop',
-                'description'   => 'Chainsaw guide bar bent and drive sprocket teeth chipped during road clearing operations.',
-                'action'        => 'Quote requested for bar & chain replacement',
+                'confirmed'     => false,
+                'location'      => 'Purok A Fire Station',
+                'description'   => '2½-inch Fire Hose – 1 returned from Zone 2 hydrant relay with split outer jacket seam near female brass coupling.',
+                'action'        => 'Pending confirmation for vulcanizing repair or coupling re-attachment (WO-2026-002)',
+                'reported_date' => Carbon::now()->subDays(3)->format('Y-m-d'),
+                'transitions'   => [
+                    ['to' => 'For Review', 'notes' => 'Return damage noted and hydrostatic test failure logged for admin confirmation.'],
+                ],
+            ],
+
+            // 3. Chainsaws (2 large, 2 small) — Ongoing
+            [
+                'asset'         => $findAsset('SAW-001'),
+                'reported_type' => 'Maintenance',
+                'target_status' => 'Ongoing',
+                'confirmed'     => true,
+                'location'      => 'Main Barangay Hall Storage',
+                'description'   => '1 of the 2 small chainsaws requires chain tensioner adjustment and guide bar dressing after heavy storm clearing.',
+                'action'        => 'Adjust tensioner screw and sharpen chains on all 4 units',
                 'reported_date' => Carbon::now()->subDays(2)->format('Y-m-d'),
                 'transitions'   => [
-                    ['to' => 'For Review', 'notes' => 'Inspection report and replacement quotation submitted for review.'],
+                    ['to' => 'For Review', 'notes' => 'Logged by clearing team leader after road clearing operation.'],
+                    ['to' => 'Ongoing', 'notes' => 'Confirmed. In-house mechanic servicing guide bar and tensioner assembly.'],
                 ],
             ],
 
-            // 5. Fire Extinguisher Maintenance — Done
+            // 4. 2½-inch Hose Peed (Tanker & Penetrator) — Done
             [
-                'asset'         => $findAsset('FE-001'),
+                'asset'         => $findAsset('HP-001'),
                 'reported_type' => 'Maintenance',
                 'target_status' => 'Done',
-                'location'      => 'Barangay Hall',
-                'description'   => 'Dry chemical pressure gauge dropped below optimal operating pressure. Dispatched for BFP station hydrostatic testing.',
-                'action'        => 'Certified and pressure-tested by BFP',
+                'confirmed'     => true,
+                'location'      => 'Purok A Fire Station',
+                'description'   => 'Quarter-turn ball valve on Tanker 2½-inch hose peed stiff to operate under pressure.',
+                'action'        => 'Lubricated valve seals and replaced rubber washer',
                 'reported_date' => Carbon::now()->subDays(10)->format('Y-m-d'),
                 'transitions'   => [
-                    ['to' => 'Ongoing', 'notes' => 'Dispatched to accredited BFP fire safety inspection station.'],
-                    ['to' => 'Done', 'notes' => 'Hydrostatic pressure tested, recertified, and official BFP safety inspection seal attached.'],
+                    ['to' => 'Ongoing', 'notes' => 'Disassembled valve gate and flushed sediment.'],
+                    ['to' => 'Done', 'notes' => 'Silicone grease applied and pressure-tested leak-free on Tanker.'],
                 ],
             ],
 
-            // 6. Rescue Boat Hull Damage — Escalated
+            // 5. Hydraulic Jacks (3 units) — Pending
             [
-                'asset'         => $findAsset('BOT-001'),
-                'reported_type' => 'Damage',
-                'target_status' => 'Escalated',
-                'location'      => 'Riverine Rescue Station',
-                'description'   => 'Transom mount seam separated during flash flood swiftwater rescue operation.',
-                'action'        => 'Escalated for manufacturer warranty repair',
-                'reported_date' => Carbon::now()->subDays(7)->format('Y-m-d'),
-                'transitions'   => [
-                    ['to' => 'Ongoing', 'notes' => 'Structural inspection by rescue team mechanics.'],
-                    ['to' => 'Escalated', 'notes' => 'Seam separation exceeds local repair capability. Escalated for specialized maritime service.'],
-                ],
-            ],
-
-            // 7. Megaphone Clasp Replacement — Closed
-            [
-                'asset'         => $findAsset('MEG-001'),
-                'reported_type' => 'Replacement',
-                'target_status' => 'Closed',
-                'location'      => 'Evacuation Center 2',
-                'description'   => 'Battery door locking latch snapped off, preventing secure battery retention.',
-                'action'        => 'Replaced battery door latch and tested siren',
-                'reported_date' => Carbon::now()->subDays(20)->format('Y-m-d'),
-                'transitions'   => [
-                    ['to' => 'Ongoing', 'notes' => 'Replacement part ordered.'],
-                    ['to' => 'Done', 'notes' => 'Part installed and operational audio test passed.'],
-                    ['to' => 'Closed', 'notes' => 'Maintenance verified and signed off into active reserve.'],
-                ],
-            ],
-
-            // 8. Stretcher Maintenance — Pending
-            [
-                'asset'         => $findAsset('STR-001'),
+                'asset'         => $findAsset('JCK-001'),
                 'reported_type' => 'Maintenance',
                 'target_status' => 'Pending',
-                'location'      => 'Health Sub-Center',
-                'description'   => 'Folding stretcher locking hinge stiff; needs inspection and lubrication.',
-                'action'        => 'Maintenance check initiated',
+                'confirmed'     => false,
+                'location'      => 'Purok A Fire Station',
+                'description'   => 'One of the 3 hydraulic jacks exhibits slow ram return and requires hydraulic oil bleed and seal check.',
+                'action'        => 'Bleed air from hydraulic cylinder and top up jack oil',
                 'reported_date' => Carbon::now()->format('Y-m-d'),
                 'transitions'   => [],
             ],
 
-            // 9. Rescue Vehicle Alternator Fluctuation — Ongoing
+            // 6. Fire Truck – Tanker — Done
             [
-                'asset'         => $findAsset('VEH-001'),
-                'reported_type' => 'Malfunction',
-                'target_status' => 'Ongoing',
-                'location'      => 'Emergency Vehicle Bay',
-                'description'   => 'Alternator charging warning light illuminated intermittently during emergency transport.',
-                'action'        => 'Under diagnosis at barangay motor pool',
-                'reported_date' => Carbon::now()->subDays(4)->format('Y-m-d'),
+                'asset'         => $findAsset('TRK-001'),
+                'reported_type' => 'Maintenance',
+                'target_status' => 'Done',
+                'confirmed'     => true,
+                'location'      => 'Purok A Fire Station',
+                'description'   => 'Scheduled preventive check of PTO fire pump, 7x 1½-inch hoses, 3x 2½-inch hoses, and onboard tools (spanner, yabie tubo, vice grip, cutter pliers, electrical pliers).',
+                'action'        => 'Completed full apparatus & hose inventory verification',
+                'reported_date' => Carbon::now()->subDays(14)->format('Y-m-d'),
                 'transitions'   => [
-                    ['to' => 'For Review', 'notes' => 'Vehicle logged into incident system.'],
-                    ['to' => 'Ongoing', 'notes' => 'Auto-electrician diagnosing voltage regulator.'],
+                    ['to' => 'Ongoing', 'notes' => 'Pump pressure test and hose coupling gasket check initiated.'],
+                    ['to' => 'Done', 'notes' => 'All Tanker hoses and tools verified complete and operational.'],
                 ],
             ],
 
-            // 10. Secondary Fire Extinguisher Annual Check — Closed
+            // 7. Bull Cutter (1 unit) — Done
             [
-                'asset'         => $findAsset('FE-002'),
+                'asset'         => $findAsset('BLC-001'),
                 'reported_type' => 'Maintenance',
-                'target_status' => 'Closed',
-                'location'      => 'Storage Room',
-                'description'   => 'Routine inspection: annual inspection tag expiring this month.',
-                'action'        => 'Certified and re-tagged for 12 months',
-                'reported_date' => Carbon::now()->subDays(15)->format('Y-m-d'),
+                'target_status' => 'Done',
+                'confirmed'     => true,
+                'location'      => 'Purok A Fire Station',
+                'description'   => 'Bull cutter jaw alignment slightly offset after cutting hardened steel padlock during fire forcible entry.',
+                'action'        => 'Adjusted eccentric pivot bolts and lubricated jaws',
+                'reported_date' => Carbon::now()->subDays(18)->format('Y-m-d'),
                 'transitions'   => [
-                    ['to' => 'Ongoing', 'notes' => 'Dispatched for certified inspection.'],
-                    ['to' => 'Done', 'notes' => 'BFP certification completed and tag updated.'],
-                    ['to' => 'Closed', 'notes' => 'Returned to storage room.'],
+                    ['to' => 'Ongoing', 'notes' => 'Calibrating jaw gap tolerance.'],
+                    ['to' => 'Done', 'notes' => 'Jaws aligned and tested cleanly on 10mm steel rod.'],
                 ],
+            ],
+
+            // 8. Rick (14 units) & Machetes (Sundang - 4 units) — Pending
+            [
+                'asset'         => $findAsset('RCK-001'),
+                'reported_type' => 'Maintenance',
+                'target_status' => 'Pending',
+                'confirmed'     => false,
+                'location'      => 'Evacuation Center Warehouse',
+                'description'   => 'Routine post-deployment cleaning and rust-preventive oiling required for the 14 Ricks and 4 Machetes (Sundang).',
+                'action'        => 'Wash mud off tines, sharpen blades, and apply anti-rust oil',
+                'reported_date' => Carbon::now()->format('Y-m-d'),
+                'transitions'   => [],
             ],
         ];
 
@@ -185,8 +162,9 @@ class ReportedAssetSeeder extends Seeder
                 continue;
             }
 
-            // Load the category relationship so we can store its name.
             $data['asset']->load('category');
+
+            $isConfirmed = !empty($data['confirmed']);
 
             $report = ReportedAsset::create([
                 'asset_id'       => $data['asset']->id,
@@ -195,13 +173,18 @@ class ReportedAssetSeeder extends Seeder
                 'reported_by'    => $reporter->id,
                 'reported_type'  => $data['reported_type'],
                 'status'         => ReportedAssetService::STATUS_PENDING,
+                'confirmed_at'   => $isConfirmed ? Carbon::parse($data['reported_date'])->addHours(2) : null,
+                'confirmed_by'   => $isConfirmed ? ($admin?->id ?? $reporter->id) : null,
                 'location'       => $data['location'],
                 'description'    => $data['description'],
                 'action'         => $data['action'],
                 'reported_date'  => $data['reported_date'],
             ]);
 
-            // Log initial status
+            if ($isConfirmed && $maintOfficer) {
+                $report->assignedPersonnel()->syncWithoutDetaching([$maintOfficer->id]);
+            }
+
             $report->statusHistories()->create([
                 'from_status' => null,
                 'to_status'   => ReportedAssetService::STATUS_PENDING,
@@ -209,7 +192,6 @@ class ReportedAssetSeeder extends Seeder
                 'notes'       => 'Report created.',
             ]);
 
-            // Walk through transitions
             foreach ($data['transitions'] as $transition) {
                 $report->changeStatus(
                     $transition['to'],

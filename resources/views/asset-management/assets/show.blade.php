@@ -44,7 +44,7 @@
                 </button>
             @endif
 
-            @if(!$isReadOnlyStaff && $asset->status === 'available')
+            @if(!$isReadOnlyStaff && $asset->status === 'available' && !in_array($asset->condition, ['fair', 'poor']))
                 <a href="{{ route('deployment.create', ['asset_id' => $asset->id]) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium text-sm shadow-sm transition-colors">
                     <i class="fas fa-truck-fast"></i>
                     <span>Deploy Asset</span>

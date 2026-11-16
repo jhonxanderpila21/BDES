@@ -27,10 +27,8 @@ class ReportedAssetService
     public const VALID_TRANSITIONS = [
         self::STATUS_PENDING     => [self::STATUS_FOR_REVIEW, self::STATUS_ONGOING],
         self::STATUS_FOR_REVIEW  => [self::STATUS_ONGOING],
-        self::STATUS_ONGOING     => [self::STATUS_ESCALATED, self::STATUS_DONE],
-        self::STATUS_ESCALATED   => [self::STATUS_ONGOING, self::STATUS_DONE],
-        self::STATUS_DONE        => [self::STATUS_CLOSED],
-        self::STATUS_CLOSED      => [], // Terminal state
+        self::STATUS_ONGOING     => [self::STATUS_DONE],
+        self::STATUS_DONE        => [], // Terminal state
     ];
 
     /**
@@ -74,9 +72,7 @@ class ReportedAssetService
             self::STATUS_PENDING,
             self::STATUS_FOR_REVIEW,
             self::STATUS_ONGOING,
-            self::STATUS_ESCALATED,
             self::STATUS_DONE,
-            self::STATUS_CLOSED,
         ];
     }
 
@@ -89,7 +85,6 @@ class ReportedAssetService
             self::STATUS_PENDING,
             self::STATUS_FOR_REVIEW,
             self::STATUS_ONGOING,
-            self::STATUS_ESCALATED,
         ];
     }
 

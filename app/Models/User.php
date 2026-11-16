@@ -14,7 +14,7 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, \App\Traits\Archivable;
 
-    public const DEFAULT_TEMP_PASSWORD = 'TempPass_123';
+    public const DEFAULT_TEMP_PASSWORD = 'temp_pass_123';
 
     /**
      * The attributes that are mass assignable.
@@ -27,7 +27,10 @@ class User extends Authenticatable
         'suffix',
         'username',
         'email',
+        'phone_number',
+        'phone_verified_at',
         'password',
+        'must_change_password',
         'role',
         'is_active',
         'deleted_by',
@@ -64,7 +67,8 @@ class User extends Authenticatable
      * Default attribute values (mirrors DB defaults so new in-memory models are consistent).
      */
     protected $attributes = [
-        'is_active' => true,
+        'is_active'            => true,
+        'must_change_password' => false,
     ];
 
     /**
@@ -75,10 +79,101 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            'is_active' => 'boolean',
+            'email_verified_at'    => 'datetime',
+            'phone_verified_at'    => 'datetime',
+            'password'             => 'hashed',
+            'must_change_password' => 'boolean',
+            'is_active'            => 'boolean',
         ];
+    }
+
+    /**
+     * OTP records generated for this user.
+     */
+    public function otps(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserOtp::class);
+    }
+
+    /**
+     * Normalize a Philippine mobile number into +639XXXXXXXXX format.
+     */
+    public static function normalizePhilippinePhone(?string $phone): ?string
+    {
+        if ($phone === null) {
+            return null;
+        }
+
+        $cleaned = preg_replace('/[\s\-\(\)]+/', '', trim($phone));
+
+        if ($cleaned === '') {
+            return null;
+        }
+
+        if (preg_match('/^09(\d{9})$/', $cleaned, $matches)) {
+            return '+639' . $matches[1];
+        }
+
+        if (preg_match('/^639(\d{9})$/', $cleaned, $matches)) {
+            return '+639' . $matches[1];
+        }
+
+        if (preg_match('/^9(\d{9})$/', $cleaned, $matches)) {
+            return '+639' . $matches[1];
+        }
+
+        if (preg_match('/^\+639(\d{9})$/', $cleaned)) {
+            return $cleaned;
+        }
+
+        return $cleaned;
+    }
+
+    /**
+     * Determine whether the user's phone number is verified (or not required for legacy accounts without phone).
+     */
+    public function hasVerifiedPhone(): bool
+    {
+        if (empty($this->phone_number)) {
+            return true;
+        }
+
+        return $this->phone_verified_at !== null;
+    }
+
+    /**
+     * Determine whether the user must complete phone OTP verification before accessing the system.
+     */
+    public function needsPhoneVerification(): bool
+    {
+        return ! empty($this->phone_number) && $this->phone_verified_at === null;
+    }
+
+    /**
+     * Determine whether the user must change their temporary password before accessing the dashboard.
+     */
+    public function needsPasswordChange(): bool
+    {
+        return (bool) $this->must_change_password;
+    }
+
+    /**
+     * Return a masked representation of the user's phone number (e.g. +639*****1234).
+     */
+    public function getMaskedPhoneAttribute(): string
+    {
+        if (empty($this->phone_number)) {
+            return 'N/A';
+        }
+
+        $phone = $this->phone_number;
+        $length = strlen($phone);
+
+        if ($length <= 7) {
+            return str_repeat('*', max(0, $length - 2)) . substr($phone, -2);
+        }
+
+        return substr($phone, 0, 4) . str_repeat('*', max(4, $length - 8)) . substr($phone, -4);
     }
 
     /**

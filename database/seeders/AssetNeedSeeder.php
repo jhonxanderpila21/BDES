@@ -9,77 +9,76 @@ use Illuminate\Database\Seeder;
 class AssetNeedSeeder extends Seeder
 {
     /**
-     * Seed asset needs covering both unit types and all three status outcomes.
+     * Seed asset needs covering the Fire Trucks, Chainsaws, Jacks, and Generator.
      */
     public function run(): void
     {
-        // Look up assets by their code to get the correct IDs
-        $gen001 = Asset::where('code', 'GEN-001')->first();
-        $gen002 = Asset::where('code', 'GEN-002')->first();
-        $aed001 = Asset::where('code', 'AED-001')->first();
-        $rad001 = Asset::where('code', 'RAD-001')->first();
-        $saw001 = Asset::where('code', 'SAW-001')->first();
+        $tanker     = Asset::where('code', 'TRK-001')->first();
+        $penetrator = Asset::where('code', 'TRK-002')->first();
+        $chainsaw   = Asset::where('code', 'SAW-001')->first();
+        $jack       = Asset::where('code', 'JCK-001')->first();
+        $gen001     = Asset::where('code', 'GEN-001')->first();
 
         $needs = [
-            // Generator — Diesel Fuel at 50/100 → Monitoring Only
+            // Fire Truck – Tanker — Diesel Fuel at 160/200 -> Monitoring Only
+            [
+                'asset_id'         => $tanker?->id,
+                'asset_type'       => 'Fire Truck',
+                'requirement'      => 'Diesel Fuel (Tanker)',
+                'unit'             => 'Liters',
+                'maximum_capacity' => 200,
+                'minimum_level'    => 50,
+                'current_level'    => 160,
+            ],
+            // Fire Truck – Penetrator — Diesel Fuel at 35/150 (below min 40) -> Requires Maintenance / Refill
+            [
+                'asset_id'         => $penetrator?->id,
+                'asset_type'       => 'Fire Truck',
+                'requirement'      => 'Diesel Fuel (Penetrator)',
+                'unit'             => 'Liters',
+                'maximum_capacity' => 150,
+                'minimum_level'    => 40,
+                'current_level'    => 35,
+            ],
+            // Chainsaws (2 large, 2 small) — Bar & Chain Oil at 0/8 -> Under Maintenance
+            [
+                'asset_id'         => $chainsaw?->id,
+                'asset_type'       => 'Chainsaw',
+                'requirement'      => 'Bar & Chain Oil (4 Chainsaws)',
+                'unit'             => 'Liters',
+                'maximum_capacity' => 8,
+                'minimum_level'    => 2,
+                'current_level'    => 0,
+            ],
+            // Chainsaws (2 large, 2 small) — 2-Stroke Fuel Premix at 10/15 -> Monitoring Only
+            [
+                'asset_id'         => $chainsaw?->id,
+                'asset_type'       => 'Chainsaw',
+                'requirement'      => '2-Stroke Fuel Premix (4 Chainsaws)',
+                'unit'             => 'Liters',
+                'maximum_capacity' => 15,
+                'minimum_level'    => 4,
+                'current_level'    => 10,
+            ],
+            // Hydraulic Jacks (3 units) — Hydraulic Oil at 3/4 -> Monitoring Only
+            [
+                'asset_id'         => $jack?->id,
+                'asset_type'       => 'Hydraulic & Lifting Tool',
+                'requirement'      => 'Hydraulic Jack Fluid (3 Jacks)',
+                'unit'             => 'Liters',
+                'maximum_capacity' => 4,
+                'minimum_level'    => 1,
+                'current_level'    => 3,
+            ],
+            // Standby Generator — Diesel Fuel at 40/50 -> Monitoring Only
             [
                 'asset_id'         => $gen001?->id,
                 'asset_type'       => 'Generator',
                 'requirement'      => 'Diesel Fuel',
                 'unit'             => 'Liters',
-                'maximum_capacity' => 100,
-                'minimum_level'    => 20,
-                'current_level'    => 50,
-            ],
-            // Generator — Diesel Fuel at 15/100 (below min 20) → Requires Maintenance
-            [
-                'asset_id'         => $gen002?->id,
-                'asset_type'       => 'Generator',
-                'requirement'      => 'Diesel Fuel',
-                'unit'             => 'Liters',
-                'maximum_capacity' => 100,
-                'minimum_level'    => 20,
-                'current_level'    => 15,
-            ],
-            // AED — Battery Pack at 0/4 → Under Maintenance
-            [
-                'asset_id'         => $aed001?->id,
-                'asset_type'       => 'AED',
-                'requirement'      => 'Battery Pack',
-                'unit'             => 'Units',
-                'maximum_capacity' => 4,
-                'minimum_level'    => 1,
-                'current_level'    => 0,
-            ],
-            // AED — Electrode Pads at 6/6 (fully stocked) → Monitoring Only
-            [
-                'asset_id'         => $aed001?->id,
-                'asset_type'       => 'AED',
-                'requirement'      => 'Electrode Pads',
-                'unit'             => 'Units',
-                'maximum_capacity' => 6,
-                'minimum_level'    => 2,
-                'current_level'    => 6,
-            ],
-            // Radio — Spare Battery at 1/3 (at minimum) → Monitoring Only
-            [
-                'asset_id'         => $rad001?->id,
-                'asset_type'       => 'Radio',
-                'requirement'      => 'Spare Battery',
-                'unit'             => 'Units',
-                'maximum_capacity' => 3,
-                'minimum_level'    => 1,
-                'current_level'    => 1,
-            ],
-            // Chainsaw — Bar & Chain Oil at 0/5 → Under Maintenance
-            [
-                'asset_id'         => $saw001?->id,
-                'asset_type'       => 'Chainsaw',
-                'requirement'      => 'Bar & Chain Oil',
-                'unit'             => 'Liters',
-                'maximum_capacity' => 5,
-                'minimum_level'    => 1,
-                'current_level'    => 0,
+                'maximum_capacity' => 50,
+                'minimum_level'    => 15,
+                'current_level'    => 40,
             ],
         ];
 

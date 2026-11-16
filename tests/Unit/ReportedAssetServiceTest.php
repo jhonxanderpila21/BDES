@@ -24,29 +24,9 @@ class ReportedAssetServiceTest extends TestCase
         $this->assertTrue(ReportedAssetService::isValidTransition('For Review', 'Ongoing'));
     }
 
-    public function test_ongoing_can_transition_to_escalated(): void
-    {
-        $this->assertTrue(ReportedAssetService::isValidTransition('Ongoing', 'Escalated'));
-    }
-
     public function test_ongoing_can_transition_to_done(): void
     {
         $this->assertTrue(ReportedAssetService::isValidTransition('Ongoing', 'Done'));
-    }
-
-    public function test_escalated_can_transition_to_ongoing(): void
-    {
-        $this->assertTrue(ReportedAssetService::isValidTransition('Escalated', 'Ongoing'));
-    }
-
-    public function test_escalated_can_transition_to_done(): void
-    {
-        $this->assertTrue(ReportedAssetService::isValidTransition('Escalated', 'Done'));
-    }
-
-    public function test_done_can_transition_to_closed(): void
-    {
-        $this->assertTrue(ReportedAssetService::isValidTransition('Done', 'Closed'));
     }
 
     // ─── Invalid Transitions ───
@@ -56,22 +36,12 @@ class ReportedAssetServiceTest extends TestCase
         $this->assertFalse(ReportedAssetService::isValidTransition('Pending', 'Done'));
     }
 
-    public function test_pending_cannot_transition_to_closed(): void
-    {
-        $this->assertFalse(ReportedAssetService::isValidTransition('Pending', 'Closed'));
-    }
-
-    public function test_pending_cannot_transition_to_escalated(): void
-    {
-        $this->assertFalse(ReportedAssetService::isValidTransition('Pending', 'Escalated'));
-    }
-
-    public function test_closed_is_terminal_cannot_transition_to_anything(): void
+    public function test_done_is_terminal_cannot_transition_to_anything(): void
     {
         foreach (ReportedAssetService::statuses() as $status) {
             $this->assertFalse(
-                ReportedAssetService::isValidTransition('Closed', $status),
-                "Closed should not transition to {$status}"
+                ReportedAssetService::isValidTransition('Done', $status),
+                "Done should not transition to {$status}"
             );
         }
     }
@@ -106,27 +76,25 @@ class ReportedAssetServiceTest extends TestCase
         $this->assertContains('Pending', $statuses);
         $this->assertContains('For Review', $statuses);
         $this->assertContains('Ongoing', $statuses);
-        $this->assertContains('Escalated', $statuses);
         $this->assertContains('Done', $statuses);
-        $this->assertContains('Closed', $statuses);
-        $this->assertCount(6, $statuses);
+        $this->assertCount(4, $statuses);
     }
 
-    public function test_open_statuses_excludes_done_and_closed(): void
+    public function test_open_statuses_excludes_done(): void
     {
         $open = ReportedAssetService::openStatuses();
         $this->assertContains('Pending', $open);
         $this->assertContains('For Review', $open);
         $this->assertContains('Ongoing', $open);
-        $this->assertContains('Escalated', $open);
         $this->assertNotContains('Done', $open);
-        $this->assertNotContains('Closed', $open);
+        $this->assertCount(3, $open);
     }
 
     public function test_allowed_next_statuses(): void
     {
         $this->assertEquals(['For Review', 'Ongoing'], ReportedAssetService::allowedNextStatuses('Pending'));
         $this->assertEquals(['Ongoing'], ReportedAssetService::allowedNextStatuses('For Review'));
-        $this->assertEquals([], ReportedAssetService::allowedNextStatuses('Closed'));
+        $this->assertEquals(['Done'], ReportedAssetService::allowedNextStatuses('Ongoing'));
+        $this->assertEquals([], ReportedAssetService::allowedNextStatuses('Done'));
     }
 }

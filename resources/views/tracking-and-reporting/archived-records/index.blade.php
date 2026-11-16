@@ -158,83 +158,83 @@
             <table class="w-full text-left border-collapse text-xs">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-5 py-3.5 text-left font-bold text-gray-700 uppercase tracking-wider">Record ID</th>
-                        <th class="px-5 py-3.5 text-left font-bold text-gray-700 uppercase tracking-wider">Record Name</th>
-                        <th class="px-5 py-3.5 text-left font-bold text-gray-700 uppercase tracking-wider">Source Module</th>
-                        <th class="px-5 py-3.5 text-left font-bold text-gray-700 uppercase tracking-wider">Deletion Reason</th>
-                        <th class="px-5 py-3.5 text-left font-bold text-gray-700 uppercase tracking-wider">Deleted By</th>
-                        <th class="px-5 py-3.5 text-left font-bold text-gray-700 uppercase tracking-wider">Date Deleted</th>
-                        <th class="px-5 py-3.5 text-right font-bold text-gray-700 uppercase tracking-wider">Actions</th>
+                        <th class="px-3 py-3 text-left font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap">Record ID</th>
+                        <th class="px-3 py-3 text-left font-bold text-gray-700 uppercase tracking-wider">Record Name</th>
+                        <th class="px-3 py-3 text-left font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap">Source Module</th>
+                        <th class="px-3 py-3 text-left font-bold text-gray-700 uppercase tracking-wider">Deletion Reason</th>
+                        <th class="px-3 py-3 text-left font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap">Deleted By</th>
+                        <th class="px-3 py-3 text-left font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap">Date Deleted</th>
+                        <th class="px-3 py-3 text-right font-bold text-gray-700 uppercase tracking-wider whitespace-nowrap">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($records as $item)
                         <tr class="hover:bg-gray-50 transition-colors">
                             {{-- Record ID --}}
-                            <td class="px-5 py-3.5 font-mono font-bold text-gray-800 whitespace-nowrap">
+                            <td class="px-3 py-3 font-mono font-bold text-gray-800 whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-800 text-xs">
                                     {{ $item->record_id }}
                                 </span>
                             </td>
 
                             {{-- Record Name --}}
-                            <td class="px-5 py-3.5 font-semibold text-gray-900 max-w-xs">
+                            <td class="px-3 py-3 font-semibold text-gray-900 max-w-[180px] xl:max-w-[230px]">
                                 <span class="truncate block" title="{{ $item->record_name }}">
                                     {{ $item->record_name }}
                                 </span>
                             </td>
 
                             {{-- Source Module --}}
-                            <td class="px-5 py-3.5 whitespace-nowrap">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border bg-{{ $item->module_color }}-50 text-{{ $item->module_color }}-700 border-{{ $item->module_color }}-200">
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border bg-{{ $item->module_color }}-50 text-{{ $item->module_color }}-700 border-{{ $item->module_color }}-200">
                                     <i class="{{ $item->module_icon }} text-[10px]"></i>
                                     {{ $item->module_label }}
                                 </span>
                             </td>
 
                             {{-- Deletion Reason --}}
-                            <td class="px-5 py-3.5 text-gray-600 max-w-sm">
+                            <td class="px-3 py-3 text-gray-600 max-w-[150px] xl:max-w-[210px]">
                                 <span class="line-clamp-2 text-xs italic" title="{{ $item->deletion_reason }}">
                                     "{{ $item->deletion_reason }}"
                                 </span>
                             </td>
 
                             {{-- Deleted By --}}
-                            <td class="px-5 py-3.5 whitespace-nowrap">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                            <td class="px-3 py-3 whitespace-nowrap">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px] shrink-0">
                                         {{ strtoupper(substr($item->deleted_by_name, 0, 1)) }}
                                     </span>
-                                    <span class="text-gray-900 font-medium">{{ $item->deleted_by_name }}</span>
+                                    <span class="text-gray-900 font-medium truncate max-w-[130px] xl:max-w-[160px]" title="{{ $item->deleted_by_name }}">{{ $item->deleted_by_name }}</span>
                                 </div>
                             </td>
 
                             {{-- Date Deleted --}}
-                            <td class="px-5 py-3.5 whitespace-nowrap text-gray-600">
+                            <td class="px-3 py-3 whitespace-nowrap text-gray-600">
                                 @if($item->deleted_at)
                                     <div>{{ $item->deleted_at->format('M d, Y') }}</div>
-                                    <div class="text-[10px] text-gray-400">{{ $item->deleted_at->format('h:i A') }} ({{ $item->deleted_at->diffForHumans() }})</div>
+                                    <div class="text-[10px] text-gray-400">{{ $item->deleted_at->format('h:i A') }}</div>
                                 @else
                                     <span class="text-gray-400">N/A</span>
                                 @endif
                             </td>
 
                             {{-- Actions --}}
-                            <td class="px-5 py-3.5 text-right whitespace-nowrap">
-                                <div class="inline-flex items-center gap-1.5">
+                            <td class="px-3 py-3 text-right whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1">
                                     {{-- View Details --}}
                                     <button type="button"
                                             onclick="openArchiveViewModal('{{ $item->module_key }}', '{{ $item->raw_id }}')"
                                             title="View Archived Record Details"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                                        <i class="fas fa-eye text-blue-600"></i> View
+                                            class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                                        View
                                     </button>
 
                                     {{-- Restore Record --}}
                                     <button type="button"
                                             onclick="openRestoreModal('{{ $item->module_key }}', '{{ $item->raw_id }}', '{{ addslashes($item->record_name) }}', '{{ addslashes($item->module_label) }}')"
                                             title="Restore record to original module"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors">
+                                            class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors">
                                         <i class="fas fa-rotate-left"></i> Restore
                                     </button>
 
@@ -242,7 +242,7 @@
                                     <button type="button"
                                             onclick="openForceDeleteModal('{{ $item->module_key }}', '{{ $item->raw_id }}', '{{ addslashes($item->record_name) }}', '{{ addslashes($item->module_label) }}')"
                                             title="Permanently remove record"
-                                            class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors">
+                                            class="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors">
                                         <i class="fas fa-trash-can"></i> Delete
                                     </button>
                                 </div>

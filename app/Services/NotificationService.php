@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Asset;
+use App\Models\AuditLog;
 use App\Models\Deployment;
 use App\Models\Inspection;
 use App\Models\Maintenance;
@@ -62,6 +64,7 @@ class NotificationService
                     $notifications->push([
                         'id' => $id,
                         'source_id' => $m->id,
+                        'asset_id' => $m->asset_id,
                         'category' => 'maintenance',
                         'category_label' => 'Maintenance',
                         'title' => ($isOverdue ? 'Overdue: ' : 'Maintenance Due: ') . $assetName,
@@ -76,7 +79,7 @@ class NotificationService
                         'icon' => 'fas fa-wrench',
                         'icon_bg' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
                         'color' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
-                        'url' => route('maintenance.index', ['tab' => 'logs']),
+                        'url' => $m->asset_id ? route('assets.show', $m->asset_id) : route('maintenance.index', ['tab' => 'logs']),
                         'timestamp' => $scheduled->diffForHumans(),
                         'date' => $scheduled,
                         'is_today' => $scheduled->isToday(),
@@ -107,6 +110,7 @@ class NotificationService
                     $notifications->push([
                         'id' => $id,
                         'source_id' => $d->id,
+                        'asset_id' => $d->asset_id,
                         'category' => 'deployment',
                         'category_label' => 'Deployment',
                         'title' => ($isOverdue ? 'Overdue Return: ' : 'Return Reminder: ') . $assetName,
@@ -117,7 +121,7 @@ class NotificationService
                         'icon' => 'fas fa-truck-fast',
                         'icon_bg' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600',
                         'color' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-blue-50 text-blue-600',
-                        'url' => route('deployment.index', ['status' => 'active']),
+                        'url' => $d->asset_id ? route('assets.show', $d->asset_id) : route('deployment.index', ['status' => 'active']),
                         'timestamp' => $returnDate->diffForHumans(),
                         'date' => $returnDate,
                         'is_today' => $returnDate->isToday(),
@@ -142,6 +146,7 @@ class NotificationService
                 $notifications->push([
                     'id' => $id,
                     'source_id' => $s->id,
+                    'asset_id' => $s->asset_id,
                     'category' => 'maintenance',
                     'category_label' => 'Preventive',
                     'title' => 'Preventive Schedule: ' . $assetName,
@@ -154,7 +159,7 @@ class NotificationService
                     'icon' => 'fas fa-calendar-check',
                     'icon_bg' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
                     'color' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
-                    'url' => route('maintenance.index', ['tab' => 'schedules']),
+                    'url' => $s->asset_id ? route('assets.show', $s->asset_id) : route('maintenance.index', ['tab' => 'schedules']),
                     'timestamp' => $dueDate ? $dueDate->diffForHumans() : 'Due now',
                     'date' => $dueDate ?? $today,
                     'is_today' => $dueDate ? $dueDate->isToday() : false,
@@ -180,6 +185,7 @@ class NotificationService
                 $notifications->push([
                     'id' => $id,
                     'source_id' => $ins->id,
+                    'asset_id' => $ins->asset_id,
                     'category' => 'inspection',
                     'category_label' => 'Inspection',
                     'title' => ($isOverdue ? 'Overdue Inspection: ' : 'Inspection Due: ') . $assetName,
@@ -192,7 +198,7 @@ class NotificationService
                     'icon' => 'fas fa-clipboard-check',
                     'icon_bg' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-purple-50 text-purple-600',
                     'color' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-purple-50 text-purple-600',
-                    'url' => route('maintenance.index', ['tab' => 'inspections']),
+                    'url' => $ins->asset_id ? route('assets.show', $ins->asset_id) : route('maintenance.index', ['tab' => 'inspections']),
                     'timestamp' => $inspDate->diffForHumans(),
                     'date' => $inspDate,
                     'is_today' => $inspDate->isToday(),
@@ -204,7 +210,6 @@ class NotificationService
             $reports = ReportedAsset::with('asset')
                 ->whereIn('status', ['pending', 'for_inspection'])
                 ->latest('reported_date')
-                ->take(6)
                 ->get();
 
             foreach ($reports as $r) {
@@ -216,6 +221,7 @@ class NotificationService
                 $notifications->push([
                     'id' => $id,
                     'source_id' => $r->id,
+                    'asset_id' => $r->asset_id,
                     'category' => 'reported_asset',
                     'category_label' => 'Damage Report',
                     'title' => 'Reported Issue: ' . ($r->asset_name ?: 'Asset Incident'),
@@ -230,10 +236,93 @@ class NotificationService
                     'icon' => 'fas fa-triangle-exclamation',
                     'icon_bg' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
                     'color' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
-                    'url' => route('reported-assets.show', $r->id),
+                    'url' => $r->asset_id ? route('assets.show', $r->asset_id) : route('reported-assets.show', $r->id),
                     'timestamp' => $reportDate->diffForHumans(),
                     'date' => $reportDate,
                     'is_today' => $reportDate->isToday(),
+                    'is_read' => in_array($id, $readIds, true),
+                ]);
+            }
+
+            // 6. Newly Added / Registered Equipment (Assets)
+            $recentAssets = Asset::with(['category', 'location'])
+                ->latest('created_at')
+                ->latest('id')
+                ->get();
+
+            foreach ($recentAssets as $asset) {
+                $createdAt = $asset->created_at ? Carbon::parse($asset->created_at) : now();
+                $id = 'asset-new-' . $asset->id;
+                $catName = $asset->category?->name ?? 'Equipment';
+                $locName = $asset->location?->name ? " stored at {$asset->location->name}" : '';
+
+                $notifications->push([
+                    'id' => $id,
+                    'source_id' => $asset->id,
+                    'category' => 'equipment',
+                    'category_label' => 'New Equipment',
+                    'title' => 'New Equipment Added: ' . $asset->name,
+                    'description' => "{$asset->name} ({$asset->code}) under {$catName}{$locName} has been added to the inventory.",
+                    'message' => "{$asset->name} ({$asset->code}) under {$catName}{$locName} has been added to the inventory.",
+                    'priority' => 'medium',
+                    'severity' => 'info',
+                    'badge' => 'New Equipment',
+                    'icon' => 'fas fa-box-open',
+                    'icon_bg' => 'bg-emerald-50 text-emerald-600',
+                    'color' => 'bg-emerald-50 text-emerald-600',
+                    'url' => route('assets.show', $asset->id),
+                    'timestamp' => $createdAt->diffForHumans(),
+                    'date' => $createdAt,
+                    'is_today' => $createdAt->isToday(),
+                    'is_read' => in_array($id, $readIds, true),
+                ]);
+            }
+
+            // 7. Recent Audit Trail Broadcast Events (Deployments, Returns, Maintenance, Retired)
+            $recentLogs = AuditLog::with(['user', 'auditable'])
+                ->whereIn('event', ['deployed', 'returned', 'maintenance_started', 'maintenance_completed', 'retired'])
+                ->latest('created_at')
+                ->get();
+
+            foreach ($recentLogs as $log) {
+                $logDate = $log->created_at ? Carbon::parse($log->created_at) : now();
+                $id = 'audit-' . $log->id;
+                $actor = $log->user?->name ?? 'Administrator';
+
+                [$titlePrefix, $icon, $color, $cat] = match ($log->event) {
+                    'deployed'              => ['Equipment Deployed', 'fas fa-truck-ramp-box', 'bg-blue-50 text-blue-600', 'deployment'],
+                    'returned'              => ['Equipment Returned', 'fas fa-rotate-left', 'bg-teal-50 text-teal-600', 'deployment'],
+                    'maintenance_started'   => ['Maintenance Started', 'fas fa-screwdriver-wrench', 'bg-amber-50 text-amber-600', 'maintenance'],
+                    'maintenance_completed' => ['Maintenance Completed', 'fas fa-circle-check', 'bg-emerald-50 text-emerald-600', 'maintenance'],
+                    'retired'               => ['Equipment Retired', 'fas fa-box-archive', 'bg-gray-100 text-gray-600', 'equipment'],
+                    default                 => ['System Update', 'fas fa-bell', 'bg-blue-50 text-blue-600', 'equipment'],
+                };
+
+                $targetUrl = route('asset-history.index');
+                if ($log->auditable_type === Asset::class && $log->auditable_id) {
+                    $targetUrl = route('assets.show', $log->auditable_id);
+                } elseif (!empty($log->auditable?->asset_id)) {
+                    $targetUrl = route('assets.show', $log->auditable->asset_id);
+                }
+
+                $notifications->push([
+                    'id' => $id,
+                    'source_id' => $log->id,
+                    'category' => $cat,
+                    'category_label' => ucfirst($cat),
+                    'title' => $titlePrefix,
+                    'description' => "{$log->description} (by {$actor})",
+                    'message' => "{$log->description} (by {$actor})",
+                    'priority' => 'low',
+                    'severity' => 'info',
+                    'badge' => $titlePrefix,
+                    'icon' => $icon,
+                    'icon_bg' => $color,
+                    'color' => $color,
+                    'url' => $targetUrl,
+                    'timestamp' => $logDate->diffForHumans(),
+                    'date' => $logDate,
+                    'is_today' => $logDate->isToday(),
                     'is_read' => in_array($id, $readIds, true),
                 ]);
             }

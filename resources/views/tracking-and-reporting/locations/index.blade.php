@@ -259,7 +259,7 @@
     </x-card>
 
     {{-- Location Stored Assets Details Modal --}}
-    <x-modal id="location-assets-modal" title="Facility Stored Assets" maxWidth="4xl">
+    <x-modal id="location-assets-modal" title="Facility Stored Assets" maxWidth="5xl">
         <div class="space-y-6">
             {{-- Facility Header Card --}}
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
@@ -587,21 +587,21 @@
                             </td>
                         ` : ''}
                         <td class="px-4 py-3 align-middle">
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">${escapeHtml(asset.code)}</span>
+                            <div class="flex items-center gap-2.5">
+                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded whitespace-nowrap shrink-0">${escapeHtml(asset.code)}</span>
                                 <div>
                                     <a href="/assets/${asset.id}" class="font-semibold text-gray-900 hover:text-blue-600 hover:underline block">${escapeHtml(asset.name)}</a>
-                                    ${asset.serial_number ? `<span class="text-[10px] text-gray-400 font-mono">S/N: ${escapeHtml(asset.serial_number)}</span>` : ''}
+                                    ${asset.serial_number ? `<span class="text-[10px] text-gray-400 font-mono block">S/N: ${escapeHtml(asset.serial_number)}</span>` : ''}
                                 </div>
                             </div>
                         </td>
                         <td class="px-4 py-3 align-middle text-xs text-gray-600">
                             ${escapeHtml(categoryName)}
                         </td>
-                        <td class="px-4 py-3 align-middle text-center">
+                        <td class="px-4 py-3 align-middle text-center whitespace-nowrap">
                             ${statusBadge}
                         </td>
-                        <td class="px-4 py-3 align-middle text-right font-mono text-xs text-gray-700">
+                        <td class="px-4 py-3 align-middle text-right font-mono text-xs text-gray-700 whitespace-nowrap">
                             ${costFormatted}
                         </td>
                         <td class="px-4 py-3 align-middle text-right whitespace-nowrap">

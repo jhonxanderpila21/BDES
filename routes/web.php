@@ -139,6 +139,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/receipts/{receipt}', [\App\Http\Controllers\ReceiptController::class, 'destroy'])->name('receipts.destroy');
 
     // Notifications Actions
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/{id}/view', [NotificationController::class, 'viewRecord'])->name('notifications.view-record');
     Route::post('/notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');

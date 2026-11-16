@@ -38,14 +38,13 @@
     </div>
 
     {{-- Dashboard Summary KPI Cards (Clickable quick status filters) --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-8">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-8">
         @php
             $statusConfig = [
                 'Pending'    => ['icon' => 'fas fa-clock', 'border' => 'border-amber-200', 'bg' => 'bg-amber-50/40', 'iconBg' => 'bg-amber-100 text-amber-600', 'textColor' => 'text-amber-700', 'label' => 'Awaiting Review'],
                 'For Review' => ['icon' => 'fas fa-search', 'border' => 'border-sky-200', 'bg' => 'bg-sky-50/40', 'iconBg' => 'bg-sky-100 text-sky-600', 'textColor' => 'text-sky-700', 'label' => 'Admin Review'],
                 'Ongoing'    => ['icon' => 'fas fa-spinner', 'border' => 'border-blue-200', 'bg' => 'bg-blue-50/40', 'iconBg' => 'bg-blue-100 text-blue-600', 'textColor' => 'text-blue-700', 'label' => 'In Progress'],
                 'Done'       => ['icon' => 'fas fa-circle-check', 'border' => 'border-emerald-200', 'bg' => 'bg-emerald-50/40', 'iconBg' => 'bg-emerald-100 text-emerald-600', 'textColor' => 'text-emerald-700', 'label' => 'Resolved'],
-                'Closed'     => ['icon' => 'fas fa-archive', 'border' => 'border-gray-200', 'bg' => 'bg-gray-50/60', 'iconBg' => 'bg-gray-200 text-gray-700', 'textColor' => 'text-gray-700', 'label' => 'Archived'],
             ];
         @endphp
         @foreach($statusCounts as $status => $count)
@@ -171,7 +170,7 @@
                         >
                             {{-- Asset --}}
                             <td class="px-5 py-4 whitespace-nowrap">
-                                <a href="{{ route('reported-assets.show', $report) }}" class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors block">
+                                <a href="{{ route('reported-assets.show', $report) }}" class="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors block" title="View Details">
                                     {{ $report->asset?->name ?? $report->asset_name }}
                                 </a>
                                 <div class="flex items-center gap-1.5 mt-0.5 text-xs text-gray-500">
@@ -263,28 +262,7 @@
                             {{-- Actions --}}
                             <td class="px-5 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-1.5">
-                                    {{-- View Details --}}
-                                    <a 
-                                        href="{{ route('reported-assets.show', $report) }}"
-                                        class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600 hover:text-blue-800 transition-colors" 
-                                        title="View Details"
-                                    >
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-
                                     @if(!$isReadOnlyStaff)
-                                        {{-- Confirm & Assign Action --}}
-                                        @if(!$report->isConfirmed())
-                                            <button 
-                                                type="button"
-                                                onclick="openConfirmModal({{ $report->id }}, '{{ addslashes($report->asset?->name ?? $report->asset_name) }}', '{{ $report->reported_type }}', {{ json_encode($report->assignedPersonnel->pluck('id')) }})"
-                                                class="p-1.5 rounded-lg hover:bg-emerald-50 text-emerald-600 hover:text-emerald-800 transition-colors"
-                                                title="Confirm Report & Assign Personnel"
-                                            >
-                                                <i class="fas fa-clipboard-check"></i>
-                                            </button>
-                                        @endif
-
                                         {{-- Assign Personnel Action --}}
                                         <button 
                                             type="button"

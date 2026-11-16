@@ -14,83 +14,167 @@ class AssetFinancialsSeeder extends Seeder
     public function run(): void
     {
         $financialProfiles = [
-            'FE-001' => [
-                'acquisition_cost'  => 3500.00,
-                'useful_life_years' => 5,
-                'salvage_value'     => null, // defaults to COA 10% (350.00)
-                'salvage_notes'     => 'Standard 10% statutory residual allowance under COA disaster guidelines.',
+            'TRK-001' => [
+                'acquisition_cost'  => 1850000.00,
+                'useful_life_years' => 10,
+                'salvage_value'     => 185000.00,
+                'salvage_notes'     => 'Municipal fire apparatus statutory 10% residual value under COA guidelines.',
             ],
-            'FE-002' => [
-                'acquisition_cost'  => 3500.00,
+            'TRK-002' => [
+                'acquisition_cost'  => 1450000.00,
+                'useful_life_years' => 10,
+                'salvage_value'     => 145000.00,
+                'salvage_notes'     => 'Penetrator fire apparatus statutory 10% residual value under COA guidelines.',
+            ],
+            'FH-001' => [
+                'acquisition_cost'  => 45500.00,
                 'useful_life_years' => 5,
                 'salvage_value'     => null,
-                'salvage_notes'     => 'Standard 10% statutory residual allowance under COA disaster guidelines.',
+                'salvage_notes'     => '7 rolls of 1½-inch fire hoses (Tanker) — brass coupling salvage recovery.',
+            ],
+            'FH-002' => [
+                'acquisition_cost'  => 39000.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '6 rolls of 1½-inch fire hoses (Penetrator) — brass coupling salvage recovery.',
+            ],
+            'FH-003' => [
+                'acquisition_cost'  => 28500.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '3 rolls of 2½-inch fire hoses (Tanker) — semi-expendable firefighting hose set.',
+            ],
+            'FH-004' => [
+                'acquisition_cost'  => 19000.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 rolls of 2½-inch fire hoses (Penetrator) — semi-expendable firefighting hose set.',
+            ],
+            'HP-001' => [
+                'acquisition_cost'  => 17000.00,
+                'useful_life_years' => 7,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 units of 2½-inch brass hose peed / wye (1 Tanker, 1 Penetrator).',
+            ],
+            'SPN-001' => [
+                'acquisition_cost'  => 1300.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 units of hose spanner wrenches (1 Tanker, 1 Penetrator).',
+            ],
+            'YBT-001' => [
+                'acquisition_cost'  => 2400.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 units of heavy-duty pipe wrenches / Yabie tubo (1 Tanker, 1 Penetrator).',
+            ],
+            'VGP-001' => [
+                'acquisition_cost'  => 1500.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 units of locking pliers / Vice grip (1 Tanker, 1 Penetrator).',
+            ],
+            'CPL-001' => [
+                'acquisition_cost'  => 1100.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 units of diagonal cutter pliers (1 Tanker, 1 Penetrator).',
+            ],
+            'EPL-001' => [
+                'acquisition_cost'  => 1300.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 units of insulated electrical pliers (1 Tanker, 1 Penetrator).',
+            ],
+            'JCK-001' => [
+                'acquisition_cost'  => 11400.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '3 heavy-duty hydraulic jacks for vehicle stabilization and lifting.',
+            ],
+            'SAW-001' => [
+                'acquisition_cost'  => 101000.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => 10100.00,
+                'salvage_notes'     => '4 Stihl chainsaws (2 large, 2 small) — engine block and guide bar salvage value.',
+            ],
+            'MCH-001' => [
+                'acquisition_cost'  => 2400.00,
+                'useful_life_years' => 3,
+                'salvage_value'     => null,
+                'salvage_notes'     => '4 clearing machetes (Sundang) — semi-expendable hand tools.',
+            ],
+            'ROP-001' => [
+                'acquisition_cost'  => 10000.00,
+                'useful_life_years' => 3,
+                'salvage_value'     => null,
+                'salvage_notes'     => '4 coils of rescue and utility ropes (Pisi).',
+            ],
+            'RCK-001' => [
+                'acquisition_cost'  => 6300.00,
+                'useful_life_years' => 3,
+                'salvage_value'     => null,
+                'salvage_notes'     => '14 steel clearing rakes (Rick) for post-disaster debris clearing.',
+            ],
+            'BLC-001' => [
+                'acquisition_cost'  => 2800.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '1 heavy-duty 36-inch bull cutter (bolt cutter) for forcible entry.',
+            ],
+            'CPL-002' => [
+                'acquisition_cost'  => 1100.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 station reserve cutter pliers.',
+            ],
+            'EPL-002' => [
+                'acquisition_cost'  => 1300.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 station reserve electrical pliers.',
+            ],
+            'VGP-002' => [
+                'acquisition_cost'  => 1500.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 station reserve vice grips.',
+            ],
+            'YBT-002' => [
+                'acquisition_cost'  => 2400.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => '2 station reserve pipe wrenches (Yabie tubo).',
+            ],
+            'FH-005' => [
+                'acquisition_cost'  => 6500.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => 'Damaged 1½-inch hose (1 unit) — brass couplings retained for salvage.',
+            ],
+            'FH-006' => [
+                'acquisition_cost'  => 9500.00,
+                'useful_life_years' => 5,
+                'salvage_value'     => null,
+                'salvage_notes'     => 'Damaged 2½-inch hose (1 unit) — brass couplings retained for salvage.',
             ],
             'GEN-001' => [
                 'acquisition_cost'  => 45000.00,
                 'useful_life_years' => 7,
-                'salvage_value'     => 6500.00,
-                'salvage_notes'     => 'Appraised scrap copper winding and motor block residual floor upon decommissioning.',
+                'salvage_value'     => null,
+                'salvage_notes'     => 'Fire station standby 5kVA generator.',
             ],
-            'GEN-002' => [
-                'acquisition_cost'  => 38000.00,
-                'useful_life_years' => 7,
-                'salvage_value'     => 5000.00,
-                'salvage_notes'     => 'Estimated generator frame and parts recovery scrap appraisal value.',
-            ],
-            'AED-001' => [
-                'acquisition_cost'  => 95000.00,
+            'FE-001' => [
+                'acquisition_cost'  => 3500.00,
                 'useful_life_years' => 5,
-                'salvage_value'     => 12000.00,
-                'salvage_notes'     => 'Manufacturer core trade-in appraisal credit for life-support electronics.',
-            ],
-            'STR-001' => [
-                'acquisition_cost'  => 6500.00,
-                'useful_life_years' => 5,
-                'salvage_value'     => 650.00,
-                'salvage_notes'     => 'Aluminum frame scrap recovery value under LGU disposal procedures.',
-            ],
-            'ROP-001' => [
-                'acquisition_cost'  => 12000.00,
-                'useful_life_years' => 3,
-                'salvage_value'     => 1200.00,
-                'salvage_notes'     => 'Secondary utility use residual allowance.',
-            ],
-            'SAW-001' => [
-                'acquisition_cost'  => 28000.00,
-                'useful_life_years' => 5,
-                'salvage_value'     => 4000.00,
-                'salvage_notes'     => 'Parts salvage valuation (engine block, guide bar, and chassis assembly).',
+                'salvage_value'     => null,
+                'salvage_notes'     => 'Dry chemical fire extinguisher.',
             ],
             'RAD-001' => [
                 'acquisition_cost'  => 16500.00,
                 'useful_life_years' => 5,
-                'salvage_value'     => 2000.00,
-                'salvage_notes'     => 'VHF transmitter chassis appraisal and telecom components residual recovery.',
-            ],
-            'RAD-002' => [
-                'acquisition_cost'  => 16500.00,
-                'useful_life_years' => 5,
-                'salvage_value'     => 2000.00,
-                'salvage_notes'     => 'VHF transmitter chassis appraisal and telecom components residual recovery.',
-            ],
-            'MEG-001' => [
-                'acquisition_cost'  => 4500.00,
-                'useful_life_years' => 4,
-                'salvage_value'     => 450.00,
-                'salvage_notes'     => 'Standard 10% statutory residual allowance.',
-            ],
-            'BOT-001' => [
-                'acquisition_cost'  => 285000.00,
-                'useful_life_years' => 10,
-                'salvage_value'     => 35000.00,
-                'salvage_notes'     => 'Marine survey appraisal for heavy-duty fiberglass hull and motor components.',
-            ],
-            'VEH-001' => [
-                'acquisition_cost'  => 320000.00,
-                'useful_life_years' => 8,
-                'salvage_value'     => 48000.00,
-                'salvage_notes'     => 'Municipal vehicle residual scrap metal, engine, and drive-train appraisal.',
+                'salvage_value'     => null,
+                'salvage_notes'     => 'VHF fire & rescue dispatch radio.',
             ],
         ];
 
@@ -107,4 +191,3 @@ class AssetFinancialsSeeder extends Seeder
         ]);
     }
 }
-

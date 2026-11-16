@@ -76,16 +76,46 @@
     class="fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-auto flex-shrink-0 h-screen bg-[#003366] text-white border-r border-[#002244] overflow-hidden shadow-2xl lg:shadow-md select-none"
 >
     <nav class="h-screen overflow-y-auto">
+        {{-- Top-Left Brand Logo Header (aligned with top navbar height) --}}
+        <div class="px-4 h-[68px] border-b border-white/10 flex items-center">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0">
+                <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-10 h-10 object-cover aspect-square rounded-full ring-2 ring-white/20 shadow-sm shrink-0">
+                <div class="min-w-0">
+                    <h2 class="text-base font-extrabold text-white tracking-wide leading-tight truncate">BDES</h2>
+                    <p class="text-xs font-medium text-[#60A5FA] leading-tight truncate">Disaster Assets</p>
+                </div>
+            </a>
+        </div>
+
         {{-- Sidebar Content --}}
         <div class="p-4 space-y-2">
 
             {{-- 1. Executive Dashboard (Direct Link) --}}
             <a
                 href="{{ route('dashboard') }}"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium {{ $directLinkClass($isActive('dashboard')) }}"
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('dashboard')) }}"
             >
-                <i class="fas fa-th-large w-5 text-center {{ $directIconClass($isActive('dashboard')) }}"></i>
+                <i class="fas fa-th-large w-4 text-center {{ $directIconClass($isActive('dashboard')) }}"></i>
                 <span>Dashboard</span>
+            </a>
+
+            {{-- 1b. Notifications & Equipment Updates (Direct Link with Unread Badge) --}}
+            @php
+                $sidebarUnreadCount = (int) ($navbarNotifications['unread_count'] ?? 0);
+            @endphp
+            <a
+                href="{{ route('notifications.index') }}"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('notifications.*')) }}"
+            >
+                <div class="flex items-center gap-2.5">
+                    <i class="fas fa-bell w-4 text-center {{ $directIconClass($isActive('notifications.*')) }}"></i>
+                    <span>Notifications</span>
+                </div>
+                @if($sidebarUnreadCount > 0)
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shadow-xs">
+                        {{ $sidebarUnreadCount > 99 ? '99+' : $sidebarUnreadCount }}
+                    </span>
+                @endif
             </a>
 
             {{-- 2. Asset Management Dropdown --}}
@@ -181,13 +211,13 @@
                     @endif
 
                     @if($isAdmin || $isMaintenance || $isViewer)
-                        {{-- Maintenance & Work Orders (Maintenance Officer workflow) --}}
+                        {{-- Maintenance (Maintenance Officer workflow) --}}
                         <a
                             href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"
                         >
                             <i class="fas fa-screwdriver-wrench w-4 text-center {{ $iconClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"></i>
-                            <span>Maintenance & Work Orders</span>
+                            <span>Maintenance</span>
                         </a>
                     @endif
 
@@ -382,26 +412,15 @@
                 <div class="pt-1">
                     <a
                         href="{{ route('profile.edit') }}"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium {{ $directLinkClass($isActive('profile.*')) }}"
+                        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('profile.*')) }}"
                     >
-                        <i class="fas fa-id-badge w-5 text-center {{ $directIconClass($isActive('profile.*')) }}"></i>
+                        <i class="fas fa-id-badge w-4 text-center {{ $directIconClass($isActive('profile.*')) }}"></i>
                         <span>Account Settings</span>
                     </a>
                 </div>
             @endif
         </div>
     </nav>
-
-    {{-- Draggable Width Resizer Handle on Right Edge (Desktop only) --}}
-    <div 
-        @mousedown.prevent="startResize($event)"
-        @dblclick="resetSidebarWidth()"
-        title="Click and drag to adjust sidebar width (double-click to reset)"
-        class="hidden lg:block absolute right-0 top-0 bottom-0 w-2.5 cursor-col-resize hover:bg-[#2563EB]/40 transition-colors z-30 group"
-        :class="isResizing ? 'bg-[#2563EB] !w-3' : 'bg-transparent hover:bg-blue-400/50'"
-    >
-        <div class="h-full w-1 ml-auto opacity-0 group-hover:opacity-100 bg-[#2563EB] transition-opacity" :class="{'opacity-100': isResizing}"></div>
-    </div>
 </aside>
 
 {{-- Sidebar Overlay for mobile / tablet drawer --}}
