@@ -9,6 +9,54 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @include('partials.layout-scripts')
+    <style>
+        body {
+            font-size: 14px !important;
+            line-height: 1.5;
+        }
+        main,
+        main p,
+        main span,
+        main td,
+        main th,
+        main label,
+        main input,
+        main select,
+        main textarea,
+        main button,
+        main a,
+        aside nav a,
+        aside nav button,
+        aside nav span,
+        .text-xs,
+        .text-sm,
+        .text-\[10px\],
+        .text-\[11px\],
+        .text-\[12px\],
+        .text-\[13px\],
+        .text-\[14px\],
+        .text-\[15px\] {
+            font-size: 14px !important;
+            line-height: 1.45 !important;
+        }
+        main h1, .text-3xl, .text-2xl {
+            font-size: 1.5rem !important;
+            line-height: 2rem !important;
+        }
+        main h2, .text-xl {
+            font-size: 1.25rem !important;
+            line-height: 1.75rem !important;
+        }
+        main h3, .text-lg, .text-base {
+            font-size: 1.05rem !important;
+            line-height: 1.5rem !important;
+        }
+        main table th,
+        main table td {
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
+        }
+    </style>
 </head>
 {{-- Sidebar starts collapsed below the `lg` breakpoint so the mobile overlay is not painted on load. --}}
 <body 

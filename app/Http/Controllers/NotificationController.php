@@ -6,12 +6,39 @@ use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
     public function __construct(
         protected NotificationService $notificationService
     ) {}
+
+    /**
+     * Display the dedicated Notifications & Equipment Updates Center page.
+     */
+    public function index(Request $request): View
+    {
+        $category = $request->query('category', 'all');
+        $allNotifications = $this->notificationService->getAllNotifications();
+        $filteredNotifications = $this->notificationService->getAllNotifications($category);
+
+        $counts = [
+            'all'            => $allNotifications->count(),
+            'unread'         => $allNotifications->where('is_read', false)->count(),
+            'equipment'      => $allNotifications->where('category', 'equipment')->count(),
+            'deployment'     => $allNotifications->where('category', 'deployment')->count(),
+            'maintenance'    => $allNotifications->where('category', 'maintenance')->count(),
+            'inspection'     => $allNotifications->where('category', 'inspection')->count(),
+            'reported_asset' => $allNotifications->where('category', 'reported_asset')->count(),
+        ];
+
+        return view('notifications.index', [
+            'notifications'  => $filteredNotifications,
+            'activeCategory' => $category,
+            'counts'         => $counts,
+        ]);
+    }
 
     /**
      * Mark a single notification as read (supports both AJAX and form submit).

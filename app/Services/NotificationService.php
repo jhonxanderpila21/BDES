@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Asset;
+use App\Models\AuditLog;
 use App\Models\Deployment;
 use App\Models\Inspection;
 use App\Models\Maintenance;
@@ -204,7 +206,6 @@ class NotificationService
             $reports = ReportedAsset::with('asset')
                 ->whereIn('status', ['pending', 'for_inspection'])
                 ->latest('reported_date')
-                ->take(6)
                 ->get();
 
             foreach ($reports as $r) {
@@ -234,6 +235,87 @@ class NotificationService
                     'timestamp' => $reportDate->diffForHumans(),
                     'date' => $reportDate,
                     'is_today' => $reportDate->isToday(),
+                    'is_read' => in_array($id, $readIds, true),
+                ]);
+            }
+
+            // 6. Newly Added / Registered Equipment (Assets)
+            $recentAssets = Asset::with(['category', 'location'])
+                ->latest('created_at')
+                ->latest('id')
+                ->get();
+
+            foreach ($recentAssets as $asset) {
+                $createdAt = $asset->created_at ? Carbon::parse($asset->created_at) : now();
+                $id = 'asset-new-' . $asset->id;
+                $catName = $asset->category?->name ?? 'Equipment';
+                $locName = $asset->location?->name ? " stored at {$asset->location->name}" : '';
+
+                $notifications->push([
+                    'id' => $id,
+                    'source_id' => $asset->id,
+                    'category' => 'equipment',
+                    'category_label' => 'New Equipment',
+                    'title' => 'New Equipment Added: ' . $asset->name,
+                    'description' => "{$asset->name} ({$asset->code}) under {$catName}{$locName} has been added to the inventory.",
+                    'message' => "{$asset->name} ({$asset->code}) under {$catName}{$locName} has been added to the inventory.",
+                    'priority' => 'medium',
+                    'severity' => 'info',
+                    'badge' => 'New Equipment',
+                    'icon' => 'fas fa-box-open',
+                    'icon_bg' => 'bg-emerald-50 text-emerald-600',
+                    'color' => 'bg-emerald-50 text-emerald-600',
+                    'url' => route('assets.show', $asset->id),
+                    'timestamp' => $createdAt->diffForHumans(),
+                    'date' => $createdAt,
+                    'is_today' => $createdAt->isToday(),
+                    'is_read' => in_array($id, $readIds, true),
+                ]);
+            }
+
+            // 7. Recent Audit Trail Broadcast Events (Deployments, Returns, Maintenance, Retired)
+            $recentLogs = AuditLog::with('user')
+                ->whereIn('event', ['deployed', 'returned', 'maintenance_started', 'maintenance_completed', 'retired'])
+                ->latest('created_at')
+                ->get();
+
+            foreach ($recentLogs as $log) {
+                $logDate = $log->created_at ? Carbon::parse($log->created_at) : now();
+                $id = 'audit-' . $log->id;
+                $actor = $log->user?->name ?? 'Administrator';
+
+                [$titlePrefix, $icon, $color, $cat] = match ($log->event) {
+                    'deployed'              => ['Equipment Deployed', 'fas fa-truck-ramp-box', 'bg-blue-50 text-blue-600', 'deployment'],
+                    'returned'              => ['Equipment Returned', 'fas fa-rotate-left', 'bg-teal-50 text-teal-600', 'deployment'],
+                    'maintenance_started'   => ['Maintenance Started', 'fas fa-screwdriver-wrench', 'bg-amber-50 text-amber-600', 'maintenance'],
+                    'maintenance_completed' => ['Maintenance Completed', 'fas fa-circle-check', 'bg-emerald-50 text-emerald-600', 'maintenance'],
+                    'retired'               => ['Equipment Retired', 'fas fa-box-archive', 'bg-gray-100 text-gray-600', 'equipment'],
+                    default                 => ['System Update', 'fas fa-bell', 'bg-blue-50 text-blue-600', 'equipment'],
+                };
+
+                $targetUrl = route('asset-history.index');
+                if ($log->auditable_type === Asset::class && $log->auditable_id) {
+                    $targetUrl = route('assets.show', $log->auditable_id);
+                }
+
+                $notifications->push([
+                    'id' => $id,
+                    'source_id' => $log->id,
+                    'category' => $cat,
+                    'category_label' => ucfirst($cat),
+                    'title' => $titlePrefix,
+                    'description' => "{$log->description} (by {$actor})",
+                    'message' => "{$log->description} (by {$actor})",
+                    'priority' => 'low',
+                    'severity' => 'info',
+                    'badge' => $titlePrefix,
+                    'icon' => $icon,
+                    'icon_bg' => $color,
+                    'color' => $color,
+                    'url' => $targetUrl,
+                    'timestamp' => $logDate->diffForHumans(),
+                    'date' => $logDate,
+                    'is_today' => $logDate->isToday(),
                     'is_read' => in_array($id, $readIds, true),
                 ]);
             }

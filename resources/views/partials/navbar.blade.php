@@ -1,24 +1,15 @@
 <!-- Top Navigation Bar -->
 <nav class="bg-[#003366] border-b border-[#002244] text-white shadow-sm">
-    <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <div class="px-4 sm:px-6 lg:px-8 h-[68px] flex items-center justify-between">
         {{-- Left Section --}}
         <div class="flex items-center gap-4">
-            {{-- Sidebar Toggle --}}
+            {{-- Sidebar Toggle (Mobile/Tablet) --}}
             <button 
                 @click="sidebarOpen = !sidebarOpen"
-                class="p-2 rounded-lg hover:bg-white/10 transition-colors text-white"
+                class="p-2 rounded-lg hover:bg-white/10 transition-colors text-white lg:hidden"
             >
                 <i class="fas fa-bars text-lg"></i>
             </button>
-
-            {{-- Logo --}}
-            <div class="flex items-center gap-2.5">
-                <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-9 h-9 object-cover aspect-square rounded-full shadow-sm">
-                <div class="hidden sm:block">
-                    <h2 class="text-base font-bold text-white leading-tight">BDES</h2>
-                    <p class="text-[11px] font-medium text-[#60A5FA] leading-none">Disaster Assets</p>
-                </div>
-            </div>
         </div>
 
         {{-- Right Section --}}
@@ -175,10 +166,15 @@
                         </template>
                     </div>
 
-                    {{-- Footer: Status Info --}}
-                    <div class="px-3 py-2 bg-gray-50 border-t border-gray-100 text-center text-[11px] text-gray-500 flex items-center justify-center gap-1.5 font-medium">
-                        <i class="fas fa-shield-alt text-blue-600 text-[10px]"></i>
-                        <span>Real-time operational alerts</span>
+                    {{-- Footer: Status Info & View All Link --}}
+                    <div class="px-3 py-2.5 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500 font-medium">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fas fa-shield-alt text-blue-600 text-[10px]"></i>
+                            <span>Real-time operational alerts</span>
+                        </div>
+                        <a href="{{ route('notifications.index') }}" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                            View all &rarr;
+                        </a>
                     </div>
                 </div>
             </div>
