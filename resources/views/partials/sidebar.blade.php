@@ -93,9 +93,9 @@
             {{-- 1. Executive Dashboard (Direct Link) --}}
             <a
                 href="{{ route('dashboard') }}"
-                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium {{ $directLinkClass($isActive('dashboard')) }}"
+                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('dashboard')) }}"
             >
-                <i class="fas fa-th-large w-5 text-center {{ $directIconClass($isActive('dashboard')) }}"></i>
+                <i class="fas fa-th-large w-4 text-center {{ $directIconClass($isActive('dashboard')) }}"></i>
                 <span>Dashboard</span>
             </a>
 
@@ -105,10 +105,10 @@
             @endphp
             <a
                 href="{{ route('notifications.index') }}"
-                class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors text-sm font-medium {{ $directLinkClass($isActive('notifications.*')) }}"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('notifications.*')) }}"
             >
-                <div class="flex items-center gap-3">
-                    <i class="fas fa-bell w-5 text-center {{ $directIconClass($isActive('notifications.*')) }}"></i>
+                <div class="flex items-center gap-2.5">
+                    <i class="fas fa-bell w-4 text-center {{ $directIconClass($isActive('notifications.*')) }}"></i>
                     <span>Notifications</span>
                 </div>
                 @if($sidebarUnreadCount > 0)
@@ -412,9 +412,9 @@
                 <div class="pt-1">
                     <a
                         href="{{ route('profile.edit') }}"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm font-medium {{ $directLinkClass($isActive('profile.*')) }}"
+                        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('profile.*')) }}"
                     >
-                        <i class="fas fa-id-badge w-5 text-center {{ $directIconClass($isActive('profile.*')) }}"></i>
+                        <i class="fas fa-id-badge w-4 text-center {{ $directIconClass($isActive('profile.*')) }}"></i>
                         <span>Account Settings</span>
                     </a>
                 </div>

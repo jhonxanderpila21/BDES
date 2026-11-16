@@ -903,7 +903,7 @@
                 }
             @endif
 
-            // Backward-compatibility Aliases
+            // Interactive Details Modals / Backward-compatibility Aliases
             function openAttachmentDetailsModal(attachment) {
                 openViewAttachmentModal(attachment);
             }

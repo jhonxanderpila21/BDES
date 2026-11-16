@@ -657,7 +657,7 @@
     @endif
 
     {{-- ======================================================== --}}
-    {{-- MODAL 5: View Full Deployment & Return Dossier            --}}
+    {{-- MODAL 5: View Full Deployment & Return Details            --}}
     {{-- ======================================================== --}}
     <x-modal id="view-deployment-modal" title="Deployment & Return Details">
         <div class="space-y-5 text-sm">
@@ -669,14 +669,14 @@
                     </div>
                     <div>
                         <div class="flex items-center gap-2">
-                            <span id="dossier_asset_code" class="text-xs font-mono font-bold text-blue-800 bg-white px-2 py-0.5 rounded border border-blue-200">AST-000</span>
-                            <span id="dossier_asset_serial" class="text-xs text-gray-500 font-mono"></span>
+                            <span id="details_asset_code" class="text-xs font-mono font-bold text-blue-800 bg-white px-2 py-0.5 rounded border border-blue-200">AST-000</span>
+                            <span id="details_asset_serial" class="text-xs text-gray-500 font-mono"></span>
                         </div>
-                        <h4 id="dossier_asset_name" class="font-bold text-gray-900 text-base mt-1">Equipment Name</h4>
-                        <p id="dossier_asset_category" class="text-xs text-gray-500 mt-0.5">Category</p>
+                        <h4 id="details_asset_name" class="font-bold text-gray-900 text-base mt-1">Equipment Name</h4>
+                        <p id="details_asset_category" class="text-xs text-gray-500 mt-0.5">Category</p>
                     </div>
                 </div>
-                <div id="dossier_status_badge" class="flex items-center">
+                <div id="details_status_badge" class="flex items-center">
                     {{-- Status Badge injected dynamically --}}
                 </div>
             </div>
@@ -690,42 +690,42 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                         <span class="text-xs text-gray-500 block">Destination / Facility</span>
-                        <p id="dossier_destination" class="font-semibold text-gray-900 mt-0.5"></p>
+                        <p id="details_destination" class="font-semibold text-gray-900 mt-0.5"></p>
                     </div>
 
                     <div>
                         <span class="text-xs text-gray-500 block">Borrower Classification</span>
-                        <div id="dossier_borrower_type" class="mt-0.5 text-xs font-medium"></div>
+                        <div id="details_borrower_type" class="mt-0.5 text-xs font-medium"></div>
                     </div>
 
                     <div>
                         <span class="text-xs text-gray-500 block">Responsible Custodian / Borrower</span>
-                        <p id="dossier_borrower_name" class="font-semibold text-gray-900 mt-0.5"></p>
+                        <p id="details_borrower_name" class="font-semibold text-gray-900 mt-0.5"></p>
                     </div>
 
                     <div>
                         <span class="text-xs text-gray-500 block">Assigned Unit / Team</span>
-                        <p id="dossier_assigned_team" class="font-medium text-gray-800 mt-0.5"></p>
+                        <p id="details_assigned_team" class="font-medium text-gray-800 mt-0.5"></p>
                     </div>
                 </div>
 
                 {{-- Resident Borrower Specific Credentials --}}
-                <div id="dossier_resident_credentials" class="p-3 bg-purple-50/60 border border-purple-200 rounded-lg space-y-2 hidden">
+                <div id="details_resident_credentials" class="p-3 bg-purple-50/60 border border-purple-200 rounded-lg space-y-2 hidden">
                     <span class="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
                         <i class="fas fa-id-card text-purple-600"></i> Resident Borrower Credentials
                     </span>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                         <div>
                             <span class="text-gray-500 block">Contact Phone:</span>
-                            <span id="dossier_borrower_contact" class="font-semibold text-gray-900"></span>
+                            <span id="details_borrower_contact" class="font-semibold text-gray-900"></span>
                         </div>
                         <div>
                             <span class="text-gray-500 block">Valid ID:</span>
-                            <span id="dossier_borrower_id" class="font-semibold text-gray-900"></span>
+                            <span id="details_borrower_id" class="font-semibold text-gray-900"></span>
                         </div>
                         <div>
                             <span class="text-gray-500 block">Residential Address:</span>
-                            <span id="dossier_borrower_address" class="font-medium text-gray-800"></span>
+                            <span id="details_borrower_address" class="font-medium text-gray-800"></span>
                         </div>
                     </div>
                 </div>
@@ -733,77 +733,77 @@
                 <div class="grid grid-cols-1 sm:grid-cols-4 gap-3.5 pt-2 border-t border-gray-100">
                     <div>
                         <span class="text-xs text-gray-500 block">Deployment Date</span>
-                        <p id="dossier_deployment_date" class="font-medium text-gray-900 mt-0.5"></p>
+                        <p id="details_deployment_date" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Expected Return Date</span>
-                        <p id="dossier_expected_return_date" class="font-medium text-gray-900 mt-0.5"></p>
+                        <p id="details_expected_return_date" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Condition at Deployment</span>
-                        <p id="dossier_condition_before" class="font-medium text-gray-900 mt-0.5"></p>
+                        <p id="details_condition_before" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Approving Officer</span>
-                        <p id="dossier_approved_by" class="font-medium text-gray-900 mt-0.5"></p>
+                        <p id="details_approved_by" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                 </div>
 
                 <div>
                     <span class="text-xs text-gray-500 block">Purpose / Operation Notes</span>
-                    <p id="dossier_purpose" class="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-200 mt-1 leading-relaxed"></p>
+                    <p id="details_purpose" class="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-200 mt-1 leading-relaxed"></p>
                 </div>
 
                 {{-- Attached Borrowing Documents / Signed Slips --}}
-                <div id="dossier_receipts_container" class="hidden pt-1">
+                <div id="details_receipts_container" class="hidden pt-1">
                     <span class="text-xs text-gray-500 block mb-1.5 font-medium">Attached Requisition Slip / Documents</span>
-                    <div id="dossier_receipts_list" class="flex flex-wrap gap-2"></div>
+                    <div id="details_receipts_list" class="flex flex-wrap gap-2"></div>
                 </div>
             </div>
 
             {{-- Return Record & Inspection Details (Only shown if returned or return record exists) --}}
-            <div id="dossier_return_section" class="border border-emerald-200 rounded-xl p-4 bg-emerald-50/20 space-y-3 hidden">
+            <div id="details_return_section" class="border border-emerald-200 rounded-xl p-4 bg-emerald-50/20 space-y-3 hidden">
                 <h5 class="text-xs font-bold uppercase tracking-wider text-emerald-900 border-b border-emerald-200/60 pb-2 flex items-center justify-between">
                     <span class="flex items-center gap-2">
                         <i class="fas fa-clipboard-check text-emerald-600"></i> Return & Turn-in Inspection
                     </span>
-                    <span id="dossier_return_status" class="text-xs uppercase px-2 py-0.5 rounded font-bold bg-white text-emerald-800 border border-emerald-200"></span>
+                    <span id="details_return_status" class="text-xs uppercase px-2 py-0.5 rounded font-bold bg-white text-emerald-800 border border-emerald-200"></span>
                 </h5>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                         <span class="text-xs text-gray-500 block">Return Date</span>
-                        <p id="dossier_return_date" class="font-semibold text-gray-900 mt-0.5"></p>
+                        <p id="details_return_date" class="font-semibold text-gray-900 mt-0.5"></p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Returned By</span>
-                        <p id="dossier_returned_by" class="font-medium text-gray-900 mt-0.5"></p>
+                        <p id="details_returned_by" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Receiving Officer</span>
-                        <p id="dossier_received_by" class="font-medium text-gray-900 mt-0.5"></p>
+                        <p id="details_received_by" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Post-Return Condition</span>
-                        <div id="dossier_return_condition" class="mt-1"></div>
+                        <div id="details_return_condition" class="mt-1"></div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-emerald-200/50">
                     <div>
                         <span class="text-xs text-gray-500 block">Actual Storage Location</span>
-                        <p id="dossier_actual_location" class="font-medium text-gray-900 mt-0.5"></p>
+                        <p id="details_actual_location" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <span class="text-xs text-gray-500 block">Damage Notes</span>
-                        <div id="dossier_damage_notes" class="mt-1 p-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 whitespace-pre-wrap">None reported</div>
+                        <div id="details_damage_notes" class="mt-1 p-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 whitespace-pre-wrap">None reported</div>
                     </div>
                     <div>
                         <span class="text-xs text-gray-500 block">Missing Accessories</span>
-                        <div id="dossier_missing_accessories" class="mt-1 p-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 whitespace-pre-wrap">None reported</div>
+                        <div id="details_missing_accessories" class="mt-1 p-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-700 whitespace-pre-wrap">None reported</div>
                     </div>
                 </div>
             </div>
@@ -812,7 +812,7 @@
             <div class="pt-4 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
                 @if(!$isReadOnlyStaff)
                     <div class="flex items-center gap-2">
-                        <button type="button" id="dossier_process_return_btn" onclick="closeDeploymentDetailsAndReturn()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                        <button type="button" id="details_process_return_btn" onclick="closeDeploymentDetailsAndReturn()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
                             <i class="fas fa-undo"></i>
                             <span>Process Return of Asset</span>
                         </button>
@@ -951,10 +951,10 @@
 
                 // Asset Info
                 const asset = deployment.asset || {};
-                document.getElementById('dossier_asset_code').textContent = asset.code || 'AST-N/A';
-                document.getElementById('dossier_asset_name').textContent = asset.name || 'Unknown Equipment';
-                document.getElementById('dossier_asset_category').textContent = (asset.category ? asset.category.name : 'Uncategorized') + (asset.type ? ' · ' + asset.type.name : '');
-                document.getElementById('dossier_asset_serial').textContent = asset.serial_number ? 'S/N: ' + asset.serial_number : 'Unserialized';
+                document.getElementById('details_asset_code').textContent = asset.code || 'AST-N/A';
+                document.getElementById('details_asset_name').textContent = asset.name || 'Unknown Equipment';
+                document.getElementById('details_asset_category').textContent = (asset.category ? asset.category.name : 'Uncategorized') + (asset.type ? ' · ' + asset.type.name : '');
+                document.getElementById('details_asset_serial').textContent = asset.serial_number ? 'S/N: ' + asset.serial_number : 'Unserialized';
 
                 // Status Badge
                 const status = deployment.status || 'active';
@@ -971,30 +971,30 @@
                 if (status !== 'returned' && expDate && expDate < today) {
                     statusHtml += ' <span class="px-2 py-0.5 text-xs font-bold rounded-full bg-rose-100 text-rose-800 border border-rose-200 ml-1.5">Overdue</span>';
                 }
-                document.getElementById('dossier_status_badge').innerHTML = statusHtml;
+                document.getElementById('details_status_badge').innerHTML = statusHtml;
 
                 // Destination & Borrower
-                document.getElementById('dossier_destination').textContent = deployment.destination || 'Not specified';
+                document.getElementById('details_destination').textContent = deployment.destination || 'Not specified';
 
                 const isResident = deployment.borrower_type === 'resident';
-                const borrowerTypeElem = document.getElementById('dossier_borrower_type');
+                const borrowerTypeElem = document.getElementById('details_borrower_type');
                 if (borrowerTypeElem) {
                     borrowerTypeElem.innerHTML = isResident
                         ? '<span class="inline-flex items-center gap-1 text-purple-700 font-semibold"><i class="fas fa-house-user"></i> Barangay Resident</span>'
                         : '<span class="inline-flex items-center gap-1 text-blue-700 font-semibold"><i class="fas fa-user-shield"></i> Barangay Responder / Personnel</span>';
                 }
 
-                document.getElementById('dossier_borrower_name').textContent = deployment.borrower_name || deployment.responsible_person || 'Not specified';
-                document.getElementById('dossier_assigned_team').textContent = deployment.assigned_team || 'No team assigned';
+                document.getElementById('details_borrower_name').textContent = deployment.borrower_name || deployment.responsible_person || 'Not specified';
+                document.getElementById('details_assigned_team').textContent = deployment.assigned_team || 'No team assigned';
 
                 // Resident specific credentials section
-                const residentSection = document.getElementById('dossier_resident_credentials');
+                const residentSection = document.getElementById('details_resident_credentials');
                 if (residentSection) {
                     if (isResident) {
                         residentSection.classList.remove('hidden');
-                        document.getElementById('dossier_borrower_contact').textContent = deployment.borrower_contact || 'None';
-                        document.getElementById('dossier_borrower_id').textContent = (deployment.borrower_id_type || 'ID') + ': ' + (deployment.borrower_id_number || 'None');
-                        document.getElementById('dossier_borrower_address').textContent = deployment.borrower_address || 'None';
+                        document.getElementById('details_borrower_contact').textContent = deployment.borrower_contact || 'None';
+                        document.getElementById('details_borrower_id').textContent = (deployment.borrower_id_type || 'ID') + ': ' + (deployment.borrower_id_number || 'None');
+                        document.getElementById('details_borrower_address').textContent = deployment.borrower_address || 'None';
                     } else {
                         residentSection.classList.add('hidden');
                     }
@@ -1003,21 +1003,21 @@
                 // Dates
                 let depDate = deployment.deployment_date || '';
                 if (depDate.includes('T')) depDate = depDate.split('T')[0];
-                document.getElementById('dossier_deployment_date').textContent = depDate || 'Not specified';
-                document.getElementById('dossier_expected_return_date').textContent = expDate || 'Open-ended';
+                document.getElementById('details_deployment_date').textContent = depDate || 'Not specified';
+                document.getElementById('details_expected_return_date').textContent = expDate || 'Open-ended';
 
                 // Approving Officer & Condition Before
                 const approvedBy = deployment.approved_by_user ? deployment.approved_by_user.name : (deployment.user ? deployment.user.name : 'Authorized Official');
-                document.getElementById('dossier_approved_by').textContent = approvedBy;
-                const condBeforeElem = document.getElementById('dossier_condition_before');
+                document.getElementById('details_approved_by').textContent = approvedBy;
+                const condBeforeElem = document.getElementById('details_condition_before');
                 if (condBeforeElem) {
                     condBeforeElem.textContent = (deployment.condition_before || asset.condition || 'Good').toUpperCase();
                 }
-                document.getElementById('dossier_purpose').textContent = deployment.purpose || 'None provided';
+                document.getElementById('details_purpose').textContent = deployment.purpose || 'None provided';
 
                 // Attached receipts / borrow slip
-                const receiptsContainer = document.getElementById('dossier_receipts_container');
-                const receiptsList = document.getElementById('dossier_receipts_list');
+                const receiptsContainer = document.getElementById('details_receipts_container');
+                const receiptsList = document.getElementById('details_receipts_list');
                 if (receiptsContainer && receiptsList) {
                     if (deployment.receipts && deployment.receipts.length > 0) {
                         receiptsContainer.classList.remove('hidden');
@@ -1035,8 +1035,8 @@
                 }
 
                 // Return Inspection Section
-                const returnSection = document.getElementById('dossier_return_section');
-                const processReturnBtn = document.getElementById('dossier_process_return_btn');
+                const returnSection = document.getElementById('details_return_section');
+                const processReturnBtn = document.getElementById('details_process_return_btn');
                 if (deployment.status === 'returned' || deployment.return_record) {
                     if (returnSection) returnSection.classList.remove('hidden');
                     if (processReturnBtn) processReturnBtn.classList.add('hidden');
@@ -1044,17 +1044,17 @@
                     const ret = deployment.return_record || {};
                     let retDate = ret.return_date || '';
                     if (retDate.includes('T')) retDate = retDate.split('T')[0];
-                    document.getElementById('dossier_return_date').textContent = retDate || 'Recorded';
-                    document.getElementById('dossier_returned_by').textContent = ret.returned_by || 'Not specified';
-                    document.getElementById('dossier_received_by').textContent = (ret.received_by_user ? ret.received_by_user.name : 'Receiving Officer');
-                    document.getElementById('dossier_actual_location').textContent = ret.actual_location || 'Not specified';
-                    document.getElementById('dossier_return_status').textContent = (ret.status || 'received').replace(/_/g, ' ').toUpperCase();
+                    document.getElementById('details_return_date').textContent = retDate || 'Recorded';
+                    document.getElementById('details_returned_by').textContent = ret.returned_by || 'Not specified';
+                    document.getElementById('details_received_by').textContent = (ret.received_by_user ? ret.received_by_user.name : 'Receiving Officer');
+                    document.getElementById('details_actual_location').textContent = ret.actual_location || 'Not specified';
+                    document.getElementById('details_return_status').textContent = (ret.status || 'received').replace(/_/g, ' ').toUpperCase();
 
                     const cond = (ret.condition || 'good').toUpperCase();
-                    document.getElementById('dossier_return_condition').innerHTML = `<span class="px-2 py-0.5 text-xs font-bold rounded-full ${cond === 'EXCELLENT' || cond === 'GOOD' ? 'bg-emerald-100 text-emerald-800' : (cond === 'FAIR' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')}">${cond}</span>`;
+                    document.getElementById('details_return_condition').innerHTML = `<span class="px-2 py-0.5 text-xs font-bold rounded-full ${cond === 'EXCELLENT' || cond === 'GOOD' ? 'bg-emerald-100 text-emerald-800' : (cond === 'FAIR' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')}">${cond}</span>`;
 
-                    document.getElementById('dossier_damage_notes').textContent = ret.damage_notes || 'None reported';
-                    document.getElementById('dossier_missing_accessories').textContent = ret.missing_accessories || 'None reported';
+                    document.getElementById('details_damage_notes').textContent = ret.damage_notes || 'None reported';
+                    document.getElementById('details_missing_accessories').textContent = ret.missing_accessories || 'None reported';
                 } else {
                     if (returnSection) returnSection.classList.add('hidden');
                     if (processReturnBtn) processReturnBtn.classList.remove('hidden');

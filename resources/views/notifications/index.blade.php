@@ -115,9 +115,9 @@
 
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <h4 class="text-sm font-bold text-gray-900">
+                                <a href="{{ route('notifications.view-record', $item['id']) }}" class="text-sm font-bold text-gray-900 hover:text-blue-600 transition-colors">
                                     {{ $item['title'] }}
-                                </h4>
+                                </a>
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($item['priority'] ?? '') === 'high' ? 'bg-rose-100 text-rose-700' : (($item['category'] ?? '') === 'equipment' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700') }}">
                                     {{ $item['badge'] ?? $item['category_label'] ?? 'Update' }}
                                 </span>
