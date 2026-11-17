@@ -211,9 +211,9 @@
         <div class="p-6">
             {{-- TAB 1: EQUIPMENT OVERVIEW & ESSENTIAL DETAILS --}}
             <div x-show="activeTab === 'overview'" class="space-y-6">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div>
                     {{-- Essential Asset Profile --}}
-                    <div class="lg:col-span-2 space-y-4">
+                    <div class="space-y-4">
                         <div class="flex items-center justify-between border-b border-gray-100 pb-2">
                             <h3 class="text-sm font-bold text-gray-900 flex items-center gap-2">
                                 <i class="fas fa-id-card text-blue-600"></i> Essential Specifications
@@ -337,30 +337,6 @@
                                 </div>
                             </div>
                         @endif
-                    </div>
-
-                    {{-- Identification & Tag Card --}}
-                    <div class="bg-gray-50/70 border border-gray-200 rounded-2xl p-5 flex flex-col justify-between">
-                        <div>
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Asset Tag & Barcode</span>
-                                <span class="font-mono text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
-                                    {{ $asset->code }}
-                                </span>
-                            </div>
-
-                            <div class="bg-white p-4 rounded-xl border border-gray-200 text-center shadow-sm my-2">
-                                <i class="fas fa-barcode text-4xl text-gray-800 mb-2 block"></i>
-                                <p class="font-mono text-xs font-bold text-gray-900 tracking-wider">{{ $asset->code }}</p>
-                                <p class="text-[10px] text-gray-400 mt-1">Barangay Disaster Equipment Identifier</p>
-                            </div>
-                        </div>
-
-                        <div class="pt-4 border-t border-gray-200 space-y-2">
-                            <button onclick="window.print()" class="w-full py-2 px-3 bg-white border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-2">
-                                <i class="fas fa-print"></i> Print Asset Tag Label
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
