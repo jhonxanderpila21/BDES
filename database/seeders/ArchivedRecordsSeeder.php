@@ -35,8 +35,8 @@ class ArchivedRecordsSeeder extends Seeder
             $admin = User::where('role', 'administrator')->first() ?? User::first();
         }
 
-        $inventoryOfficer = User::where('role', 'inventory_officer')->first() ?? $admin;
-        $maintenanceOfficer = User::where('role', 'maintenance_officer')->first() ?? $admin;
+        $inventoryOfficer = User::whereIn('role', ['inventory_officer', 'maintenance_officer'])->first() ?? $admin;
+        $maintenanceOfficer = $inventoryOfficer;
 
         // 2. Ensure baseline Category, Type, and Location exist
         $category = AssetCategory::first() ?? AssetCategory::create([

@@ -8,74 +8,63 @@
 @endphp
 <div class="space-y-6">
     {{-- Page Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-        <div>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg shadow-sm">
-                    <i class="fas fa-warehouse"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-900">Asset Locations & Facilities</h1>
-                    <p class="text-xs sm:text-sm text-gray-500 mt-0.5">Manage warehouses, depots, stations, and storage facilities holding emergency response equipment</p>
-                </div>
-            </div>
-            <div class="mt-2">
-                <x-breadcrumb :items="[
-                    ['label' => 'Dashboard', 'url' => route('dashboard')],
-                    ['label' => 'Administration'],
-                    ['label' => 'Asset Locations']
-                ]" />
-            </div>
-        </div>
+    <x-page-header
+        title="Asset Locations & Facilities"
+        subtitle="Manage warehouses, depots, stations, and storage facilities holding emergency response equipment."
+        icon="fas fa-warehouse"
+        :read-only-badge="false"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Administration'],
+            ['label' => 'Asset Locations']
+        ]"
+    >
         @if(auth()->user()->isAdmin())
-            <button onclick="openAddLocationModal()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium text-sm shadow-sm">
-                <i class="fas fa-plus"></i>
-                <span>Add Asset Location</span>
-            </button>
+            <x-slot:actions>
+                <button onclick="openAddLocationModal()" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:bg-blue-800 transition-colors font-medium text-sm shadow-sm">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Asset Location</span>
+                </button>
+            </x-slot:actions>
         @endif
-    </div>
+    </x-page-header>
 
     {{-- KPI Summary Deck --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <a href="{{ route('locations.index') }}" class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md transition-all flex items-center gap-4 group block">
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <i class="fas fa-map-marked-alt"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 group-hover:text-blue-600 transition-colors">Total Facilities</p>
-                <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ $stats['total_locations'] ?? $locations->total() }}</p>
-            </div>
-        </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <x-kpi-card
+            title="Total Facilities"
+            :value="$stats['total_locations'] ?? $locations->total()"
+            icon="fas fa-map-marked-alt"
+            color="blue"
+            :href="route('locations.index')"
+        />
 
-        <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:border-indigo-400 hover:shadow-md transition-all flex items-center gap-4 group block" title="View all assets in registry">
-            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                <i class="fas fa-boxes-stacked"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 group-hover:text-indigo-600 transition-colors">Assets Kept</p>
-                <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ $stats['total_assets'] ?? 0 }}</p>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Assets Kept"
+            :value="$stats['total_assets'] ?? 0"
+            icon="fas fa-boxes-stacked"
+            color="indigo"
+            :href="route('assets.index', ['tab' => 'assets'])"
+            tooltip="View all assets in registry"
+        />
 
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white p-5 rounded-2xl border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md transition-all flex items-center gap-4 group block" title="View ready assets">
-            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                <i class="fas fa-check-circle"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Ready for Deployment</p>
-                <p class="text-2xl font-bold text-emerald-700 mt-0.5">{{ $stats['available_assets'] ?? 0 }}</p>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Ready for Deployment"
+            :value="$stats['available_assets'] ?? 0"
+            icon="fas fa-check-circle"
+            color="emerald"
+            :href="route('assets.index', ['tab' => 'assets', 'status' => 'available'])"
+            tooltip="View ready assets"
+        />
 
-        <a href="{{ route('locations.index') }}" class="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:border-amber-400 hover:shadow-md transition-all flex items-center gap-4 group block">
-            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                <i class="fas fa-layer-group"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 group-hover:text-amber-600 transition-colors">Storage Capacity</p>
-                <p class="text-2xl font-bold text-gray-900 mt-0.5">{{ number_format($stats['total_capacity'] ?? 0) }} <span class="text-xs font-normal text-gray-400">slots</span></p>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Storage Capacity"
+            :value="number_format($stats['total_capacity'] ?? 0)"
+            icon="fas fa-layer-group"
+            color="amber"
+            subtitle="slots"
+            :href="route('locations.index')"
+        />
     </div>
 
     {{-- Search & Filters --}}

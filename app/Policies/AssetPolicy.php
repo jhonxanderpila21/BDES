@@ -48,7 +48,7 @@ class AssetPolicy
             return false;
         }
 
-        return $user->hasRole('inventory_officer', 'bdrrmc_officer');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**
@@ -60,7 +60,7 @@ class AssetPolicy
             return false;
         }
 
-        return $user->hasRole('inventory_officer', 'bdrrmc_officer');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**

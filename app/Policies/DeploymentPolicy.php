@@ -44,7 +44,7 @@ class DeploymentPolicy
      */
     public function create(User $user): bool
     {
-        return $user->hasRole('inventory_officer', 'bdrrmc_officer', 'barangay_captain');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer', 'barangay_captain');
     }
 
     /**
@@ -52,7 +52,7 @@ class DeploymentPolicy
      */
     public function return(User $user, Deployment $deployment): bool
     {
-        return $user->hasRole('inventory_officer', 'bdrrmc_officer');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**
@@ -64,7 +64,7 @@ class DeploymentPolicy
             return false;
         }
 
-        return $user->hasRole('inventory_officer', 'bdrrmc_officer');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**

@@ -8,23 +8,19 @@
     @endphp
 
     {{-- Page Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <i class="fas fa-boxes-stacked text-blue-600"></i>
-                Assets
-            </h1>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Asset Management'],
-                ['label' => 'Assets']
-            ]" />
-        </div>
-
-        {{-- Contextual Action Buttons --}}
+    <x-page-header
+        title="Assets"
+        subtitle="Manage barangay disaster equipment inventory, categories, and asset types."
+        icon="fas fa-boxes-stacked"
+        :is-read-only-staff="$isReadOnlyStaff"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Asset Management'],
+            ['label' => 'Assets']
+        ]"
+    >
         @if(!$isReadOnlyStaff)
-            <div class="flex flex-wrap items-center gap-2">
-
+            <x-slot:actions>
                 @if($activeTab === 'categories')
                     <button onclick="openAddCategoryModal()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm">
                         <i class="fas fa-plus"></i>
@@ -41,85 +37,65 @@
                         Add Asset
                     </button>
                 @endif
-            </div>
+            </x-slot:actions>
         @endif
-    </div>
+    </x-page-header>
 
     {{-- Session Alerts --}}
 
 
 
     {{-- High-Level KPI Summary Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
-        {{-- Total Assets --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white rounded-xl p-4 border border-gray-200 shadow-sm hover:border-blue-300 transition-colors block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-gray-500">Total Assets</p>
-                    <p class="text-xl font-bold text-gray-900 mt-0.5">{{ $metrics['total_assets'] }}</p>
-                    <p class="text-[10px] text-gray-400 mt-0.5">Registered Units</p>
-                </div>
-                <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
-                    <i class="fas fa-boxes-stacked"></i>
-                </div>
-            </div>
-        </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <x-kpi-card
+            title="Total Assets"
+            :value="$metrics['total_assets']"
+            icon="fas fa-boxes-stacked"
+            color="blue"
+            subtitle="Registered Units"
+            :href="route('assets.index', ['tab' => 'assets'])"
+            :active="$activeTab === 'assets' && !request('status')"
+        />
 
-        {{-- Available Assets --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white rounded-xl p-4 border border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-300 transition-colors block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-emerald-700">Available Quantity</p>
-                    <p class="text-xl font-bold text-emerald-700 mt-0.5">{{ $metrics['available_assets'] }} Available</p>
-                    <p class="text-[10px] text-emerald-600 mt-0.5">Ready for immediate dispatch</p>
-                </div>
-                <div class="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
-                    <i class="fas fa-circle-check"></i>
-                </div>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Available Quantity"
+            :value="$metrics['available_assets'] . ' Available'"
+            icon="fas fa-circle-check"
+            color="emerald"
+            subtitle="Ready for immediate dispatch"
+            :href="route('assets.index', ['tab' => 'assets', 'status' => 'available'])"
+            :active="request('status') === 'available'"
+        />
 
-        {{-- Deployed Assets --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'deployed']) }}" class="bg-white rounded-xl p-4 border border-blue-200 bg-blue-50/20 shadow-sm hover:border-blue-300 transition-colors block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-blue-700">Deployed</p>
-                    <p class="text-xl font-bold text-blue-700 mt-0.5">{{ $metrics['deployed_assets'] ?? 0 }}</p>
-                    <p class="text-[10px] text-blue-600 mt-0.5">In disaster field</p>
-                </div>
-                <div class="w-9 h-9 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-sm">
-                    <i class="fas fa-truck"></i>
-                </div>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Deployed"
+            :value="$metrics['deployed_assets'] ?? 0"
+            icon="fas fa-truck"
+            color="indigo"
+            subtitle="In disaster field"
+            :href="route('assets.index', ['tab' => 'assets', 'status' => 'deployed'])"
+            :active="request('status') === 'deployed'"
+        />
 
-        {{-- Under Maintenance --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'under_maintenance']) }}" class="bg-white rounded-xl p-4 border border-amber-200 bg-amber-50/20 shadow-sm hover:border-amber-300 transition-colors block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-amber-700">Maintenance</p>
-                    <p class="text-xl font-bold text-amber-700 mt-0.5">{{ $metrics['under_maintenance_assets'] ?? 0 }}</p>
-                    <p class="text-[10px] text-amber-600 mt-0.5">Active servicing</p>
-                </div>
-                <div class="w-9 h-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-sm">
-                    <i class="fas fa-wrench"></i>
-                </div>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Maintenance"
+            :value="$metrics['under_maintenance_assets'] ?? 0"
+            icon="fas fa-wrench"
+            color="amber"
+            subtitle="Active servicing"
+            :href="route('assets.index', ['tab' => 'assets', 'status' => 'under_maintenance'])"
+            :active="request('status') === 'under_maintenance'"
+        />
 
-        {{-- Out of Service / Lost --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'out_of_service']) }}" class="bg-white rounded-xl p-4 border border-rose-200 bg-rose-50/20 shadow-sm hover:border-rose-300 transition-colors block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-[11px] font-semibold uppercase tracking-wider text-rose-700">Out of Service</p>
-                    <p class="text-xl font-bold text-rose-700 mt-0.5">{{ ($metrics['out_of_service_assets'] ?? 0) + ($metrics['lost_assets'] ?? 0) }}</p>
-                    <p class="text-[10px] text-rose-600 mt-0.5">Defective / Lost</p>
-                </div>
-                <div class="w-9 h-9 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-sm">
-                    <i class="fas fa-triangle-exclamation"></i>
-                </div>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Out of Service"
+            :value="($metrics['out_of_service_assets'] ?? 0) + ($metrics['lost_assets'] ?? 0)"
+            icon="fas fa-triangle-exclamation"
+            color="rose"
+            subtitle="Defective / Lost"
+            :href="route('assets.index', ['tab' => 'assets', 'status' => 'out_of_service'])"
+            :active="request('status') === 'out_of_service'"
+        />
     </div>
 
     {{-- Main Module Tabs Navigation --}}
@@ -163,7 +139,8 @@
     {{-- ========================================================================= --}}
     @if($activeTab === 'assets')
         {{-- Filters & Search --}}
-        <form action="{{ route('assets.index') }}" method="GET" class="flex flex-col md:flex-row flex-wrap gap-3 mb-6">
+        <x-card class="mb-6">
+        <form action="{{ route('assets.index') }}" method="GET" class="flex flex-col md:flex-row flex-wrap gap-3">
             <input type="hidden" name="tab" value="assets">
 
             <div class="flex-1 min-w-[220px]">
@@ -225,9 +202,10 @@
                 </a>
             @endif
         </form>
+        </x-card>
 
         {{-- Assets Table --}}
-        <x-card>
+        <x-card :padding="false">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead class="bg-gray-50 border-b border-gray-200">

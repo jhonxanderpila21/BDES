@@ -43,7 +43,9 @@ class OperationalRequirementController extends Controller
         }
 
         if ($request->filled('status') && ($activeTab === 'all' || $activeTab === 'requirements')) {
-            if ($request->status === 'low') {
+            if ($request->status === 'out_of_stock') {
+                $reqQuery->where('current_level', '<=', 0);
+            } elseif ($request->status === 'low') {
                 $reqQuery->whereColumn('current_level', '<=', 'minimum_level');
             } elseif ($request->status === 'adequate') {
                 $reqQuery->whereColumn('current_level', '>', 'minimum_level');
@@ -79,7 +81,9 @@ class OperationalRequirementController extends Controller
         }
 
         if ($request->filled('status') && ($activeTab === 'all' || $activeTab === 'needs')) {
-            if ($request->status === 'attention' || $request->status === 'low') {
+            if ($request->status === 'out_of_stock') {
+                $needsQuery->where('current_level', '<=', 0);
+            } elseif ($request->status === 'attention' || $request->status === 'low') {
                 $needsQuery->whereIn('status', ['Requires Maintenance', 'Under Maintenance']);
             } else {
                 $needsQuery->where('status', $request->status);
@@ -104,6 +108,10 @@ class OperationalRequirementController extends Controller
         $mergedCollection = collect();
 
         foreach ($requirements as $r) {
+            $reqStatus = (float) $r->current_level <= 0
+                ? 'Out of Stock'
+                : ($r->isLowStock() ? 'Low Stock' : 'In Stock');
+
             $mergedCollection->push((object)[
                 'id'               => $r->id,
                 'source'           => 'requirement',
@@ -115,7 +123,7 @@ class OperationalRequirementController extends Controller
                 'minimum_level'    => (float) $r->minimum_level,
                 'unit'             => $r->unit,
                 'is_low_stock'     => $r->isLowStock(),
-                'status'           => $r->isLowStock() ? 'Low Stock' : 'In Stock',
+                'status'           => $reqStatus,
                 'raw_model'        => $r,
                 'created_at'       => $r->created_at,
             ]);
@@ -123,6 +131,10 @@ class OperationalRequirementController extends Controller
 
         foreach ($assetNeeds as $n) {
             $isLow = $n->isCritical() || in_array($n->status, ['Requires Maintenance', 'Under Maintenance']);
+            $needStatus = (float) $n->current_level <= 0
+                ? 'Out of Stock'
+                : ($n->status ?: ($isLow ? 'Requires Refill' : 'Monitoring Only'));
+
             $mergedCollection->push((object)[
                 'id'               => $n->id,
                 'source'           => 'need',
@@ -134,7 +146,7 @@ class OperationalRequirementController extends Controller
                 'minimum_level'    => (float) $n->minimum_level,
                 'unit'             => $n->unit,
                 'is_low_stock'     => $isLow,
-                'status'           => $n->status ?: ($isLow ? 'Requires Refill' : 'Monitoring Only'),
+                'status'           => $needStatus,
                 'raw_model'        => $n,
                 'created_at'       => $n->created_at,
             ]);

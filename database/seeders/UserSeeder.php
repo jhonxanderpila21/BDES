@@ -10,7 +10,7 @@ class UserSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * Seeds default accounts for both Administrator and BDRRMC Member roles.
+     * Seeds default accounts for Admin, Inventory & Maintenance, and Staff (Viewing) roles.
      */
     public function run(): void
     {
@@ -31,10 +31,10 @@ class UserSeeder extends Seeder
             ],
 
             // ==========================================
-            // 2. INVENTORY ROLE (Operations, Deployments)
+            // 2. INVENTORY & MAINTENANCE ROLE (Unified Operations, Deployments, Repairs, Inspections)
             // ==========================================
             [
-                'name'              => 'BDRRMC Inventory Officer',
+                'name'              => 'Inventory & Maintenance Officer',
                 'first_name'        => 'Inventory',
                 'last_name'         => 'Officer',
                 'username'          => 'inventory',
@@ -46,22 +46,7 @@ class UserSeeder extends Seeder
             ],
 
             // ==========================================
-            // 3. MAINTENANCE ROLE (Repairs, Inspections)
-            // ==========================================
-            [
-                'name'              => 'Maintenance Officer',
-                'first_name'        => 'Maintenance',
-                'last_name'         => 'Officer',
-                'username'          => 'maintenance',
-                'email'             => 'maintenance@bdes.gov',
-                'role'              => 'maintenance_officer',
-                'password'          => Hash::make('password'),
-                'is_active'         => true,
-                'email_verified_at' => now(),
-            ],
-
-            // ==========================================
-            // 4. STAFF FOR VIEWING ROLE (Read-Only)
+            // 3. STAFF FOR VIEWING ROLE (Read-Only)
             // ==========================================
             [
                 'name'              => 'Barangay Staff Member',
@@ -76,9 +61,16 @@ class UserSeeder extends Seeder
             ],
         ];
 
-        // Migrate any legacy roles to modern 4-tier roles
-        User::where('role', 'bdrrmc_officer')->update(['role' => 'inventory_officer']);
-        User::where('role', 'barangay_captain')->update(['role' => 'administrator']);
+        // Migrate any legacy or separate maintenance roles into the unified inventory_officer role
+        User::withTrashed()
+            ->whereIn('role', ['bdrrmc_officer', 'maintenance_officer'])
+            ->update(['role' => 'inventory_officer']);
+        User::withTrashed()
+            ->where('role', 'barangay_captain')
+            ->update(['role' => 'administrator']);
+
+        // Remove legacy separate maintenance@bdes.gov account if present
+        User::withTrashed()->where('email', 'maintenance@bdes.gov')->forceDelete();
 
         foreach ($users as $userData) {
             User::updateOrCreate(
@@ -88,4 +80,3 @@ class UserSeeder extends Seeder
         }
     }
 }
-

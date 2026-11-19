@@ -4,79 +4,72 @@
 
 @section('content')
     {{-- Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-1 flex items-center gap-3">
-                <i class="fas fa-file-invoice-dollar text-emerald-600"></i>
-                Asset Expenses
-            </h1>
-            <p class="text-xs text-gray-500 mb-2">Unified procurement, maintenance servicing, and parts Expenses Ledger.</p>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Asset Financials'],
-                ['label' => 'Asset Expenses']
-            ]" />
-        </div>
-        <div class="flex items-center gap-3">
+    <x-page-header
+        title="Asset Expenses"
+        subtitle="Unified procurement, maintenance servicing, and parts Expenses Ledger."
+        icon="fas fa-file-invoice-dollar"
+        :read-only-badge="false"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Asset Financials'],
+            ['label' => 'Asset Expenses']
+        ]"
+    >
+        <x-slot:actions>
             <a href="{{ route('financials.expenses.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium shadow-sm">
                 <i class="fas fa-file-csv text-emerald-600"></i>
                 Export to CSV
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Financial KPI Metric Cards --}}
     @php
         $currCat = request('category', 'all');
     @endphp
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {{-- Total Expenses --}}
-        <a href="{{ route('financials.expenses') }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'all' || empty(request('category')) ? 'border-emerald-500 ring-2 ring-emerald-500 shadow-md' : 'border-emerald-200 hover:border-emerald-400 hover:shadow-md' }} bg-emerald-50/20 shadow-sm transition-all flex items-center justify-between group block">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-800 mb-1">Total Expenses</p>
-                <p class="text-2xl font-bold text-emerald-700">₱{{ number_format($kpis['total_expenses'], 2) }}</p>
-                <p class="text-xs text-emerald-600 mt-1">{{ $kpis['total_count'] }} recorded expenditures</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                <i class="fas fa-wallet"></i>
-            </div>
-        </a>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <x-kpi-card
+            title="Total Expenses"
+            :value="'₱' . number_format($kpis['total_expenses'], 2)"
+            icon="fas fa-wallet"
+            color="emerald"
+            :subtitle="$kpis['total_count'] . ' recorded expenditures'"
+            :href="route('financials.expenses')"
+            :active="$currCat === 'all' || empty(request('category'))"
+        />
 
-        {{-- Asset Purchases --}}
-        <a href="{{ route('financials.expenses', ['category' => 'asset']) }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'asset' ? 'border-blue-500 ring-2 ring-blue-500 shadow-md' : 'border-blue-200 hover:border-blue-400 hover:shadow-md' }} bg-blue-50/20 shadow-sm transition-all flex items-center justify-between group block" title="Filter by Asset Purchases">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-blue-800 mb-1">Asset Purchases</p>
-                <p class="text-2xl font-bold text-blue-700">₱{{ number_format($kpis['assets_total'], 2) }}</p>
-                <p class="text-xs text-blue-600 mt-1">Equipment and vehicles</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <i class="fas fa-boxes-stacked"></i>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Asset Purchases"
+            :value="'₱' . number_format($kpis['assets_total'], 2)"
+            icon="fas fa-boxes-stacked"
+            color="blue"
+            subtitle="Equipment and vehicles"
+            :href="route('financials.expenses', ['category' => 'asset'])"
+            :active="$currCat === 'asset'"
+            tooltip="Filter by Asset Purchases"
+        />
 
-        {{-- Maintenance & Repairs --}}
-        <a href="{{ route('financials.expenses', ['category' => 'maintenance']) }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'maintenance' ? 'border-amber-500 ring-2 ring-amber-500 shadow-md' : 'border-amber-200 hover:border-amber-400 hover:shadow-md' }} bg-amber-50/20 shadow-sm transition-all flex items-center justify-between group block" title="Filter by Maintenance & Repairs">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-amber-800 mb-1">Maintenance & Repairs</p>
-                <p class="text-2xl font-bold text-amber-700">₱{{ number_format($kpis['maintenance_total'], 2) }}</p>
-                <p class="text-xs text-amber-600 mt-1">Servicing, repairs & parts upkeep</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-colors">
-                <i class="fas fa-wrench"></i>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Maintenance & Repairs"
+            :value="'₱' . number_format($kpis['maintenance_total'], 2)"
+            icon="fas fa-wrench"
+            color="amber"
+            subtitle="Servicing, repairs & parts upkeep"
+            :href="route('financials.expenses', ['category' => 'maintenance'])"
+            :active="$currCat === 'maintenance'"
+            tooltip="Filter by Maintenance & Repairs"
+        />
 
-        {{-- Supplies & Parts --}}
-        <a href="{{ route('financials.expenses', ['category' => 'operational_requirement']) }}" class="bg-white rounded-xl p-5 border {{ $currCat === 'operational_requirement' ? 'border-purple-500 ring-2 ring-purple-500 shadow-md' : 'border-purple-200 hover:border-purple-400 hover:shadow-md' }} bg-purple-50/20 shadow-sm transition-all flex items-center justify-between group block" title="Filter by Supplies & Consumables">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-purple-800 mb-1">Supplies & Parts</p>
-                <p class="text-2xl font-bold text-purple-700">₱{{ number_format($kpis['supplies_total'] + $kpis['accessories_total'], 2) }}</p>
-                <p class="text-xs text-purple-600 mt-1">Consumables and attachments</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center text-xl group-hover:bg-purple-600 group-hover:text-white transition-colors">
-                <i class="fas fa-gas-pump"></i>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Supplies & Parts"
+            :value="'₱' . number_format($kpis['supplies_total'] + $kpis['accessories_total'], 2)"
+            icon="fas fa-gas-pump"
+            color="purple"
+            subtitle="Consumables and attachments"
+            :href="route('financials.expenses', ['category' => 'operational_requirement'])"
+            :active="$currCat === 'operational_requirement'"
+            tooltip="Filter by Supplies & Consumables"
+        />
     </div>
 
     {{-- Filters Card --}}

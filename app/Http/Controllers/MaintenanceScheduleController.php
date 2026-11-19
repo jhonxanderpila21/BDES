@@ -60,8 +60,8 @@ class MaintenanceScheduleController extends Controller
     protected function authorizeEditor(Request $request): void
     {
         $user = $request->user();
-        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff') || (!$user->isAdmin() && !$user->hasRole('maintenance_officer', 'bdrrmc_officer'))) {
-            abort(403, 'Unauthorized. Schedule management requires Maintenance Officer or Administrator permissions.');
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff') || (!$user->isAdmin() && !$user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer'))) {
+            abort(403, 'Unauthorized. Schedule management requires Inventory & Maintenance or Administrator permissions.');
         }
     }
 

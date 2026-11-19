@@ -4,27 +4,31 @@
 
 @section('content')
     {{-- Page Header --}}
-    <div class="flex items-center justify-between mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Role & Access Control</h1>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Administration'],
-                ['label' => 'Roles & Permissions']
-            ]" />
-        </div>
-        <a href="{{ route('users.index') }}" class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
-            <i class="fas fa-users-cog"></i>
-            Manage User Accounts
-        </a>
-    </div>
+    <x-page-header
+        title="Role & Access Control"
+        subtitle="Manage role-based access control permissions and operational system privileges."
+        icon="fas fa-user-shield"
+        :read-only-badge="false"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Administration'],
+            ['label' => 'Roles & Permissions']
+        ]"
+    >
+        <x-slot:actions>
+            <a href="{{ route('users.index') }}" class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+                <i class="fas fa-users-cog"></i>
+                Manage User Accounts
+            </a>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Information Alert --}}
     <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-start gap-3">
         <i class="fas fa-shield-alt text-blue-600 text-lg mt-0.5"></i>
         <div class="text-xs text-blue-900 leading-relaxed">
             <strong class="font-semibold text-blue-950">BDES Role-Based Access Control (RBAC):</strong>
-            The system employs 4 dedicated operational roles strictly governed by Laravel Policies, Form Requests, and Middleware: <strong>Admin</strong>, <strong>Inventory</strong>, <strong>Maintenance</strong>, and <strong>Staff for Viewing</strong>.
+            The system employs 3 dedicated operational roles strictly governed by Laravel Policies, Form Requests, and Middleware: <strong>Admin</strong>, <strong>Inventory &amp; Maintenance</strong>, and <strong>Staff for Viewing</strong>.
         </div>
     </div>
 
@@ -50,33 +54,21 @@
             ],
             [
                 'key'         => 'inventory_officer',
-                'name'        => 'Inventory',
+                'name'        => 'Inventory & Maintenance',
                 'badge'       => 'warning',
-                'description' => 'Field equipment operations, asset registry, deployments, return check-ins, accessories, and consumables replenishment.',
-                'scope'       => 'Inventory & Field Operations',
+                'description' => 'Unified field equipment operations, asset registry, deployments, return check-ins, accessories, consumables replenishment, repair work orders, preventive maintenance schedules, and physical inspections.',
+                'scope'       => 'Inventory, Operations & Maintenance',
                 'permissions' => [
                     'Asset Registry (Create, Edit, Philippine Standard Auto-Computation)',
                     'Field Deployments & Operations Tracking',
                     'Return Records & Return Inspection Processing',
                     'Accessories & Attachment Stock Management',
                     'Operational Requirements & Consumables Refilling',
-                    'Reported Incident Assets (Filing & Updating)',
-                    'Asset History & Audit Trail Review',
-                    'Asset Locations Inquiry',
-                ],
-            ],
-            [
-                'key'         => 'maintenance_officer',
-                'name'        => 'Maintenance',
-                'badge'       => 'success',
-                'description' => 'Equipment servicing, repair work orders, preventive maintenance schedules, and physical quality inspections.',
-                'scope'       => 'Equipment Upkeep & Service',
-                'permissions' => [
                     'Maintenance Hub & Work Orders (Create, Update, Sign-off)',
                     'Preventive Maintenance Scheduling (Interval Tracking)',
                     'Physical Asset Inspections & Diagnostic Reports',
-                    'Asset Registry & Technical Details Inspection',
-                    'Asset History Review',
+                    'Reported Incident Assets (Filing & Updating)',
+                    'Asset History & Audit Trail Review',
                     'Asset Locations Inquiry',
                 ],
             ],
@@ -113,7 +105,9 @@
                 <tbody class="divide-y divide-gray-200">
                     @foreach($rolesData as $role)
                         @php
-                            $userCount = \App\Models\User::where('role', $role['key'])->count();
+                            $userCount = $role['key'] === 'inventory_officer'
+                                ? \App\Models\User::whereIn('role', ['inventory_officer', 'maintenance_officer', 'bdrrmc_officer'])->count()
+                                : \App\Models\User::where('role', $role['key'])->count();
                         @endphp
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-left">

@@ -86,7 +86,7 @@
                         $selectedTypeId = old('type_id', request('selected_type_id'));
                     @endphp
                     @foreach($types ?? [] as $tp)
-                        <option value="{{ $tp->id }}" {{ (string)$selectedTypeId === (string)$tp->id ? 'selected' : '' }}>
+                        <option value="{{ $tp->id }}" data-category-id="{{ $tp->category_id }}" {{ (string)$selectedTypeId === (string)$tp->id ? 'selected' : '' }}>
                             {{ $tp->name }} ({{ $tp->category->name ?? 'General' }})
                         </option>
                     @endforeach

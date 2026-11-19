@@ -9,93 +9,60 @@
 <div class="space-y-6">
 
     {{-- Page Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <i class="fas fa-clock-rotate-left text-blue-600"></i>
-                Asset History & Audit Trail
-            </h1>
-            <p class="text-xs text-gray-500 mt-1">
-                @if(auth()->user()->isAdmin())
-                    <span class="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
-                        <i class="fas fa-shield-halved"></i> Full Administrative Access &bull; All System Accounts
-                    </span>
-                @elseif($isReadOnlyStaff)
-                    <span class="inline-flex items-center gap-1 font-semibold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded border border-amber-200">
-                        <i class="fas fa-shield-alt text-amber-600"></i> Read-Only Staff Access &bull; All System Records
-                    </span>
-                @else
-                    <span class="inline-flex items-center gap-1 font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">
-                        <i class="fas fa-user-shield"></i> Account-Specific Access &bull; Logs for {{ auth()->user()->name }}
-                    </span>
-                @endif
-            </p>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Tracking & Reporting'],
-                ['label' => 'Asset History & Audit Trail']
-            ]" />
-        </div>
-
+    <x-page-header
+        title="Asset History & Audit Trail"
+        :subtitle="auth()->user()->isAdmin()
+            ? 'Full Administrative Access • All System Accounts'
+            : ($isReadOnlyStaff
+                ? 'Read-Only Staff Access • All System Records'
+                : 'Account-Specific Access • Logs for ' . auth()->user()->name)"
+        icon="fas fa-clock-rotate-left"
+        :is-read-only-staff="$isReadOnlyStaff"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Tracking & Reporting'],
+            ['label' => 'Asset History & Audit Trail']
+        ]"
+    >
         @if(!$isReadOnlyStaff)
-        <div class="flex items-center gap-2">
-            <a href="{{ route('asset-history.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-medium text-sm shadow-sm transition-colors">
-                <i class="fas fa-file-csv"></i>
-                Export Audit Log
-            </a>
-        </div>
+            <x-slot:actions>
+                <a href="{{ route('asset-history.export', request()->query()) }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 font-medium text-sm shadow-sm transition-colors">
+                    <i class="fas fa-file-csv"></i>
+                    Export Audit Log
+                </a>
+            </x-slot:actions>
         @endif
-    </div>
+    </x-page-header>
 
     {{-- Metrics Cards --}}
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    {{ (auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Total Audit Events' : 'My Audit Events' }}
-                </p>
-                <p class="text-2xl font-bold text-gray-900 mt-1">{{ number_format($metrics['total_logs']) }}</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
-                <i class="fas fa-list-check"></i>
-            </div>
-        </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <x-kpi-card
+            :title="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Total Audit Events' : 'My Audit Events'"
+            :value="number_format($metrics['total_logs'])"
+            icon="fas fa-list-check"
+            color="blue"
+        />
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Logged Today</p>
-                <p class="text-2xl font-bold text-emerald-600 mt-1">{{ number_format($metrics['today_logs']) }}</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
-                <i class="fas fa-calendar-day"></i>
-            </div>
-        </div>
+        <x-kpi-card
+            title="Logged Today"
+            :value="number_format($metrics['today_logs'])"
+            icon="fas fa-calendar-day"
+            color="emerald"
+        />
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Status Transitions</p>
-                <p class="text-2xl font-bold text-amber-600 mt-1">{{ number_format($metrics['status_changes']) }}</p>
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
-                <i class="fas fa-arrows-rotate"></i>
-            </div>
-        </div>
+        <x-kpi-card
+            title="Status Transitions"
+            :value="number_format($metrics['status_changes'])"
+            icon="fas fa-arrows-rotate"
+            color="amber"
+        />
 
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                    {{ (auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Active Actors' : 'Account Role' }}
-                </p>
-                @if(auth()->user()->isAdmin() || $isReadOnlyStaff)
-                    <p class="text-2xl font-bold text-purple-600 mt-1">{{ number_format($metrics['active_actors']) }}</p>
-                @else
-                    <p class="text-sm font-bold text-purple-600 mt-2 uppercase tracking-wide">{{ str_replace('_', ' ', auth()->user()->role) }}</p>
-                @endif
-            </div>
-            <div class="w-10 h-10 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
-                <i class="fas fa-users-gear"></i>
-            </div>
-        </div>
+        <x-kpi-card
+            :title="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Active Actors' : 'Account Role'"
+            :value="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? number_format($metrics['active_actors']) : strtoupper(str_replace('_', ' ', auth()->user()->role))"
+            icon="fas fa-users-gear"
+            color="purple"
+        />
     </div>
 
     {{-- Filter Bar --}}

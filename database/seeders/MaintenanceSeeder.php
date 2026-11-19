@@ -14,8 +14,8 @@ class MaintenanceSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin       = User::where('role', 'administrator')->first() ?? User::first();
-        $maintOfficer = User::where('role', 'maintenance_officer')->first() ?? $admin;
+        $admin        = User::where('role', 'administrator')->first() ?? User::first();
+        $maintOfficer = User::whereIn('role', ['inventory_officer', 'maintenance_officer'])->first() ?? $admin;
 
         $tanker     = Asset::where('code', 'TRK-001')->first();
         $penetrator = Asset::where('code', 'TRK-002')->first();

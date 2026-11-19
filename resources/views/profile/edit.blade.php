@@ -31,7 +31,7 @@
                 <div class="flex flex-wrap items-center gap-2.5">
                     <h2 class="text-xl font-bold">{{ $user->name }}</h2>
                     <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white backdrop-blur-sm">
-                        {{ ucfirst(str_replace('_', ' ', $user->role ?? 'Staff')) }}
+                        {{ $user->role_label }}
                     </span>
                     @if($user->is_active ?? true)
                         <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
@@ -70,7 +70,7 @@
                     <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
                         <div>
                             <span class="text-gray-500 font-medium">System Role</span>
-                            <p class="text-gray-900 font-bold mt-0.5">{{ ucfirst(str_replace('_', ' ', $user->role ?? 'User')) }}</p>
+                            <p class="text-gray-900 font-bold mt-0.5">{{ $user->role_label }}</p>
                         </div>
                         <span class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="fas fa-user-gear"></i></span>
                     </div>
@@ -79,12 +79,10 @@
                         <div>
                             <span class="text-gray-500 font-medium">Role Authority</span>
                             <p class="text-gray-900 font-bold mt-0.5">
-                                @if($user->role === 'administrator')
+                                @if($user->role === 'administrator' || $user->role === 'barangay_captain')
                                     Full Administrative Control
-                                @elseif($user->role === 'barangay_captain')
-                                    Executive Sign-off & Reports
-                                @elseif($user->role === 'logistics_officer')
-                                    Operations & Deployment
+                                @elseif(in_array($user->role, ['inventory_officer', 'maintenance_officer', 'bdrrmc_officer'], true))
+                                    Inventory, Operations &amp; Maintenance
                                 @else
                                     Staff Asset Monitoring
                                 @endif

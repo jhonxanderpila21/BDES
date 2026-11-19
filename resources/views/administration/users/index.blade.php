@@ -4,10 +4,9 @@
 
 @php
     $roleLabels = [
-        'administrator'       => 'Admin',
-        'inventory_officer'   => 'Inventory',
-        'maintenance_officer' => 'Maintenance',
-        'viewer'              => 'Staff (Viewing)',
+        'administrator'     => 'Admin',
+        'inventory_officer' => 'Inventory & Maintenance',
+        'viewer'            => 'Staff (Viewing)',
     ];
 @endphp
 
@@ -31,7 +30,8 @@
     </x-page-header>
 
     {{-- Filters --}}
-    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+    <x-card class="mb-6">
+    <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
             <form action="{{ route('users.index') }}" method="GET">
                 <x-search-bar name="search" value="{{ request('search') }}" placeholder="Search users by name, username or phone number..." />
@@ -54,9 +54,10 @@
             </select>
         </form>
     </div>
+    </x-card>
 
     {{-- Users Table --}}
-    <x-card>
+    <x-card :padding="false">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">
@@ -102,7 +103,7 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
-                                <x-badge variant="primary" size="sm">{{ $roleLabels[$user->role] ?? ucfirst($user->role) }}</x-badge>
+                                <x-badge variant="primary" size="sm">{{ $user->role_label }}</x-badge>
                             </td>
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 @if($user->trashed())

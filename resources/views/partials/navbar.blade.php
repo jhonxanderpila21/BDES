@@ -190,7 +190,7 @@
                     </div>
                     <div class="hidden sm:block text-left">
                         <p class="text-sm font-medium text-white">{{ Auth::user()->name ?? 'User' }}</p>
-                        <p class="text-xs text-[#60A5FA]">{{ ucwords(str_replace('_', ' ', Auth::user()->role ?? 'User')) }}</p>
+                        <p class="text-xs text-[#60A5FA]">{{ Auth::user()?->role_label ?? 'User' }}</p>
                     </div>
                     <i class="fas fa-chevron-down text-xs text-blue-200 hidden sm:block"></i>
                 </button>

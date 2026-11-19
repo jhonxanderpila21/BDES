@@ -17,7 +17,7 @@ class UpdateMaintenanceScheduleRequest extends FormRequest
         if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
             return false;
         }
-        return $user->isAdmin() || $user->hasRole('maintenance_officer', 'bdrrmc_officer');
+        return $user->isAdmin() || $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**

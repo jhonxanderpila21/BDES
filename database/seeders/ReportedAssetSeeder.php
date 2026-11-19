@@ -17,7 +17,7 @@ class ReportedAssetSeeder extends Seeder
     public function run(): void
     {
         $admin        = User::where('role', 'administrator')->first();
-        $maintOfficer = User::where('role', 'maintenance_officer')->first() ?? $admin;
+        $maintOfficer = User::whereIn('role', ['inventory_officer', 'maintenance_officer'])->first() ?? $admin;
         $staff        = User::where('role', 'viewer')->first() ?? User::where('role', 'bdrrmc_officer')->first();
         $reporter     = $staff ?? $admin;
 

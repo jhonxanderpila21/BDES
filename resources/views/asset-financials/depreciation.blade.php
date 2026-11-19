@@ -5,20 +5,18 @@
 @section('content')
 <div class="space-y-6" x-data="{ editModal: false, selectedAsset: {} }">
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
-                <span class="p-2 bg-blue-100 text-blue-700 rounded-lg"><i class="fas fa-arrow-trend-down"></i></span>
-                Asset Depreciation Value
-            </h1>
-            <p class="text-xs text-gray-500 mt-0.5">Asset Depreciation Schedule & straight-line book value tracking.</p>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Asset Financials'],
-                ['label' => 'Depreciation Value']
-            ]" />
-        </div>
-        <div class="flex items-center gap-3">
+    <x-page-header
+        title="Asset Depreciation Value"
+        subtitle="Asset Depreciation Schedule & straight-line book value tracking."
+        icon="fas fa-arrow-trend-down"
+        :read-only-badge="false"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Asset Financials'],
+            ['label' => 'Depreciation Value']
+        ]"
+    >
+        <x-slot:actions>
             <a
                 href="{{ route('financials.depreciation.export') }}"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium shadow-sm transition"
@@ -26,8 +24,8 @@
                 <i class="fas fa-file-csv text-emerald-600"></i>
                 <span>Export CSV</span>
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Flash Notifications --}}
 
@@ -46,41 +44,37 @@
 
     {{-- Financial KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Total Purchase Cost</span>
-                <span class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="fas fa-receipt"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-gray-900 mt-2">₱{{ number_format($totalAcquisitionCost, 2) }}</p>
-            <p class="text-xs text-gray-500 mt-1">Original purchase cost of recorded assets</p>
-        </div>
+        <x-kpi-card
+            title="Total Purchase Cost"
+            :value="'₱' . number_format($totalAcquisitionCost, 2)"
+            icon="fas fa-receipt"
+            color="blue"
+            subtitle="Original purchase cost of recorded assets"
+        />
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Total Depreciation</span>
-                <span class="p-2 bg-rose-50 text-rose-600 rounded-lg"><i class="fas fa-chart-line-down"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-rose-600 mt-2">₱{{ number_format($totalAccumulatedDepreciation, 2) }}</p>
-            <p class="text-xs text-gray-500 mt-1">Total value lost over time</p>
-        </div>
+        <x-kpi-card
+            title="Total Depreciation"
+            :value="'₱' . number_format($totalAccumulatedDepreciation, 2)"
+            icon="fas fa-chart-line-down"
+            color="rose"
+            subtitle="Total value lost over time"
+        />
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Current Value</span>
-                <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fas fa-vault"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-emerald-700 mt-2">₱{{ number_format($totalCurrentBookValue, 2) }}</p>
-            <p class="text-xs text-gray-500 mt-1">Current estimated net asset worth</p>
-        </div>
+        <x-kpi-card
+            title="Current Value"
+            :value="'₱' . number_format($totalCurrentBookValue, 2)"
+            icon="fas fa-vault"
+            color="emerald"
+            subtitle="Current estimated net asset worth"
+        />
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Yearly Depreciation</span>
-                <span class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i class="fas fa-calendar-days"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-amber-700 mt-2">₱{{ number_format($totalAnnualDepreciation, 2) }}</p>
-            <p class="text-xs text-gray-500 mt-1">Value lost per year</p>
-        </div>
+        <x-kpi-card
+            title="Yearly Depreciation"
+            :value="'₱' . number_format($totalAnnualDepreciation, 2)"
+            icon="fas fa-calendar-days"
+            color="amber"
+            subtitle="Value lost per year"
+        />
     </div>
 
     {{-- Filter Bar --}}

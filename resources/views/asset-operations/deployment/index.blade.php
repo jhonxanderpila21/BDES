@@ -70,7 +70,8 @@
     </div>
 
     {{-- Filters & Search --}}
-    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+    <x-card class="mb-6">
+    <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
             <form action="{{ route('deployment.index') }}" method="GET" id="searchForm">
                 @if(request('status'))
@@ -102,9 +103,10 @@
             </div>
         </div>
     </div>
+    </x-card>
 
     {{-- Deployment Table --}}
-    <x-card>
+    <x-card :padding="false">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">

@@ -25,6 +25,11 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+        // Normalize any legacy maintenance_officer / bdrrmc_officer accounts into the unified inventory_officer role
+        User::withTrashed()
+            ->whereIn('role', ['maintenance_officer', 'bdrrmc_officer'])
+            ->update(['role' => 'inventory_officer']);
+
         $status = $request->query('status');
         $query = User::query();
 
@@ -52,7 +57,11 @@ class UserController extends Controller
         }
 
         if ($request->filled('role')) {
-            $query->where('role', $request->role);
+            if (in_array($request->role, ['inventory_officer', 'maintenance_officer'], true)) {
+                $query->whereIn('role', ['inventory_officer', 'maintenance_officer', 'bdrrmc_officer']);
+            } else {
+                $query->where('role', $request->role);
+            }
         }
 
         $users = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();

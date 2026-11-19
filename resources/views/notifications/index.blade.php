@@ -29,49 +29,37 @@
 
     {{-- Summary KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between shadow-xs">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Unread Alerts</p>
-                <p class="text-2xl font-bold text-gray-900 mt-1">{{ $counts['unread'] ?? 0 }}</p>
-                <p class="text-[11px] text-gray-500 mt-0.5">Awaiting your review</p>
-            </div>
-            <div class="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg">
-                <i class="fas fa-bell"></i>
-            </div>
-        </div>
+        <x-kpi-card
+            title="Unread Alerts"
+            :value="$counts['unread'] ?? 0"
+            icon="fas fa-bell"
+            color="rose"
+            subtitle="Awaiting your review"
+        />
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between shadow-xs">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">New Equipment</p>
-                <p class="text-2xl font-bold text-emerald-600 mt-1">{{ $counts['equipment'] ?? 0 }}</p>
-                <p class="text-[11px] text-gray-500 mt-0.5">Recently added to inventory</p>
-            </div>
-            <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
-                <i class="fas fa-box-open"></i>
-            </div>
-        </div>
+        <x-kpi-card
+            title="New Equipment"
+            :value="$counts['equipment'] ?? 0"
+            icon="fas fa-box-open"
+            color="emerald"
+            subtitle="Recently added to inventory"
+        />
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between shadow-xs">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Maintenance & Inspections</p>
-                <p class="text-2xl font-bold text-amber-600 mt-1">{{ ($counts['maintenance'] ?? 0) + ($counts['inspection'] ?? 0) }}</p>
-                <p class="text-[11px] text-gray-500 mt-0.5">Service & inspection updates</p>
-            </div>
-            <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
-                <i class="fas fa-screwdriver-wrench"></i>
-            </div>
-        </div>
+        <x-kpi-card
+            title="Maintenance & Inspections"
+            :value="($counts['maintenance'] ?? 0) + ($counts['inspection'] ?? 0)"
+            icon="fas fa-screwdriver-wrench"
+            color="amber"
+            subtitle="Service & inspection updates"
+        />
 
-        <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between shadow-xs">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500">Deployments & Reports</p>
-                <p class="text-2xl font-bold text-blue-600 mt-1">{{ ($counts['deployment'] ?? 0) + ($counts['reported_asset'] ?? 0) }}</p>
-                <p class="text-[11px] text-gray-500 mt-0.5">Field operations & incidents</p>
-            </div>
-            <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
-                <i class="fas fa-truck-fast"></i>
-            </div>
-        </div>
+        <x-kpi-card
+            title="Deployments & Reports"
+            :value="($counts['deployment'] ?? 0) + ($counts['reported_asset'] ?? 0)"
+            icon="fas fa-truck-fast"
+            color="blue"
+            subtitle="Field operations & incidents"
+        />
     </div>
 
     {{-- Category Filter Tabs --}}

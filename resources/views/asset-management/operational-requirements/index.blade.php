@@ -7,26 +7,19 @@
     $isReadOnlyStaff = auth()->user()?->isViewer() || auth()->user()?->hasRole('viewer', 'staff');
 @endphp
     {{-- Page Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <i class="fas fa-list-check text-blue-600"></i>
-                Operational Requirements & Supplies
-            </h1>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Asset Management'],
-                ['label' => 'Operational Requirements & Supplies']
-            ]" />
-            <p class="text-xs text-gray-500 mt-1">Operational Requirements, consumables, fuel supplies, and Asset Needs monitoring.</p>
-        </div>
-        <div class="flex flex-wrap items-center gap-2">
-            @if($isReadOnlyStaff)
-                <div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-xs font-semibold shadow-xs">
-                    <i class="fas fa-shield-alt text-blue-600"></i>
-                    Read-Only Staff Access
-                </div>
-            @else
+    <x-page-header
+        title="Operational Requirements & Supplies"
+        subtitle="Operational Requirements, consumables, fuel supplies, and Asset Needs monitoring."
+        icon="fas fa-list-check"
+        :is-read-only-staff="$isReadOnlyStaff"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Asset Management'],
+            ['label' => 'Operational Requirements & Supplies']
+        ]"
+    >
+        @if(!$isReadOnlyStaff)
+            <x-slot:actions>
                 <button onclick="openAddRequirementModal()" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-xs shadow-xs">
                     <i class="fas fa-plus"></i>
                     Add Requirement
@@ -35,57 +28,49 @@
                     <i class="fas fa-plus"></i>
                     Add Asset Need
                 </button>
-            @endif
-        </div>
-    </div>
+            </x-slot:actions>
+        @endif
+    </x-page-header>
 
     {{-- High-Level KPI Summary Cards with Interactive Dashboard Summary Filtering --}}
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {{-- Card 1: Total Requirements --}}
-        <a href="{{ route('operational-requirements.index') }}" 
-           class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ !request('low') && !request('status') ? 'border-blue-500 ring-2 ring-blue-500 shadow-md bg-blue-50/20' : 'border-gray-200 shadow-sm hover:border-blue-400 hover:shadow-md' }}"
-           title="Show all operational requirements and supplies">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1 group-hover:text-blue-600 transition-colors">Total Requirements</p>
-                <p class="text-2xl font-bold text-gray-900">{{ $metrics['total_all'] ?? ($metrics['total_requirements'] + $metrics['total_needs']) }}</p>
-                <p class="text-[11px] text-gray-400 mt-0.5">All registered supplies</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                <i class="fas fa-layer-group"></i>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Total Requirements"
+            :value="$metrics['total_all'] ?? ($metrics['total_requirements'] + $metrics['total_needs'])"
+            icon="fas fa-layer-group"
+            color="blue"
+            subtitle="All registered supplies"
+            :href="route('operational-requirements.index')"
+            :active="!request('low') && !request('status')"
+            tooltip="Show all operational requirements and supplies"
+        />
 
-        {{-- Card 2: Adequate Reserves / In Stock --}}
-        <a href="{{ route('operational-requirements.index', ['status' => 'adequate']) }}" 
-           class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ request('status') === 'adequate' ? 'border-emerald-500 ring-2 ring-emerald-500 shadow-md bg-emerald-50/20' : 'border-emerald-200 bg-emerald-50/20 shadow-sm hover:border-emerald-400 hover:shadow-md' }}"
-           title="Filter by Adequate Reserves">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700 mb-1">Adequate Reserves</p>
-                <p class="text-2xl font-bold text-emerald-700">{{ $metrics['adequate_stock'] ?? 0 }}</p>
-                <p class="text-[11px] text-emerald-600 mt-0.5">Sufficient inventory level</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                <i class="fas fa-circle-check"></i>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Adequate Reserves"
+            :value="$metrics['adequate_stock'] ?? 0"
+            icon="fas fa-circle-check"
+            color="emerald"
+            subtitle="Sufficient inventory level"
+            :href="route('operational-requirements.index', ['status' => 'adequate'])"
+            :active="request('status') === 'adequate'"
+            tooltip="Filter by Adequate Reserves"
+        />
 
-        {{-- Card 3: Low Stock / Below Min Alert --}}
-        <a href="{{ route('operational-requirements.index', ['low' => 1]) }}" 
-           class="bg-white rounded-xl p-5 border transition-all flex items-center justify-between group block {{ request('low') || request('status') === 'low' || request('status') === 'attention' ? 'border-rose-500 ring-2 ring-rose-500 shadow-md bg-rose-50/20' : 'border-rose-200 bg-rose-50/20 shadow-sm hover:border-rose-400 hover:shadow-md' }}"
-           title="Filter by Low Stock or Action Needed Items">
-            <div>
-                <p class="text-xs font-semibold uppercase tracking-wider text-rose-700 mb-1">Low Stock Alert</p>
-                <p class="text-2xl font-bold text-rose-700">{{ $metrics['total_low_stock'] ?? ($metrics['low_stock'] + $metrics['needs_attention']) }}</p>
-                <p class="text-[11px] text-rose-500 mt-0.5">Requires replenishment</p>
-            </div>
-            <div class="w-12 h-12 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center text-xl group-hover:bg-rose-600 group-hover:text-white transition-colors">
-                <i class="fas fa-triangle-exclamation"></i>
-            </div>
-        </a>
+        <x-kpi-card
+            title="Low Stock Alert"
+            :value="$metrics['total_low_stock'] ?? ($metrics['low_stock'] + $metrics['needs_attention'])"
+            icon="fas fa-triangle-exclamation"
+            color="rose"
+            subtitle="Requires replenishment"
+            :href="route('operational-requirements.index', ['low' => 1])"
+            :active="request('low') || request('status') === 'low' || request('status') === 'attention'"
+            tooltip="Filter by Low Stock or Action Needed Items"
+        />
     </div>
 
     {{-- Unified Search and Filter Bar --}}
-    <form action="{{ route('operational-requirements.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
+    <x-card class="mb-6">
+    <form action="{{ route('operational-requirements.index') }}" method="GET" class="flex flex-col md:flex-row gap-3">
         <div class="flex-1">
             <input 
                 type="text" 
@@ -114,6 +99,7 @@
             <option value="">Status</option>
             <option value="adequate" {{ request('status') === 'adequate' ? 'selected' : '' }}>In Stock / Adequate</option>
             <option value="low" {{ request('status') === 'low' || request('low') ? 'selected' : '' }}>Low Stock / Below Min</option>
+            <option value="out_of_stock" {{ request('status') === 'out_of_stock' ? 'selected' : '' }}>Out of Stock</option>
             <option value="Requires Maintenance" {{ request('status') === 'Requires Maintenance' ? 'selected' : '' }}>Requires Maintenance</option>
         </select>
 
@@ -133,9 +119,10 @@
             </a>
         @endif
     </form>
+    </x-card>
 
     {{-- Single Unified Operational Requirements & Supplies Table --}}
-    <x-card class="mb-10">
+    <x-card :padding="false" class="mb-10">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
@@ -215,7 +202,7 @@
                                         <span class="text-gray-400 text-[11px] font-mono">Max: {{ $max }}</span>
                                     </div>
                                     <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                        <div class="h-1.5 rounded-full {{ $isLow ? 'bg-rose-500' : 'bg-emerald-500' }} transition-all duration-300" style="width: {{ $pct }}%"></div>
+                                        <div class="h-1.5 rounded-full {{ $current <= 0 ? 'bg-red-500' : ($isLow ? 'bg-orange-500' : 'bg-emerald-500') }} transition-all duration-300" style="width: {{ $pct }}%"></div>
                                     </div>
                                     <span class="text-[10px] text-gray-400 block">Capacity: {{ $max }} {{ $item->unit }} (Min: {{ $min }})</span>
                                 </div>
@@ -223,7 +210,11 @@
 
                             {{-- Status Badge --}}
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                @if(!$isLow)
+                                @if($current <= 0)
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                        <i class="fas fa-circle-xmark text-[10px] text-red-600"></i> Out of Stock
+                                    </span>
+                                @elseif(!$isLow)
                                     <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                         <i class="fas fa-check-circle text-[10px] text-emerald-600"></i> In Stock
                                     </span>
@@ -236,8 +227,8 @@
                                     @elseif($item->source === 'need' && $item->status === 'Under Maintenance')
                                         <x-badge variant="danger" size="sm">Under Maintenance</x-badge>
                                     @else
-                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                                            <i class="fas fa-triangle-exclamation text-[10px] text-rose-600"></i> Low Stock
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-700 border border-orange-200">
+                                            <i class="fas fa-triangle-exclamation text-[10px] text-orange-600"></i> Low Stock
                                         </span>
                                     @endif
                                 @endif
@@ -814,11 +805,18 @@
                 progressBar.style.width = `${pct}%`;
 
                 const isLow = current <= min;
-                if (isLow) {
-                    progressBar.className = 'h-3 rounded-full bg-rose-500 transition-all duration-300';
+                if (current <= 0) {
+                    progressBar.className = 'h-3 rounded-full bg-red-500 transition-all duration-300';
                     document.getElementById('dtl_req_status_container').innerHTML = `
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200">
-                            <i class="fas fa-triangle-exclamation text-[10px] text-rose-600"></i> Low Stock Alert
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-800 border border-red-200">
+                            <i class="fas fa-circle-xmark text-[10px] text-red-600"></i> Out of Stock
+                        </span>
+                    `;
+                } else if (isLow) {
+                    progressBar.className = 'h-3 rounded-full bg-orange-500 transition-all duration-300';
+                    document.getElementById('dtl_req_status_container').innerHTML = `
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-50 text-orange-800 border border-orange-200">
+                            <i class="fas fa-triangle-exclamation text-[10px] text-orange-600"></i> Low Stock Alert
                         </span>
                     `;
                 } else {
@@ -962,12 +960,14 @@
                 document.getElementById('and_min').textContent = `${min} ${unit}`;
                 document.getElementById('and_max').textContent = `${max} ${unit}`;
 
-                if (need.status === 'Monitoring Only' || need.status === 'In Stock') {
+                if (current <= 0) {
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">Out of Stock</span>';
+                } else if (need.status === 'Monitoring Only' || need.status === 'In Stock') {
                     document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">In Stock</span><span class="hidden">Monitoring Only</span>';
                 } else if (need.status === 'Requires Maintenance') {
                     document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">Requires Maintenance</span>';
                 } else {
-                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">Critical / Low</span>';
+                    document.getElementById('and_status_badge').innerHTML = '<span class="px-3 py-1 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">Low Stock</span>';
                 }
 
                 if (need.asset) {

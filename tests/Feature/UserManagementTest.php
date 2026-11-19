@@ -262,8 +262,7 @@ class UserManagementTest extends TestCase
         $response->assertOk();
         $response->assertSeeText('Role & Access Control');
         $response->assertSeeText('Admin');
-        $response->assertSeeText('Inventory');
-        $response->assertSeeText('Maintenance');
+        $response->assertSeeText('Inventory & Maintenance');
         $response->assertSeeText('Staff for Viewing');
         $response->assertSeeText('Role Permissions & Authority Matrix');
     }

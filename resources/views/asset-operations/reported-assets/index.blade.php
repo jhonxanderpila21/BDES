@@ -8,71 +8,62 @@
     @endphp
 
     {{-- Page Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <i class="fas fa-flag text-amber-500"></i>
-                Reported Assets
-            </h1>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Operations'],
-                ['label' => 'Reported Assets']
-            ]" />
-        </div>
-        @if($isReadOnlyStaff)
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
-                <i class="fas fa-shield-alt text-amber-600"></i>
-                Read-Only Staff Access
-            </span>
-        @else
-            <button 
-                type="button"
-                onclick="openAddModal()" 
-                class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm"
-            >
-                <i class="fas fa-plus"></i>
-                File Report
-            </button>
+    <x-page-header
+        title="Reported Assets"
+        subtitle="Track damaged, missing, or faulty asset reports and administrative reviews."
+        icon="fas fa-flag"
+        :is-read-only-staff="$isReadOnlyStaff"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Operations'],
+            ['label' => 'Reported Assets']
+        ]"
+    >
+        @if(!$isReadOnlyStaff)
+            <x-slot:actions>
+                <button
+                    type="button"
+                    onclick="openAddModal()"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm"
+                >
+                    <i class="fas fa-plus"></i>
+                    File Report
+                </button>
+            </x-slot:actions>
         @endif
-    </div>
+    </x-page-header>
 
     {{-- Dashboard Summary KPI Cards (Clickable quick status filters) --}}
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         @php
             $statusConfig = [
-                'Pending'    => ['icon' => 'fas fa-clock', 'border' => 'border-amber-200', 'bg' => 'bg-amber-50/40', 'iconBg' => 'bg-amber-100 text-amber-600', 'textColor' => 'text-amber-700', 'label' => 'Awaiting Review'],
-                'For Review' => ['icon' => 'fas fa-search', 'border' => 'border-sky-200', 'bg' => 'bg-sky-50/40', 'iconBg' => 'bg-sky-100 text-sky-600', 'textColor' => 'text-sky-700', 'label' => 'Admin Review'],
-                'Ongoing'    => ['icon' => 'fas fa-spinner', 'border' => 'border-blue-200', 'bg' => 'bg-blue-50/40', 'iconBg' => 'bg-blue-100 text-blue-600', 'textColor' => 'text-blue-700', 'label' => 'In Progress'],
-                'Done'       => ['icon' => 'fas fa-circle-check', 'border' => 'border-emerald-200', 'bg' => 'bg-emerald-50/40', 'iconBg' => 'bg-emerald-100 text-emerald-600', 'textColor' => 'text-emerald-700', 'label' => 'Resolved'],
+                'Pending'    => ['icon' => 'fas fa-clock', 'color' => 'amber', 'label' => 'Awaiting Review'],
+                'For Review' => ['icon' => 'fas fa-search', 'color' => 'indigo', 'label' => 'Admin Review'],
+                'Ongoing'    => ['icon' => 'fas fa-spinner', 'color' => 'blue', 'label' => 'In Progress'],
+                'Done'       => ['icon' => 'fas fa-circle-check', 'color' => 'emerald', 'label' => 'Resolved'],
             ];
         @endphp
         @foreach($statusCounts as $status => $count)
-            @php 
-                $cfg = $statusConfig[$status] ?? ['icon' => 'fas fa-info-circle', 'border' => 'border-gray-200', 'bg' => 'bg-white', 'iconBg' => 'bg-gray-100 text-gray-600', 'textColor' => 'text-gray-700', 'label' => ''];
+            @php
+                $cfg = $statusConfig[$status] ?? ['icon' => 'fas fa-info-circle', 'color' => 'blue', 'label' => ''];
                 $isActive = request('status') === $status;
             @endphp
-            <a 
-                href="{{ route('reported-assets.index', array_merge(request()->except('status', 'page'), $isActive ? [] : ['status' => $status])) }}"
-                class="bg-white rounded-xl p-4 border transition-all duration-150 block {{ $cfg['border'] }} {{ $cfg['bg'] }} {{ $isActive ? 'ring-2 ring-blue-500 shadow-md scale-[1.02]' : 'hover:shadow-sm hover:border-blue-300' }}"
-                title="Click to filter by {{ $status }}"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="min-w-0 flex-1 pr-2">
-                        <p class="text-[11px] font-semibold uppercase tracking-wider {{ $cfg['textColor'] }} truncate">{{ $status }}</p>
-                        <p class="text-2xl font-bold {{ $cfg['textColor'] }} mt-0.5">{{ $count }}</p>
-                        <p class="text-[10px] text-gray-500 mt-0.5 truncate">{{ $cfg['label'] }}</p>
-                    </div>
-                    <div class="w-9 h-9 rounded-lg {{ $cfg['iconBg'] }} flex items-center justify-center text-sm flex-shrink-0">
-                        <i class="{{ $cfg['icon'] }}"></i>
-                    </div>
-                </div>
-            </a>
+            <x-kpi-card
+                :title="$status"
+                :value="$count"
+                :icon="$cfg['icon']"
+                :color="$cfg['color']"
+                :subtitle="$cfg['label']"
+                :href="route('reported-assets.index', array_merge(request()->except('status', 'page'), $isActive ? [] : ['status' => $status]))"
+                :active="$isActive"
+                :tooltip="'Click to filter by ' . $status"
+            />
         @endforeach
     </div>
 
     {{-- Unified Filters & Search Bar --}}
-    <form action="{{ route('reported-assets.index') }}" method="GET" class="flex flex-wrap items-center gap-3 mb-6">
+    <x-card class="mb-6">
+    <form action="{{ route('reported-assets.index') }}" method="GET" class="flex flex-wrap items-center gap-3">
         @if(request('status'))
             <input type="hidden" name="status" value="{{ request('status') }}">
         @endif
@@ -136,9 +127,10 @@
             </a>
         @endif
     </form>
+    </x-card>
 
     {{-- Reports Table --}}
-    <x-card>
+    <x-card :padding="false">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">

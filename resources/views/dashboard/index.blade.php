@@ -16,7 +16,7 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasRole('inventory_officer', 'bdrrmc_officer')))
+            @if(auth()->check() && (auth()->user()->isAdmin() || auth()->user()->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer')))
                 <a href="{{ route('assets.index') }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
                     <i class="fas fa-plus"></i>
                     <span>Register Asset</span>
@@ -25,8 +25,6 @@
                     <i class="fas fa-truck-fast"></i>
                     <span>Deploy Equipment</span>
                 </a>
-            @endif
-            @if(auth()->check() && auth()->user()->hasRole('maintenance_officer'))
                 <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors">
                     <i class="fas fa-screwdriver-wrench"></i>
                     <span>Work Orders</span>

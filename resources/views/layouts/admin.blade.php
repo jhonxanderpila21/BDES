@@ -88,6 +88,7 @@
     {{-- Global Delete Confirmation Security Modal --}}
     <x-delete-confirm-modal />
 
+    @include('partials.searchable-select-scripts')
     @stack('scripts')
 </body>
 </html>

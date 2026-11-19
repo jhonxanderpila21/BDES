@@ -16,8 +16,8 @@ class InspectionController extends Controller
     protected function authorizeInspector(Request $request): void
     {
         $user = $request->user();
-        if ($user && ($user->isViewer() || $user->hasRole('viewer', 'staff', 'inventory_officer'))) {
-            abort(403, 'Unauthorized. Physical inspection and equipment servicing requires Maintenance Officer or Administrator permissions.');
+        if (!$user || $user->isViewer() || $user->hasRole('viewer', 'staff')) {
+            abort(403, 'Unauthorized. Physical inspection and equipment servicing requires Inventory & Maintenance or Administrator permissions.');
         }
     }
 

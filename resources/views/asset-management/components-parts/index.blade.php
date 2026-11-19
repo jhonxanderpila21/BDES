@@ -83,7 +83,8 @@
     </div>
 
     {{-- Filters & Search --}}
-    <form action="{{ route('attachments.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 mb-6">
+    <x-card class="mb-6">
+    <form action="{{ route('attachments.index') }}" method="GET" class="flex flex-col md:flex-row gap-3">
         <input type="hidden" name="tab" value="{{ $activeTab }}">
 
         <div class="flex-1">
@@ -155,9 +156,10 @@
             </a>
         @endif
     </form>
+    </x-card>
 
     {{-- Unified Components and Parts Table --}}
-    <x-card>
+    <x-card :padding="false">
         <div class="overflow-x-auto">
             <table class="w-full">
                 <thead class="bg-gray-50 border-b border-gray-200">
@@ -483,7 +485,7 @@
                             <select name="asset_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                                 <option value="">-- Unassigned / General --</option>
                                 @foreach($assets as $ast)
-                                    <option value="{{ $ast->id }}">{{ $ast->code }} — {{ $ast->name }}</option>
+                                    <option value="{{ $ast->id }}" data-asset-type-id="{{ $ast->type_id }}">{{ $ast->code }} — {{ $ast->name }}</option>
                                 @endforeach
                             </select>
                         </x-form-group>
@@ -547,7 +549,7 @@
                             <select name="asset_id" id="edit_attach_asset_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
                                 <option value="">-- Unassigned / General --</option>
                                 @foreach($assets as $ast)
-                                    <option value="{{ $ast->id }}">{{ $ast->code }} — {{ $ast->name }}</option>
+                                    <option value="{{ $ast->id }}" data-asset-type-id="{{ $ast->type_id }}">{{ $ast->code }} — {{ $ast->name }}</option>
                                 @endforeach
                             </select>
                         </x-form-group>

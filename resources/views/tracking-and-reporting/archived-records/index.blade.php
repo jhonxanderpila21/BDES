@@ -6,68 +6,52 @@
 <div class="space-y-6">
 
     {{-- Page Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-            <div class="flex items-center gap-2">
-                <span class="inline-flex items-center justify-center p-2 bg-blue-100 text-blue-700 rounded-lg">
-                    <i class="fas fa-box-archive text-lg"></i>
-                </span>
-                <h1 class="text-2xl font-bold text-gray-900">Archived Records</h1>
-            </div>
-            <p class="text-xs text-gray-500 mt-1">
-                Centralized archive of soft-deleted records across all applicable modules. Restore or permanently delete archived data.
-            </p>
-        </div>
-        <div>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Tracking & Reporting', 'url' => route('asset-history.index')],
-                ['label' => 'Archived Records']
-            ]" />
-        </div>
-    </div>
+    <x-page-header
+        title="Archived Records"
+        subtitle="Centralized archive of soft-deleted records across all applicable modules. Restore or permanently delete archived data."
+        icon="fas fa-box-archive"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Tracking & Reporting', 'url' => route('asset-history.index')],
+            ['label' => 'Archived Records']
+        ]"
+        :readOnlyBadge="false"
+    />
 
     {{-- KPI Metric Summary Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3">
-            <div class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
-                <i class="fas fa-box-archive"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Archived</p>
-                <p class="text-2xl font-bold text-gray-900">{{ number_format($metrics['total_archived']) }}</p>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3">
-            <div class="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
-                <i class="fas fa-boxes-stacked"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Archived Assets</p>
-                <p class="text-2xl font-bold text-gray-900">{{ number_format($metrics['archived_assets']) }}</p>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3">
-            <div class="w-12 h-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
-                <i class="fas fa-screwdriver-wrench"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Archived Work Orders</p>
-                <p class="text-2xl font-bold text-gray-900">{{ number_format($metrics['archived_work_orders']) }}</p>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center gap-3">
-            <div class="w-12 h-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
-                <i class="fas fa-clock-rotate-left"></i>
-            </div>
-            <div>
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Archived (30 Days)</p>
-                <p class="text-2xl font-bold text-gray-900">{{ number_format($metrics['archived_recent']) }}</p>
-            </div>
-        </div>
+        <x-kpi-card
+            title="Total Archived"
+            :value="number_format($metrics['total_archived'])"
+            icon="fas fa-box-archive"
+            color="blue"
+            :active="($filters['module'] ?? 'all') === 'all'"
+            :href="route('archived-records.index')"
+        />
+        <x-kpi-card
+            title="Archived Assets"
+            :value="number_format($metrics['archived_assets'])"
+            icon="fas fa-boxes-stacked"
+            color="emerald"
+            :active="($filters['module'] ?? 'all') === 'assets'"
+            :href="route('archived-records.index', ['module' => 'assets'])"
+        />
+        <x-kpi-card
+            title="Archived Work Orders"
+            :value="number_format($metrics['archived_work_orders'])"
+            icon="fas fa-screwdriver-wrench"
+            color="purple"
+            :active="($filters['module'] ?? 'all') === 'maintenances'"
+            :href="route('archived-records.index', ['module' => 'maintenances'])"
+        />
+        <x-kpi-card
+            title="Archived (30 Days)"
+            :value="number_format($metrics['archived_recent'])"
+            icon="fas fa-clock-rotate-left"
+            color="amber"
+            :active="($filters['date_filter'] ?? 'all') === '30days'"
+            :href="route('archived-records.index', ['date_filter' => '30days'])"
+        />
     </div>
 
     {{-- Search & Filters --}}
@@ -111,7 +95,7 @@
                         <option value="">All Users</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}" {{ (string)$filters['deleted_by'] === (string)$user->id ? 'selected' : '' }}>
-                                {{ $user->name }} ({{ ucfirst(str_replace('_', ' ', $user->role)) }})
+                                {{ $user->name }} ({{ $user->role_label }})
                             </option>
                         @endforeach
                     </select>

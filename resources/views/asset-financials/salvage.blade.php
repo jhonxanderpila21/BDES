@@ -5,19 +5,18 @@
 @section('content')
 <div class="space-y-6" x-data="{ editModal: false, selectedAsset: {} }">
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2.5">
-                <span class="p-2 bg-emerald-100 text-emerald-700 rounded-lg"><i class="fas fa-recycle"></i></span>
-                Salvage Value Records & Appraisal
-            </h1>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Asset Financials'],
-                ['label' => 'Salvage Value Records']
-            ]" />
-        </div>
-        <div class="flex items-center gap-3">
+    <x-page-header
+        title="Salvage Value Records & Appraisal"
+        subtitle="Salvage Value appraisal and residual value tracking for capitalized assets."
+        icon="fas fa-recycle"
+        :read-only-badge="false"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Asset Financials'],
+            ['label' => 'Salvage Value Records']
+        ]"
+    >
+        <x-slot:actions>
             <a
                 href="{{ route('financials.salvage.export') }}"
                 class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium shadow-sm transition"
@@ -25,8 +24,8 @@
                 <i class="fas fa-file-csv text-emerald-600"></i>
                 <span>Export CSV</span>
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Flash Notifications --}}
 
@@ -45,41 +44,37 @@
 
     {{-- Salvage KPI Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Total Salvage Value</span>
-                <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fas fa-coins"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-emerald-700 mt-2">₱{{ number_format($totalSalvageValue, 2) }}</p>
-            <p class="text-xs text-gray-500 mt-1">Estimated value after full use</p>
-        </div>
+        <x-kpi-card
+            title="Total Salvage Value"
+            :value="'₱' . number_format($totalSalvageValue, 2)"
+            icon="fas fa-coins"
+            color="emerald"
+            subtitle="Estimated value after full use"
+        />
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Custom Appraised</span>
-                <span class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="fas fa-sliders"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-blue-700 mt-2">{{ $customSalvageCount }} Assets</p>
-            <p class="text-xs text-gray-500 mt-1">Assets with custom appraised value</p>
-        </div>
+        <x-kpi-card
+            title="Custom Appraised"
+            :value="$customSalvageCount . ' Assets'"
+            icon="fas fa-sliders"
+            color="blue"
+            subtitle="Assets with custom appraised value"
+        />
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Standard 10% Values</span>
-                <span class="p-2 bg-purple-50 text-purple-600 rounded-lg"><i class="fas fa-calculator"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-purple-700 mt-2">{{ $standardSalvageCount }} Assets</p>
-            <p class="text-xs text-gray-500 mt-1">Assets using standard 10% rule</p>
-        </div>
+        <x-kpi-card
+            title="Standard 10% Values"
+            :value="$standardSalvageCount . ' Assets'"
+            icon="fas fa-calculator"
+            color="purple"
+            subtitle="Assets using standard 10% rule"
+        />
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold uppercase text-gray-500 tracking-wider">Fully Depreciated</span>
-                <span class="p-2 bg-amber-50 text-amber-600 rounded-lg"><i class="fas fa-flag-checkered"></i></span>
-            </div>
-            <p class="text-2xl font-bold text-amber-700 mt-2">{{ $fullyDepreciatedCount }} Assets</p>
-            <p class="text-xs text-gray-500 mt-1">Assets at end of lifespan</p>
-        </div>
+        <x-kpi-card
+            title="Fully Depreciated"
+            :value="$fullyDepreciatedCount . ' Assets'"
+            icon="fas fa-flag-checkered"
+            color="amber"
+            subtitle="Assets at end of lifespan"
+        />
     </div>
 
     {{-- Filter Bar --}}

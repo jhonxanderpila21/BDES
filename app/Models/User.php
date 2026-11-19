@@ -201,19 +201,32 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if the user is an Inventory & Equipment Officer.
+     * Check if the user is an Inventory & Maintenance Officer.
      */
     public function isInventoryOfficer(): bool
     {
-        return $this->hasRole('inventory_officer', 'bdrrmc_officer');
+        return $this->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**
-     * Check if the user is a Maintenance Officer.
+     * Check if the user is an Inventory & Maintenance Officer.
      */
     public function isMaintenanceOfficer(): bool
     {
-        return $this->hasRole('maintenance_officer');
+        return $this->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
+    }
+
+    /**
+     * Return human-readable role label.
+     */
+    public function getRoleLabelAttribute(): string
+    {
+        return match ($this->role) {
+            'administrator', 'barangay_captain' => 'Admin',
+            'inventory_officer', 'maintenance_officer', 'bdrrmc_officer' => 'Inventory & Maintenance',
+            'viewer', 'staff' => 'Staff (Viewing)',
+            default => ucwords(str_replace('_', ' ', (string) $this->role)),
+        };
     }
 
     /**

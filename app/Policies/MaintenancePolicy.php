@@ -48,7 +48,7 @@ class MaintenancePolicy
             return false;
         }
 
-        return $user->hasRole('maintenance_officer', 'bdrrmc_officer');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**
@@ -60,7 +60,7 @@ class MaintenancePolicy
             return false;
         }
 
-        return $user->hasRole('maintenance_officer', 'bdrrmc_officer');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**
@@ -72,7 +72,7 @@ class MaintenancePolicy
             return false;
         }
 
-        return $user->hasRole('maintenance_officer', 'bdrrmc_officer');
+        return $user->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer');
     }
 
     /**
