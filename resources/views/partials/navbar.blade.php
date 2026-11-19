@@ -115,7 +115,7 @@
                         <template x-for="item in filteredItems" :key="item.id">
                             <div 
                                 class="p-3 transition-colors duration-150 flex items-start gap-3 relative group cursor-pointer"
-                                :class="item.is_read ? 'bg-white opacity-85 hover:bg-gray-50' : 'bg-blue-50/40 hover:bg-blue-50/70 font-medium'"
+                                :class="item.is_read ? 'bg-white opacity-80 hover:bg-gray-50' : 'bg-blue-100/80 hover:bg-blue-100 border-l-4 border-l-blue-600 font-semibold'"
                                 @click="openItem(item)"
                             >
                                 {{-- Severity / Category Icon --}}

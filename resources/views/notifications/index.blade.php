@@ -93,9 +93,9 @@
 
     {{-- Notifications Feed Card --}}
     <x-card>
-        <div class="divide-y divide-gray-100">
+        <div class="divide-y divide-gray-200">
             @forelse($notifications as $item)
-                <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors {{ $item['is_read'] ? 'bg-white hover:bg-gray-50/70' : 'bg-blue-50/35 hover:bg-blue-50/60' }}">
+                <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors {{ $item['is_read'] ? 'bg-white hover:bg-gray-50/70' : 'bg-blue-100/75 hover:bg-blue-100 border-l-4 border-l-blue-600' }}">
                     <div class="flex items-start gap-3.5 min-w-0">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm {{ $item['color'] ?? 'bg-blue-50 text-blue-600' }}">
                             <i class="{{ $item['icon'] ?? 'fas fa-bell' }}"></i>
@@ -103,24 +103,24 @@
 
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <a href="{{ route('notifications.view-record', $item['id']) }}" class="text-sm font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                                <a href="{{ route('notifications.view-record', $item['id']) }}" class="text-sm {{ $item['is_read'] ? 'font-semibold text-gray-800' : 'font-extrabold text-gray-900' }} hover:text-blue-600 transition-colors">
                                     {{ $item['title'] }}
                                 </a>
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($item['priority'] ?? '') === 'high' ? 'bg-rose-100 text-rose-700' : (($item['category'] ?? '') === 'equipment' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700') }}">
                                     {{ $item['badge'] ?? $item['category_label'] ?? 'Update' }}
                                 </span>
                                 @if(!$item['is_read'])
-                                    <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-600">
-                                        <span class="w-2 h-2 rounded-full bg-blue-600"></span> New
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span> UNREAD
                                     </span>
                                 @endif
                             </div>
 
-                            <p class="text-xs sm:text-sm text-gray-600 mt-1 leading-relaxed">
+                            <p class="text-xs sm:text-sm {{ $item['is_read'] ? 'text-gray-500' : 'text-gray-800 font-medium' }} mt-1 leading-relaxed">
                                 {{ $item['message'] ?? $item['description'] }}
                             </p>
 
-                            <div class="flex items-center gap-3 mt-2 text-[11px] text-gray-400">
+                            <div class="flex items-center gap-3 mt-2 text-[11px] {{ $item['is_read'] ? 'text-gray-400' : 'text-gray-600 font-medium' }}">
                                 <span><i class="far fa-clock mr-1"></i>{{ $item['timestamp'] }}</span>
                                 <span>&bull;</span>
                                 <span>{{ $item['category_label'] ?? ucfirst($item['category'] ?? 'General') }}</span>
