@@ -43,11 +43,6 @@
 
         {{-- Operational Quick Actions --}}
         <div class="flex flex-wrap items-center gap-2 print:hidden">
-            <button onclick="window.print()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors">
-                <i class="fas fa-print"></i>
-                <span class="hidden sm:inline">Print Details</span>
-            </button>
-
             @if(!$isReadOnlyStaff && auth()->user()?->can('uploadDocument', $asset))
                 <button @click="showUploadModal = true" class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-medium text-sm transition-colors">
                     <i class="fas fa-file-upload"></i>
@@ -290,12 +285,93 @@
                         @endif
 
                         {{-- Official Receipts & Uploaded Documents --}}
-                        <div class="bg-white rounded-xl p-4 border border-gray-200 mt-4">
-                            <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Attached Documents & Proof of Purchase</h4>
-                            @if($asset->receipts && $asset->receipts->count() > 0)
-                                <x-receipt-list :receipts="$asset->receipts" />
+                        <div class="bg-white rounded-xl p-4 border border-gray-200 mt-4 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+                                    <i class="fas fa-folder-open text-blue-600"></i>
+                                    <span>Attached Documents & Proof of Purchase</span>
+                                </h4>
+                                @if(!$isReadOnlyStaff && auth()->user()?->can('uploadDocument', $asset))
+                                    <button type="button" @click="showUploadModal = true" class="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors">
+                                        <i class="fas fa-plus text-[10px]"></i>
+                                        <span>Add Document</span>
+                                    </button>
+                                @endif
+                            </div>
+
+                            @php
+                                $hasReceipts = $asset->receipts && $asset->receipts->count() > 0;
+                                $hasDocuments = $asset->documents && $asset->documents->count() > 0;
+                            @endphp
+
+                            @if($hasReceipts || $hasDocuments)
+                                @if($hasReceipts)
+                                    <div>
+                                        <p class="text-xs font-semibold text-gray-600 mb-2">Official Receipts / Invoices</p>
+                                        <x-receipt-list :receipts="$asset->receipts" />
+                                    </div>
+                                @endif
+
+                                @if($hasDocuments)
+                                    <div class="{{ $hasReceipts ? 'pt-3 border-t border-gray-100' : '' }}">
+                                        <p class="text-xs font-semibold text-gray-600 mb-2">Uploaded Asset Documents & Images ({{ $asset->documents->count() }})</p>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            @foreach($asset->documents as $doc)
+                                                @php
+                                                    $isImage = str_starts_with(strtolower($doc->mime_type ?? ''), 'image/');
+                                                @endphp
+                                                <div class="flex items-start justify-between gap-3 p-3 rounded-xl bg-gray-50 border border-gray-200 hover:border-blue-300 transition-colors">
+                                                    <div class="flex items-start gap-3 min-w-0">
+                                                        @if($isImage)
+                                                            <a href="{{ route('assets.documents.view', $doc) }}" target="_blank" rel="noopener" class="w-12 h-12 rounded-lg overflow-hidden border border-gray-200 bg-white shrink-0 block">
+                                                                <img src="{{ route('assets.documents.view', $doc) }}" alt="{{ $doc->title }}" class="w-full h-full object-cover">
+                                                            </a>
+                                                        @else
+                                                            <a href="{{ route('assets.documents.view', $doc) }}" target="_blank" rel="noopener" class="w-12 h-12 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 flex items-center justify-center shrink-0 text-lg">
+                                                                <i class="fas fa-file-lines"></i>
+                                                            </a>
+                                                        @endif
+                                                        <div class="min-w-0">
+                                                            <a href="{{ route('assets.documents.view', $doc) }}" target="_blank" rel="noopener" class="font-bold text-gray-900 hover:text-blue-600 truncate block" title="{{ $doc->title }}">
+                                                                {{ $doc->title }}
+                                                            </a>
+                                                            <div class="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-gray-600">
+                                                                <span class="px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold uppercase text-[11px]">
+                                                                    {{ str_replace('_', ' ', $doc->document_type) }}
+                                                                </span>
+                                                                <span>&bull;</span>
+                                                                <span>{{ $doc->formatted_size }}</span>
+                                                            </div>
+                                                            @if($doc->notes)
+                                                                <p class="text-xs text-gray-600 mt-1 line-clamp-1" title="{{ $doc->notes }}">{{ $doc->notes }}</p>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="flex items-center gap-1.5 shrink-0">
+                                                        <a href="{{ route('assets.documents.view', $doc) }}" target="_blank" rel="noopener" class="p-1.5 rounded-lg bg-white border border-gray-200 text-blue-600 hover:bg-blue-50 transition-colors" title="View Document / Image">
+                                                            <i class="fas fa-eye text-xs"></i>
+                                                        </a>
+                                                        <a href="{{ route('assets.documents.download', $doc) }}" class="p-1.5 rounded-lg bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors" title="Download">
+                                                            <i class="fas fa-download text-xs"></i>
+                                                        </a>
+                                                        @if(!$isReadOnlyStaff && auth()->user()?->can('deleteDocument', $asset))
+                                                            <form action="{{ route('assets.documents.destroy', $doc) }}" method="POST" class="inline" onsubmit="return confirmSecureDelete(event, this, 'Document: {{ addslashes($doc->title) }}', 'This uploaded document will be permanently deleted.');">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="p-1.5 rounded-lg bg-white border border-gray-200 text-red-600 hover:bg-red-50 transition-colors" title="Delete Document">
+                                                                    <i class="fas fa-trash text-xs"></i>
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
                             @else
-                                <p class="text-xs text-gray-400 italic">No receipts or invoices attached.</p>
+                                <p class="text-xs text-gray-400 italic">No documents, images, or receipts attached yet.</p>
                             @endif
                         </div>
 
@@ -691,7 +767,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">File Upload (PDF, Images, Docs - Max 20MB) *</label>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">File Upload (PDF, Images, Docs - Max 20MB) <span class="text-red-500">*</span></label>
                     <input type="file" name="document_file" required class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
 
@@ -733,7 +809,7 @@
                 <form action="{{ route('assets.retire', $asset) }}" method="POST" class="space-y-4 text-sm">
                     @csrf
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Retirement Justification / Reason *</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Retirement Justification / Reason <span class="text-red-500">*</span></label>
                         <textarea name="retirement_reason" required rows="3" placeholder="Provide reason (e.g. Beyond economic repair, destroyed during response, obsolete)..." class="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
                     </div>
 

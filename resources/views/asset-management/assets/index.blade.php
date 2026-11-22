@@ -690,7 +690,7 @@
                 Retiring <strong id="retire_asset_label" class="text-gray-900"></strong> will mark it as decommissioned from active disaster service. Its complete operational history, maintenance, and deployment records will remain immutably preserved.
             </p>
             <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Reason for Decommissioning *</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Reason for Decommissioning <span class="text-red-500">*</span></label>
                 <textarea name="retirement_reason" required rows="3" placeholder="Provide detailed justification (e.g. beyond economic repair, damaged in typhoon, obsolete)..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"></textarea>
             </div>
             <div class="flex gap-3 pt-3 border-t border-gray-200">

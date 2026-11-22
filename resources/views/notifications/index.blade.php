@@ -74,11 +74,6 @@
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($item['priority'] ?? '') === 'high' ? 'bg-rose-100 text-rose-700' : (($item['category'] ?? '') === 'equipment' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700') }}">
                                     {{ $item['badge'] ?? $item['category_label'] ?? 'Update' }}
                                 </span>
-                                @if(!$item['is_read'])
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-bold">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-white"></span> UNREAD
-                                    </span>
-                                @endif
                             </div>
 
                             <p class="text-xs sm:text-sm {{ $item['is_read'] ? 'text-gray-500' : 'text-gray-800 font-medium' }} mt-1 leading-relaxed">

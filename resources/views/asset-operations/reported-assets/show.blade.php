@@ -76,10 +76,6 @@
                     <span class="hidden sm:inline">View Asset Details</span>
                 </a>
             @endif
-            <button onclick="window.print()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors">
-                <i class="fas fa-print"></i>
-                <span class="hidden sm:inline">Print Report</span>
-            </button>
         </div>
     </div>
 

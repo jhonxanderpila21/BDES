@@ -110,6 +110,17 @@ main .text-slate-700 {
     color: #000000 !important;
 }
 
+/* Required field asterisks (*) must always render in red */
+.text-red-500,
+.text-red-600,
+.text-rose-500,
+.text-rose-600,
+.required-asterisk,
+label span.text-red-500,
+label span.text-red-600 {
+    color: #DC2626 !important;
+}
+
 /* Primary buttons and links */
 .btn-primary,
 button.bg-blue-600,
