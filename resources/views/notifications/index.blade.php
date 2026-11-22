@@ -27,41 +27,6 @@
         </x-slot:actions>
     </x-page-header>
 
-    {{-- Summary KPI Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <x-kpi-card
-            title="Unread Alerts"
-            :value="$counts['unread'] ?? 0"
-            icon="fas fa-bell"
-            color="rose"
-            subtitle="Awaiting your review"
-        />
-
-        <x-kpi-card
-            title="New Equipment"
-            :value="$counts['equipment'] ?? 0"
-            icon="fas fa-box-open"
-            color="emerald"
-            subtitle="Recently added to inventory"
-        />
-
-        <x-kpi-card
-            title="Maintenance & Inspections"
-            :value="($counts['maintenance'] ?? 0) + ($counts['inspection'] ?? 0)"
-            icon="fas fa-screwdriver-wrench"
-            color="amber"
-            subtitle="Service & inspection updates"
-        />
-
-        <x-kpi-card
-            title="Deployments & Reports"
-            :value="($counts['deployment'] ?? 0) + ($counts['reported_asset'] ?? 0)"
-            icon="fas fa-truck-fast"
-            color="blue"
-            subtitle="Field operations & incidents"
-        />
-    </div>
-
     {{-- Category Filter Tabs --}}
     @php
         $tabs = [
