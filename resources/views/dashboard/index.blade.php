@@ -44,104 +44,88 @@
     </div>
 
     {{-- Reconciled Clickable KPI Metric Grid --}}
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 sm:gap-4 items-stretch">
         {{-- Total Assets --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition-all group block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block">Total Assets</span>
-                    <span class="text-2xl font-bold text-[#003366] mt-1 block group-hover:text-[#2563EB] transition-colors">
-                        {{ number_format($stats['total_assets']) }}
-                    </span>
-                    @if(auth()->user()?->isAdmin())
-                        <span class="text-[10px] text-blue-600 block mt-0.5 font-medium hover:underline">Financials &rarr;</span>
-                    @else
-                        <span class="text-[10px] text-[#6B7280] block mt-0.5 font-medium">Active Inventory</span>
-                    @endif
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-blue-50 text-[#003366] flex items-center justify-center text-lg group-hover:bg-[#003366] group-hover:text-white transition-colors">
-                    <i class="fas fa-boxes-stacked"></i>
-                </div>
+        <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm hover:border-[#2563EB] hover:shadow-md transition-all group flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <span class="text-[11px] font-semibold text-[#6B7280] uppercase tracking-wider block truncate">Total Assets</span>
+                <span class="text-2xl font-bold text-[#003366] mt-1 block group-hover:text-[#2563EB] transition-colors">
+                    {{ number_format($stats['total_assets']) }}
+                </span>
+                <span class="text-[10px] text-[#6B7280] block mt-0.5 font-medium truncate">Registered units</span>
+            </div>
+            <div class="w-10 h-10 shrink-0 rounded-lg bg-blue-50 text-[#003366] flex items-center justify-center text-lg group-hover:bg-[#003366] group-hover:text-white transition-colors">
+                <i class="fas fa-boxes-stacked leading-none"></i>
             </div>
         </a>
 
         {{-- Available & Ready --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white p-4 rounded-xl border border-[#2E7D32]/30 bg-[#2E7D32]/5 shadow-sm hover:border-[#2E7D32] hover:shadow-md transition-all group block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-semibold text-[#2E7D32] uppercase tracking-wider block">Available Quantity</span>
-                    <span class="text-2xl font-bold text-[#2E7D32] mt-1 block">
-                        {{ number_format($stats['available']) }} Available
-                    </span>
-                    <span class="text-[10px] text-[#2E7D32]/90 block mt-0.5 font-medium">Ready for immediate dispatch</span>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-[#2E7D32]/10 text-[#2E7D32] flex items-center justify-center text-lg group-hover:bg-[#2E7D32] group-hover:text-white transition-colors">
-                    <i class="fas fa-circle-check"></i>
-                </div>
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'available']) }}" class="bg-white p-4 rounded-xl border border-[#2E7D32]/30 bg-[#2E7D32]/5 shadow-sm hover:border-[#2E7D32] hover:shadow-md transition-all group flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <span class="text-[11px] font-semibold text-[#2E7D32] uppercase tracking-wider block truncate">Available</span>
+                <span class="text-2xl font-bold text-[#2E7D32] mt-1 block">
+                    {{ number_format($stats['available']) }}
+                </span>
+                <span class="text-[10px] text-[#2E7D32]/90 block mt-0.5 font-medium truncate">Ready for dispatch</span>
+            </div>
+            <div class="w-10 h-10 shrink-0 rounded-lg bg-[#2E7D32]/10 text-[#2E7D32] flex items-center justify-center text-lg group-hover:bg-[#2E7D32] group-hover:text-white transition-colors">
+                <i class="fas fa-circle-check leading-none"></i>
             </div>
         </a>
 
         {{-- Deployed in Field --}}
-        <a href="{{ route('deployment.index') }}" class="bg-white p-4 rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/5 shadow-sm hover:border-[#2563EB] hover:shadow-md transition-all group block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-semibold text-[#2563EB] uppercase tracking-wider block">Deployed</span>
-                    <span class="text-2xl font-bold text-[#2563EB] mt-1 block">
-                        {{ number_format($stats['deployed']) }}
-                    </span>
-                    <span class="text-[10px] text-[#2563EB]/90 block mt-0.5 font-medium">In field operations</span>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center text-lg group-hover:bg-[#2563EB] group-hover:text-white transition-colors">
-                    <i class="fas fa-truck-ramp-box"></i>
-                </div>
+        <a href="{{ route('deployment.index') }}" class="bg-white p-4 rounded-xl border border-[#2563EB]/30 bg-[#2563EB]/5 shadow-sm hover:border-[#2563EB] hover:shadow-md transition-all group flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <span class="text-[11px] font-semibold text-[#2563EB] uppercase tracking-wider block truncate">Deployed</span>
+                <span class="text-2xl font-bold text-[#2563EB] mt-1 block">
+                    {{ number_format($stats['deployed']) }}
+                </span>
+                <span class="text-[10px] text-[#2563EB]/90 block mt-0.5 font-medium truncate">In field operations</span>
+            </div>
+            <div class="w-10 h-10 shrink-0 rounded-lg bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center text-lg group-hover:bg-[#2563EB] group-hover:text-white transition-colors">
+                <i class="fas fa-truck-ramp-box leading-none"></i>
             </div>
         </a>
 
         {{-- Under Maintenance --}}
-        <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="bg-white p-4 rounded-xl border border-[#F59E0B]/30 bg-[#F59E0B]/5 shadow-sm hover:border-[#F59E0B] hover:shadow-md transition-all group block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-semibold text-[#B45309] uppercase tracking-wider block">Maintenance</span>
-                    <span class="text-2xl font-bold text-[#B45309] mt-1 block">
-                        {{ number_format($stats['under_maintenance']) }}
-                    </span>
-                    <span class="text-[10px] text-[#B45309]/90 block mt-0.5 font-medium">Under repair / overhaul</span>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-[#F59E0B]/15 text-[#B45309] flex items-center justify-center text-lg group-hover:bg-[#F59E0B] group-hover:text-white transition-colors">
-                    <i class="fas fa-screwdriver-wrench"></i>
-                </div>
+        <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="bg-white p-4 rounded-xl border border-[#F59E0B]/30 bg-[#F59E0B]/5 shadow-sm hover:border-[#F59E0B] hover:shadow-md transition-all group flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <span class="text-[11px] font-semibold text-[#B45309] uppercase tracking-wider block truncate">Maintenance</span>
+                <span class="text-2xl font-bold text-[#B45309] mt-1 block">
+                    {{ number_format($stats['under_maintenance']) }}
+                </span>
+                <span class="text-[10px] text-[#B45309]/90 block mt-0.5 font-medium truncate">Under repair / overhaul</span>
+            </div>
+            <div class="w-10 h-10 shrink-0 rounded-lg bg-[#F59E0B]/15 text-[#B45309] flex items-center justify-center text-lg group-hover:bg-[#F59E0B] group-hover:text-white transition-colors">
+                <i class="fas fa-screwdriver-wrench leading-none"></i>
             </div>
         </a>
 
         {{-- Out of Service / Lost --}}
-        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'out_of_service']) }}" class="bg-white p-4 rounded-xl border border-[#DC2626]/30 bg-[#DC2626]/5 shadow-sm hover:border-[#DC2626] hover:shadow-md transition-all group block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-semibold text-[#DC2626] uppercase tracking-wider block">Out of Service</span>
-                    <span class="text-2xl font-bold text-[#DC2626] mt-1 block">
-                        {{ number_format($stats['out_of_service'] + $stats['lost']) }}
-                    </span>
-                    <span class="text-[10px] text-[#DC2626]/90 block mt-0.5 font-medium">Defective / Missing</span>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-[#DC2626]/10 text-[#DC2626] flex items-center justify-center text-lg group-hover:bg-[#DC2626] group-hover:text-white transition-colors">
-                    <i class="fas fa-triangle-exclamation"></i>
-                </div>
+        <a href="{{ route('assets.index', ['tab' => 'assets', 'status' => 'out_of_service']) }}" class="bg-white p-4 rounded-xl border border-[#DC2626]/30 bg-[#DC2626]/5 shadow-sm hover:border-[#DC2626] hover:shadow-md transition-all group flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <span class="text-[11px] font-semibold text-[#DC2626] uppercase tracking-wider block truncate">Out of Service</span>
+                <span class="text-2xl font-bold text-[#DC2626] mt-1 block">
+                    {{ number_format($stats['out_of_service'] + $stats['lost']) }}
+                </span>
+                <span class="text-[10px] text-[#DC2626]/90 block mt-0.5 font-medium truncate">Defective / Missing</span>
+            </div>
+            <div class="w-10 h-10 shrink-0 rounded-lg bg-[#DC2626]/10 text-[#DC2626] flex items-center justify-center text-lg group-hover:bg-[#DC2626] group-hover:text-white transition-colors">
+                <i class="fas fa-triangle-exclamation leading-none"></i>
             </div>
         </a>
 
         {{-- Asset Inspections --}}
-        <a href="{{ route('maintenance.index', ['tab' => 'inspections']) }}" class="bg-white p-4 rounded-xl border border-[#60A5FA]/30 bg-[#60A5FA]/5 shadow-sm hover:border-[#2563EB] hover:shadow-md transition-all group block">
-            <div class="flex items-center justify-between">
-                <div>
-                    <span class="text-[11px] font-semibold text-[#2563EB] uppercase tracking-wider block">Inspections</span>
-                    <span class="text-2xl font-bold text-[#2563EB] mt-1 block">
-                        {{ number_format($stats['inspections']) }}
-                    </span>
-                    <span class="text-[10px] text-[#6B7280] block mt-0.5 font-medium">Evaluations & checkups</span>
-                </div>
-                <div class="w-10 h-10 rounded-lg bg-blue-100 text-[#2563EB] flex items-center justify-center text-lg group-hover:bg-[#2563EB] group-hover:text-white transition-colors">
-                    <i class="fas fa-clipboard-check"></i>
-                </div>
+        <a href="{{ route('maintenance.index', ['tab' => 'inspections']) }}" class="bg-white p-4 rounded-xl border border-[#60A5FA]/30 bg-[#60A5FA]/5 shadow-sm hover:border-[#2563EB] hover:shadow-md transition-all group flex items-center justify-between gap-2">
+            <div class="min-w-0">
+                <span class="text-[11px] font-semibold text-[#2563EB] uppercase tracking-wider block truncate">Inspections</span>
+                <span class="text-2xl font-bold text-[#2563EB] mt-1 block">
+                    {{ number_format($stats['inspections']) }}
+                </span>
+                <span class="text-[10px] text-[#6B7280] block mt-0.5 font-medium truncate">Evaluations & checkups</span>
+            </div>
+            <div class="w-10 h-10 shrink-0 rounded-lg bg-blue-100 text-[#2563EB] flex items-center justify-center text-lg group-hover:bg-[#2563EB] group-hover:text-white transition-colors">
+                <i class="fas fa-clipboard-check leading-none"></i>
             </div>
         </a>
     </div>
@@ -250,7 +234,7 @@
                     @if(!empty($assetsByCategory['labels']))
                         @php
                             $catTotal = !empty($assetsByCategory['data']) ? array_sum($assetsByCategory['data']) : 0;
-                            $palette = ['#003366', '#2563EB', '#2E7D32', '#F59E0B', '#60A5FA', '#1F2937', '#DC2626', '#4a3aa7'];
+                            $palette = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#4a3aa7', '#e34948'];
                         @endphp
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                             {{-- Doughnut Chart --}}

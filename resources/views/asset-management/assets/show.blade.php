@@ -11,7 +11,18 @@
     {{-- Top Header & Quick Action Bar --}}
     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm print:shadow-none print:border-none">
         <div class="flex items-start gap-4">
-            <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="mt-1 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors print:hidden" title="Back to Registry">
+            @php
+                $prevUrl = url()->previous();
+                $backTarget = ($prevUrl && $prevUrl !== url()->current() && !str_contains($prevUrl, '/login'))
+                    ? $prevUrl
+                    : route('assets.index', ['tab' => 'assets']);
+            @endphp
+            <a
+                href="{{ $backTarget }}"
+                onclick="if (window.history.length > 1 && document.referrer && document.referrer !== window.location.href && !document.referrer.includes('/login')) { event.preventDefault(); window.history.back(); }"
+                class="mt-1 p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors print:hidden"
+                title="Go Back"
+            >
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
@@ -449,7 +460,7 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
-                                    @foreach($asset->maintenance->sortByDesc('start_date') as $m)
+                                    @foreach($asset->maintenance->sortByDesc('scheduled_date') as $m)
                                         <tr class="hover:bg-gray-50">
                                             <td class="px-4 py-3 align-middle font-mono font-bold text-blue-700 whitespace-nowrap text-left">
                                                 {{ $m->work_order_number ?? ('WO-' . str_pad($m->id, 5, '0', STR_PAD_LEFT)) }}

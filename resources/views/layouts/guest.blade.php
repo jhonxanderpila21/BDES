@@ -30,6 +30,9 @@
                 font-size: 1.25rem !important;
                 line-height: 1.75rem !important;
             }
+            .text-gray-400, .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800, .text-gray-900 {
+                color: #000000 !important;
+            }
         </style>
     </head>
     <body class="font-sans text-gray-900 antialiased bg-gray-50 min-h-screen">

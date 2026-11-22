@@ -58,8 +58,8 @@
         />
 
         <x-kpi-card
-            title="Available Quantity"
-            :value="$metrics['available_assets'] . ' Available'"
+            title="Available"
+            :value="$metrics['available_assets']"
             icon="fas fa-circle-check"
             color="emerald"
             subtitle="Ready for immediate dispatch"

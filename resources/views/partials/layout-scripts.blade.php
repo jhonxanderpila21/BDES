@@ -1,10 +1,22 @@
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('adminLayout', () => ({
-            sidebarOpen: window.innerWidth >= 1024,
+            sidebarOpen: true,
+            sidebarCollapsed: localStorage.getItem('bdes_sidebar_collapsed') === 'true',
             sidebarWidth: Math.min(Math.max(parseInt(localStorage.getItem('bdes_sidebar_width')) || 256, 200), 480),
             windowWidth: window.innerWidth,
             isResizing: false,
+            toggleSidebar() {
+                this.sidebarCollapsed = !this.sidebarCollapsed;
+                this.sidebarOpen = true;
+                localStorage.setItem('bdes_sidebar_collapsed', this.sidebarCollapsed ? 'true' : 'false');
+            },
+            expandSidebar() {
+                if (this.sidebarCollapsed) {
+                    this.sidebarCollapsed = false;
+                    localStorage.setItem('bdes_sidebar_collapsed', 'false');
+                }
+            },
             startResize(e) {
                 e.preventDefault();
                 this.isResizing = true;
@@ -31,12 +43,8 @@
             init() {
                 window.addEventListener('resize', () => {
                     this.windowWidth = window.innerWidth;
-                    if (this.windowWidth < 1024 && this.sidebarOpen && !this.isResizing) {
-                        this.sidebarOpen = false;
-                    }
                 });
             }
         }));
     });
 </script>
-
