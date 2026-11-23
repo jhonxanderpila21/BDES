@@ -56,6 +56,35 @@
             padding-left: 0.75rem !important;
             padding-right: 0.75rem !important;
         }
+        main .text-gray-400,
+        main .text-gray-500,
+        main .text-gray-600,
+        main .text-gray-700,
+        main .text-gray-800,
+        main .text-gray-900,
+        main .text-\[\#6B7280\],
+        main .text-\[\#1F2937\],
+        main .text-slate-400,
+        main .text-slate-500,
+        main .text-slate-600,
+        main .text-slate-700,
+        [data-modal-name] .text-gray-400,
+        [data-modal-name] .text-gray-500,
+        [data-modal-name] .text-gray-600,
+        [data-modal-name] .text-gray-700,
+        [data-modal-name] .text-gray-800,
+        [data-modal-name] .text-gray-900 {
+            color: #000000 !important;
+        }
+        .text-red-500,
+        .text-red-600,
+        .text-rose-500,
+        .text-rose-600,
+        .required-asterisk,
+        label span.text-red-500,
+        label span.text-red-600 {
+            color: #DC2626 !important;
+        }
     </style>
 </head>
 {{-- Sidebar starts collapsed below the `lg` breakpoint so the mobile overlay is not painted on load. --}}

@@ -66,6 +66,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/assets/search', [AssetController::class, 'search'])->name('assets.search');
     Route::post('/assets/{asset}/retire', [AssetController::class, 'retire'])->name('assets.retire');
     Route::post('/assets/{asset}/documents', [AssetDocumentController::class, 'store'])->name('assets.documents.store');
+    Route::get('/documents/{document}/view', [AssetDocumentController::class, 'view'])->name('assets.documents.view');
     Route::get('/documents/{document}/download', [AssetDocumentController::class, 'download'])->name('assets.documents.download');
     Route::delete('/documents/{document}', [AssetDocumentController::class, 'destroy'])->name('assets.documents.destroy');
     Route::resource('assets', AssetController::class);

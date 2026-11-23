@@ -141,8 +141,8 @@ class ReportController extends Controller
                 ->paginate($limit)->withQueryString(),
 
             'maintenance_overdue' => Maintenance::with(['asset', 'assignedUser'])
-                ->whereIn('status', ['pending', 'in_progress'])
-                ->orderBy('start_date')
+                ->whereIn('status', ['scheduled', 'pending', 'in_progress'])
+                ->orderBy('scheduled_date')
                 ->paginate($limit)->withQueryString(),
 
             'maintenance_expenses' => Maintenance::with(['asset'])
@@ -232,15 +232,15 @@ class ReportController extends Controller
                 break;
 
             case 'maintenance_overdue':
-                fputcsv($handle, ['Work Order #', 'Asset Code', 'Asset Name', 'Maintenance Type', 'Priority', 'Status', 'Start Date', 'Assigned Technician', 'Est. Cost (PHP)']);
-                Maintenance::with(['asset', 'assignedUser'])->chunk(200, function ($records) use ($handle) {
+                fputcsv($handle, ['Work Order #', 'Asset Code', 'Asset Name', 'Maintenance Type', 'Priority', 'Status', 'Scheduled Date', 'Assigned Technician', 'Est. Cost (PHP)']);
+                Maintenance::with(['asset', 'assignedUser'])->whereIn('status', ['scheduled', 'pending', 'in_progress'])->chunk(200, function ($records) use ($handle) {
                     foreach ($records as $m) {
                         fputcsv($handle, [
                             $m->work_order_number ?? ('WO-' . $m->id), $m->asset?->code ?? 'N/A', $m->asset?->name ?? 'N/A',
                             ucfirst(str_replace('_', ' ', $m->type)), ucfirst($m->priority ?? 'medium'),
                             ucfirst(str_replace('_', ' ', $m->status)),
-                            $m->start_date?->format('Y-m-d') ?? 'N/A',
-                            $m->assignedUser?->name ?? 'Unassigned',
+                            $m->scheduled_date?->format('Y-m-d') ?? ($m->started_at?->format('Y-m-d') ?? 'N/A'),
+                            $m->assignedUser?->name ?? ($m->technician ?: 'Unassigned'),
                             number_format($m->cost ?? 0, 2),
                         ]);
                     }
@@ -255,8 +255,8 @@ class ReportController extends Controller
                             $m->work_order_number ?? ('WO-' . $m->id), $m->asset?->code ?? 'N/A', $m->asset?->name ?? 'N/A',
                             ucfirst(str_replace('_', ' ', $m->type)), number_format($m->cost ?? 0, 2),
                             $m->parts_used ?? 'None',
-                            $m->completed_at ? $m->completed_at->format('Y-m-d') : ($m->end_date ? $m->end_date->format('Y-m-d') : 'N/A'),
-                            $m->assignedUser?->name ?? 'N/A',
+                            $m->completed_at ? $m->completed_at->format('Y-m-d') : ($m->scheduled_date ? $m->scheduled_date->format('Y-m-d') : 'N/A'),
+                            $m->assignedUser?->name ?? ($m->technician ?: 'N/A'),
                         ]);
                     }
                 });
@@ -400,10 +400,10 @@ class ReportController extends Controller
             'maintenance_overdue' => [
                 [
                     'label'   => 'Open Work Orders',
-                    'value'   => number_format(Maintenance::whereIn('status', ['pending', 'in_progress'])->count()),
+                    'value'   => number_format(Maintenance::whereIn('status', ['scheduled', 'pending', 'in_progress'])->count()),
                     'icon'    => 'fas fa-wrench',
                     'color'   => 'amber',
-                    'subtext' => 'Pending or actively in-service',
+                    'subtext' => 'Scheduled, pending, or actively in-service',
                 ],
                 [
                     'label'   => 'In-Progress Repairs',

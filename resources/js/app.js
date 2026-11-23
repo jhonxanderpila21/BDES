@@ -142,21 +142,47 @@ function startEyeObserver() {
 	}
 }
 
+function colorizeAsterisks(root) {
+	(root || document).querySelectorAll('label').forEach((label) => {
+		for (const node of Array.from(label.childNodes)) {
+			if (node.nodeType === Node.TEXT_NODE && node.nodeValue && node.nodeValue.includes('*')) {
+				const frag = document.createDocumentFragment();
+				const parts = node.nodeValue.split('*');
+				parts.forEach((part, idx) => {
+					if (part) frag.appendChild(document.createTextNode(part));
+					if (idx < parts.length - 1) {
+						const star = document.createElement('span');
+						star.className = 'text-red-500 required-asterisk font-bold';
+						star.textContent = '*';
+						frag.appendChild(star);
+					}
+				});
+				label.replaceChild(frag, node);
+			}
+		}
+	});
+}
+
 // Run on initial page load
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', () => {
 		initPasswordEyeToggles();
+		colorizeAsterisks();
 		startEyeObserver();
 	});
 } else {
 	initPasswordEyeToggles();
+	colorizeAsterisks();
 	startEyeObserver();
 }
 
 // Re-run whenever a modal opens (new inputs may have been added to the DOM)
 window.addEventListener('modal:opened', () => {
 	// Small delay to let Alpine.js / x-show render the modal content
-	setTimeout(() => initPasswordEyeToggles(), 50);
+	setTimeout(() => {
+		initPasswordEyeToggles();
+		colorizeAsterisks();
+	}, 50);
 });
 
 // MutationObserver catches dynamically injected password inputs (e.g. Alpine modals)

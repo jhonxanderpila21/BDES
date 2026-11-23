@@ -33,8 +33,8 @@ class AssetDocumentController extends Controller
             'document_file' => [
                 'required',
                 'file',
-                'max:10240', // 10MB max limit
-                'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,txt',
+                'max:20480', // 20MB max limit
+                'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,webp,gif,txt',
             ],
             'expiry_date'   => 'nullable|date',
             'notes'         => 'nullable|string|max:1000',
@@ -61,10 +61,29 @@ class AssetDocumentController extends Controller
             'notes'         => $validated['notes'] ?? null,
         ]);
 
-        AuditTrailService::log('updated', $asset, "Document [{$document->title}] ({$document->document_type}) uploaded to asset details.", null, ['document_id' => $document->id, 'title' => $document->title]);
+        AuditTrailService::log('updated', $asset, "Document {$document->title} ({$document->document_type}) uploaded to asset details.", null, ['document_id' => $document->id, 'title' => $document->title]);
 
         return redirect()->route('assets.show', $asset)
-            ->with('success', "Document [{$document->title}] uploaded successfully!");
+            ->with('success', "Document {$document->title} uploaded and saved successfully!");
+    }
+
+    /**
+     * Stream an asset document inline (for viewing images/PDFs in browser).
+     */
+    public function view(AssetDocument $document)
+    {
+        Gate::authorize('view', $document->asset);
+
+        if (!Storage::disk('public')->exists($document->file_path)) {
+            abort(404, 'File not found on storage disk.');
+        }
+
+        $safeName = preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($document->file_name));
+
+        return Storage::disk('public')->response($document->file_path, $safeName, [
+            'Content-Type'           => $document->mime_type ?: 'application/octet-stream',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     /**

@@ -4,27 +4,23 @@
 
 @section('content')
     {{-- Page Header --}}
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
-                <i class="fas fa-file-invoice text-blue-600"></i>
-                Reports & Regulatory Compliance Center
-            </h1>
-            <x-breadcrumb :items="[
-                ['label' => 'Dashboard', 'url' => route('dashboard')],
-                ['label' => 'Tracking & Reporting'],
-                ['label' => 'Reports Center']
-            ]" />
-        </div>
-
-        <div class="flex items-center gap-3">
+    <x-page-header
+        title="Reports & Regulatory Compliance Center"
+        icon="fas fa-file-invoice"
+        :breadcrumbs="[
+            ['label' => 'Dashboard', 'url' => route('dashboard')],
+            ['label' => 'Tracking & Reporting'],
+            ['label' => 'Reports Center']
+        ]"
+    >
+        <x-slot:actions>
             <a href="{{ route('reports.export', array_merge(request()->query(), ['type' => $selectedType])) }}"
                class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm shadow-sm">
                 <i class="fas fa-file-csv"></i>
                 Export {{ $types[$selectedType]['title'] ?? 'Report' }} (CSV)
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Compact Report Type Selector Bar --}}
     <div class="mb-6 bg-white rounded-xl shadow-xs border border-gray-200 p-2.5">
@@ -411,8 +407,8 @@
                                             {{ ucfirst(str_replace('_', ' ', $row->status)) }}
                                         </span>
                                     </td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $row->start_date?->format('M d, Y') ?? 'N/A' }}</td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $row->assignedUser?->name ?? 'Unassigned' }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $row->scheduled_date?->format('M d, Y') ?? ($row->started_at?->format('M d, Y') ?? 'N/A') }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $row->assignedUser?->name ?? ($row->technician ?: 'Unassigned') }}</td>
                                     <td class="px-4 py-3 text-right font-mono font-medium text-gray-900">₱{{ number_format($row->cost ?? 0, 2) }}</td>
 
                                 @elseif($selectedType === 'maintenance_expenses')
@@ -421,10 +417,10 @@
                                         <a href="{{ route('assets.show', $row->asset_id) }}" class="hover:underline text-blue-600">{{ $row->asset?->code }}</a> - {{ $row->asset?->name }}
                                     </td>
                                     <td class="px-4 py-3 text-gray-600">{{ ucfirst(str_replace('_', ' ', $row->type)) }}</td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $row->completed_at ? $row->completed_at->format('M d, Y') : ($row->end_date ? $row->end_date->format('M d, Y') : 'N/A') }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $row->completed_at ? $row->completed_at->format('M d, Y') : ($row->scheduled_date ? $row->scheduled_date->format('M d, Y') : 'N/A') }}</td>
                                     <td class="px-4 py-3 text-right font-mono font-bold text-gray-900">₱{{ number_format($row->cost ?? 0, 2) }}</td>
                                     <td class="px-4 py-3 text-gray-600 max-w-xs truncate">{{ $row->parts_used ?? 'None' }}</td>
-                                    <td class="px-4 py-3 text-gray-600">{{ $row->assignedUser?->name ?? 'N/A' }}</td>
+                                    <td class="px-4 py-3 text-gray-600">{{ $row->assignedUser?->name ?? ($row->technician ?: 'N/A') }}</td>
 
                                 @elseif($selectedType === 'inspections')
                                     <td class="px-4 py-3 font-semibold font-mono text-blue-600">

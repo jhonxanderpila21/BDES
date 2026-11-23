@@ -10,7 +10,18 @@
     {{-- Page Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <div class="flex items-start gap-4">
-            <a href="{{ route('reported-assets.index') }}" class="mt-1 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors" title="Back to List">
+            @php
+                $prevUrl = url()->previous();
+                $backTarget = ($prevUrl && $prevUrl !== url()->current() && !str_contains($prevUrl, '/login'))
+                    ? $prevUrl
+                    : route('reported-assets.index');
+            @endphp
+            <a
+                href="{{ $backTarget }}"
+                onclick="if (window.history.length > 1 && document.referrer && document.referrer !== window.location.href && !document.referrer.includes('/login')) { event.preventDefault(); window.history.back(); }"
+                class="mt-1 p-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+                title="Go Back"
+            >
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>

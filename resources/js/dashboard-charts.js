@@ -50,12 +50,12 @@ const centerTotalPlugin = {
 
 		// Equipment Total
 		ctx.font = 'bold 26px system-ui, -apple-system, sans-serif';
-		ctx.fillStyle = '#0f172a';
+		ctx.fillStyle = '#000000';
 		ctx.fillText(total.toLocaleString(), centerX, centerY - 10);
 
 		// Units Tagline
 		ctx.font = '700 10px system-ui, -apple-system, sans-serif';
-		ctx.fillStyle = '#64748b';
+		ctx.fillStyle = '#000000';
 		ctx.fillText('TOTAL ASSETS', centerX, centerY + 14);
 
 		ctx.restore();

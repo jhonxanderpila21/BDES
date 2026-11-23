@@ -2,8 +2,8 @@
 @php
     $currentUser = auth()->user();
     $isAdmin = $currentUser && $currentUser->isAdmin();
-    $isInventory = $currentUser && ($currentUser->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer') || $currentUser->isAdmin());
-    $isMaintenance = $currentUser && ($currentUser->hasRole('inventory_officer', 'maintenance_officer', 'bdrrmc_officer') || $currentUser->isAdmin());
+    $isInventory = $currentUser && ($currentUser->hasRole('inventory_officer', 'bdrrmc_officer') || $currentUser->isAdmin());
+    $isMaintenance = $currentUser && ($currentUser->hasRole('maintenance_officer') || $currentUser->isAdmin());
     $isViewer = $currentUser && ($currentUser->isViewer() || $currentUser->hasRole('viewer', 'staff'));
 
     $isActive = function (string $routePattern) {
@@ -71,16 +71,17 @@
         || $isActive('profile.*');
 @endphp
 <aside 
-    :style="sidebarOpen ? 'width: ' + (windowWidth < 1024 ? Math.min(sidebarWidth, windowWidth - 48) : sidebarWidth) + 'px;' : 'width: 0px;'"
+    :style="sidebarCollapsed ? 'width: 72px;' : 'width: ' + sidebarWidth + 'px;'"
     :class="{'transition-all duration-300 ease-in-out': !isResizing}"
-    class="fixed inset-y-0 left-0 z-40 lg:relative lg:inset-auto lg:z-auto flex-shrink-0 h-screen bg-[#003366] text-white border-r border-[#002244] overflow-hidden shadow-2xl lg:shadow-md select-none"
+    class="relative flex-shrink-0 h-screen bg-[#003366] text-white border-r border-[#002244] overflow-hidden shadow-md select-none"
 >
-    <nav class="h-screen overflow-y-auto">
+    <nav class="h-screen flex flex-col justify-between overflow-y-auto overflow-x-hidden">
+        <div>
         {{-- Top-Left Brand Logo Header (aligned with top navbar height) --}}
-        <div class="px-4 h-[68px] border-b border-white/10 flex items-center">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0">
+        <div class="px-3.5 h-[68px] border-b border-white/10 flex items-center" :class="sidebarCollapsed ? 'justify-center' : ''">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0" title="BDES - Disaster Assets">
                 <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-10 h-10 object-cover aspect-square rounded-full ring-2 ring-white/20 shadow-sm shrink-0">
-                <div class="min-w-0">
+                <div class="min-w-0" x-show="!sidebarCollapsed" x-cloak>
                     <h2 class="text-base font-extrabold text-white tracking-wide leading-tight truncate">BDES</h2>
                     <p class="text-xs font-medium text-[#60A5FA] leading-tight truncate">Disaster Assets</p>
                 </div>
@@ -88,15 +89,17 @@
         </div>
 
         {{-- Sidebar Content --}}
-        <div class="p-4 space-y-2">
+        <div class="p-3 space-y-2">
 
             {{-- 1. Executive Dashboard (Direct Link) --}}
             <a
                 href="{{ route('dashboard') }}"
-                class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('dashboard')) }}"
+                title="Dashboard"
+                :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2.5 px-3 py-2'"
+                class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('dashboard')) }}"
             >
-                <i class="fas fa-th-large w-4 text-center {{ $directIconClass($isActive('dashboard')) }}"></i>
-                <span>Dashboard</span>
+                <i class="fas fa-th-large w-5 text-center {{ $directIconClass($isActive('dashboard')) }}"></i>
+                <span x-show="!sidebarCollapsed" class="truncate">Dashboard</span>
             </a>
 
             {{-- 1b. Notifications & Equipment Updates (Direct Link with Unread Badge) --}}
@@ -105,16 +108,26 @@
             @endphp
             <a
                 href="{{ route('notifications.index') }}"
-                class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('notifications.*')) }}"
+                title="Notifications"
+                :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
+                class="relative w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('notifications.*')) }}"
             >
-                <div class="flex items-center gap-2.5">
-                    <i class="fas fa-bell w-4 text-center {{ $directIconClass($isActive('notifications.*')) }}"></i>
-                    <span>Notifications</span>
+                <div class="flex items-center" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
+                    <i class="fas fa-bell w-5 text-center {{ $directIconClass($isActive('notifications.*')) }}"></i>
+                    <span x-show="!sidebarCollapsed" class="truncate">Notifications</span>
                 </div>
                 @if($sidebarUnreadCount > 0)
-                    <span class="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shadow-xs">
+                    <span
+                        x-show="!sidebarCollapsed"
+                        class="inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-bold leading-none text-white bg-red-600 rounded-full shadow-xs"
+                    >
                         {{ $sidebarUnreadCount > 99 ? '99+' : $sidebarUnreadCount }}
                     </span>
+                    <span
+                        x-show="sidebarCollapsed"
+                        x-cloak
+                        class="absolute top-1.5 right-2.5 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-[#003366]"
+                    ></span>
                 @endif
             </a>
 
@@ -122,18 +135,20 @@
             <div x-data="{ open: {{ $isAssetMgmtActive ? 'true' : 'false' }} }" class="pt-1">
                 <button
                     type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isAssetMgmtActive) }}"
+                    title="Asset Management"
+                    @click="if (sidebarCollapsed) { window.location.href = '{{ route('assets.index') }}'; } else { open = !open; }"
+                    :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
+                    class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isAssetMgmtActive) }}"
                 >
-                    <div class="flex items-center gap-2.5">
-                        <i class="fas fa-boxes-stacked w-4 text-center {{ $headerIconClass($isAssetMgmtActive) }}"></i>
-                        <span>Asset Management</span>
+                    <div class="flex items-center" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
+                        <i class="fas fa-boxes-stacked w-5 text-center {{ $headerIconClass($isAssetMgmtActive) }}"></i>
+                        <span x-show="!sidebarCollapsed" class="truncate">Asset Management</span>
                     </div>
-                    <i class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
+                    <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
                 </button>
 
                 <div
-                    x-show="open"
+                    x-show="open && !sidebarCollapsed"
                     x-cloak
                     x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0 -translate-y-1"
@@ -146,6 +161,7 @@
                     {{-- Asset Registry --}}
                     <a
                         href="{{ route('assets.index') }}"
+                        title="Asset Registry"
                         class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('assets.*') || $isActive('asset-categories.*') || $isActive('asset-types.*')) }}"
                     >
                         <i class="fas fa-box-archive w-4 text-center {{ $iconClass($isActive('assets.*') || $isActive('asset-categories.*') || $isActive('asset-types.*')) }}"></i>
@@ -156,6 +172,7 @@
                         {{-- Asset Components & Parts (Attachments & Accessories) --}}
                         <a
                             href="{{ route('attachments.index') }}"
+                            title="Components & Parts"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('attachments.*') || $isActive('asset-accessories.*') || $isActive('accessories.*')) }}"
                         >
                             <i class="fas fa-puzzle-piece w-4 text-center {{ $iconClass($isActive('attachments.*') || $isActive('asset-accessories.*') || $isActive('accessories.*')) }}"></i>
@@ -165,6 +182,7 @@
                         {{-- Operational Requirements & Supplies --}}
                         <a
                             href="{{ route('operational-requirements.index') }}"
+                            title="Operational Requirements"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('operational-requirements.*') || $isActive('asset-needs.*')) }}"
                         >
                             <i class="fas fa-list-check w-4 text-center {{ $iconClass($isActive('operational-requirements.*') || $isActive('asset-needs.*')) }}"></i>
@@ -178,18 +196,20 @@
             <div x-data="{ open: {{ $isOperationsActive ? 'true' : 'false' }} }" class="pt-1">
                 <button
                     type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isOperationsActive) }}"
+                    title="Asset Operations"
+                    @click="if (sidebarCollapsed) { window.location.href = '{{ ($isAdmin || $isInventory || $isViewer) ? route('deployment.index') : route('maintenance.index', ['tab' => 'logs']) }}'; } else { open = !open; }"
+                    :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
+                    class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isOperationsActive) }}"
                 >
-                    <div class="flex items-center gap-2.5">
-                        <i class="fas fa-truck-fast w-4 text-center {{ $headerIconClass($isOperationsActive) }}"></i>
-                        <span>Asset Operations</span>
+                    <div class="flex items-center" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
+                        <i class="fas fa-truck-fast w-5 text-center {{ $headerIconClass($isOperationsActive) }}"></i>
+                        <span x-show="!sidebarCollapsed" class="truncate">Asset Operations</span>
                     </div>
-                    <i class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
+                    <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
                 </button>
 
                 <div
-                    x-show="open"
+                    x-show="open && !sidebarCollapsed"
                     x-cloak
                     x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0 -translate-y-1"
@@ -203,6 +223,7 @@
                         {{-- Deployments & Returns (Equipment Officer workflow) --}}
                         <a
                             href="{{ route('deployment.index') }}"
+                            title="Deployments & Returns"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('deployment.*') || $isActive('returns.*')) }}"
                         >
                             <i class="fas fa-truck-ramp-box w-4 text-center {{ $iconClass($isActive('deployment.*') || $isActive('returns.*')) }}"></i>
@@ -214,6 +235,7 @@
                         {{-- Maintenance (Maintenance Officer workflow) --}}
                         <a
                             href="{{ route('maintenance.index', ['tab' => 'logs']) }}"
+                            title="Maintenance"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"
                         >
                             <i class="fas fa-screwdriver-wrench w-4 text-center {{ $iconClass($isActive('maintenance.*') || $isActive('maintenance-schedules.*') || $isActive('inspection.*')) }}"></i>
@@ -224,6 +246,7 @@
                     {{-- Reported Assets --}}
                     <a
                         href="{{ route('reported-assets.index') }}"
+                        title="Reported Assets"
                         class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('reported-assets.*')) }}"
                     >
                         <i class="fas fa-flag w-4 text-center {{ $iconClass($isActive('reported-assets.*')) }}"></i>
@@ -237,18 +260,20 @@
                 <div x-data="{ open: {{ $isFinancialsActive ? 'true' : 'false' }} }" class="pt-1">
                     <button
                         type="button"
-                        @click="open = !open"
-                        class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isFinancialsActive) }}"
+                        title="Asset Financials"
+                        @click="if (sidebarCollapsed) { window.location.href = '{{ route('financials.expenses') }}'; } else { open = !open; }"
+                        :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
+                        class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isFinancialsActive) }}"
                     >
-                        <div class="flex items-center gap-2.5">
-                            <i class="fas fa-coins w-4 text-center {{ $headerIconClass($isFinancialsActive) }}"></i>
-                            <span>Asset Financials</span>
+                        <div class="flex items-center" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
+                            <i class="fas fa-coins w-5 text-center {{ $headerIconClass($isFinancialsActive) }}"></i>
+                            <span x-show="!sidebarCollapsed" class="truncate">Asset Financials</span>
                         </div>
-                        <i class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
+                        <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
                     </button>
 
                     <div
-                        x-show="open"
+                        x-show="open && !sidebarCollapsed"
                         x-cloak
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
@@ -261,6 +286,7 @@
                         {{-- Asset Expenses --}}
                         <a
                             href="{{ route('financials.expenses') }}"
+                            title="Asset Expenses"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('financials.expenses*')) }}"
                         >
                             <i class="fas fa-file-invoice-dollar w-4 text-center {{ $iconClass($isActive('financials.expenses*')) }}"></i>
@@ -270,6 +296,7 @@
                         {{-- Depreciation Value --}}
                         <a
                             href="{{ route('financials.depreciation') }}"
+                            title="Depreciation Value"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('financials.depreciation*')) }}"
                         >
                             <i class="fas fa-arrow-trend-down w-4 text-center {{ $iconClass($isActive('financials.depreciation*')) }}"></i>
@@ -279,6 +306,7 @@
                         {{-- Salvage Value Records --}}
                         <a
                             href="{{ route('financials.salvage') }}"
+                            title="Salvage Value Records"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('financials.salvage*')) }}"
                         >
                             <i class="fas fa-recycle w-4 text-center {{ $iconClass($isActive('financials.salvage*')) }}"></i>
@@ -292,18 +320,20 @@
             <div x-data="{ open: {{ $isTrackingActive ? 'true' : 'false' }} }" class="pt-1">
                 <button
                     type="button"
-                    @click="open = !open"
-                    class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isTrackingActive) }}"
+                    title="Tracking & Reporting"
+                    @click="if (sidebarCollapsed) { window.location.href = '{{ route('asset-history.index') }}'; } else { open = !open; }"
+                    :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
+                    class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isTrackingActive) }}"
                 >
-                    <div class="flex items-center gap-2.5">
-                        <i class="fas fa-chart-pie w-4 text-center {{ $headerIconClass($isTrackingActive) }}"></i>
-                        <span>Tracking & Reporting</span>
+                    <div class="flex items-center" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
+                        <i class="fas fa-chart-pie w-5 text-center {{ $headerIconClass($isTrackingActive) }}"></i>
+                        <span x-show="!sidebarCollapsed" class="truncate">Tracking & Reporting</span>
                     </div>
-                    <i class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
+                    <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
                 </button>
 
                 <div
-                    x-show="open"
+                    x-show="open && !sidebarCollapsed"
                     x-cloak
                     x-transition:enter="transition ease-out duration-150"
                     x-transition:enter-start="opacity-0 -translate-y-1"
@@ -316,6 +346,7 @@
                     {{-- Asset History / Audit Trail (All Roles) --}}
                     <a
                         href="{{ route('asset-history.index') }}"
+                        title="Asset History & Audit"
                         class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('asset-history.*')) }}"
                     >
                         <i class="fas fa-clock-rotate-left w-4 text-center {{ $iconClass($isActive('asset-history.*')) }}"></i>
@@ -325,6 +356,7 @@
                     {{-- Asset Locations (All Roles) --}}
                     <a
                         href="{{ route('locations.index') }}"
+                        title="Asset Locations"
                         class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('locations.*')) }}"
                     >
                         <i class="fas fa-location-dot w-4 text-center {{ $iconClass($isActive('locations.*')) }}"></i>
@@ -335,6 +367,7 @@
                     @if($isAdmin)
                         <a
                             href="{{ route('reports.index') }}"
+                            title="Reports Center"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('reports.*')) }}"
                         >
                             <i class="fas fa-file-invoice w-4 text-center {{ $iconClass($isActive('reports.*')) }}"></i>
@@ -344,6 +377,7 @@
                         {{-- Archived Records (Admin Only) --}}
                         <a
                             href="{{ route('archived-records.index') }}"
+                            title="Archived Records"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('archived-records.*')) }}"
                         >
                             <i class="fas fa-box-archive w-4 text-center {{ $iconClass($isActive('archived-records.*')) }}"></i>
@@ -358,18 +392,20 @@
                 <div x-data="{ open: {{ $isAdminActive ? 'true' : 'false' }} }" class="pt-1">
                     <button
                         type="button"
-                        @click="open = !open"
-                        class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isAdminActive) }}"
+                        title="Administration"
+                        @click="if (sidebarCollapsed) { window.location.href = '{{ route('users.index') }}'; } else { open = !open; }"
+                        :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
+                        class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isAdminActive) }}"
                     >
-                        <div class="flex items-center gap-2.5">
-                            <i class="fas fa-sliders w-4 text-center {{ $headerIconClass($isAdminActive) }}"></i>
-                            <span>Administration</span>
+                        <div class="flex items-center" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
+                            <i class="fas fa-sliders w-5 text-center {{ $headerIconClass($isAdminActive) }}"></i>
+                            <span x-show="!sidebarCollapsed" class="truncate">Administration</span>
                         </div>
-                        <i class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
+                        <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
                     </button>
 
                     <div
-                        x-show="open"
+                        x-show="open && !sidebarCollapsed"
                         x-cloak
                         x-transition:enter="transition ease-out duration-150"
                         x-transition:enter-start="opacity-0 -translate-y-1"
@@ -382,6 +418,7 @@
                         {{-- User Management --}}
                         <a
                             href="{{ route('users.index') }}"
+                            title="User Management"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('users.*')) }}"
                         >
                             <i class="fas fa-users-gear w-4 text-center {{ $iconClass($isActive('users.*')) }}"></i>
@@ -391,6 +428,7 @@
                         {{-- Roles & Permissions --}}
                         <a
                             href="{{ route('roles.index') }}"
+                            title="Roles & Permissions"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('roles.*')) }}"
                         >
                             <i class="fas fa-user-shield w-4 text-center {{ $iconClass($isActive('roles.*')) }}"></i>
@@ -400,6 +438,7 @@
                         {{-- Account Settings --}}
                         <a
                             href="{{ route('profile.edit') }}"
+                            title="Account Settings"
                             class="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md transition-colors text-xs font-medium {{ $linkClass($isActive('profile.*')) }}"
                         >
                             <i class="fas fa-id-badge w-4 text-center {{ $iconClass($isActive('profile.*')) }}"></i>
@@ -412,27 +451,30 @@
                 <div class="pt-1">
                     <a
                         href="{{ route('profile.edit') }}"
-                        class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('profile.*')) }}"
+                        title="Account Settings"
+                        :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2.5 px-3 py-2'"
+                        class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $directLinkClass($isActive('profile.*')) }}"
                     >
-                        <i class="fas fa-id-badge w-4 text-center {{ $directIconClass($isActive('profile.*')) }}"></i>
-                        <span>Account Settings</span>
+                        <i class="fas fa-id-badge w-5 text-center {{ $directIconClass($isActive('profile.*')) }}"></i>
+                        <span x-show="!sidebarCollapsed" class="truncate">Account Settings</span>
                     </a>
                 </div>
             @endif
         </div>
+        </div>
+
+        {{-- Bottom Sidebar Logout Button --}}
+        <div class="p-3 border-t border-white/10 mt-auto">
+            <button
+                type="button"
+                title="Log Out"
+                @click="window.dispatchEvent(new CustomEvent('bdes-open-logout'))"
+                :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'gap-2.5 px-3 py-2.5'"
+                class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider text-rose-200 hover:text-white hover:bg-red-600/80 transition-colors select-none text-left cursor-pointer"
+            >
+                <i class="fas fa-right-from-bracket w-5 text-center text-rose-300"></i>
+                <span x-show="!sidebarCollapsed" class="truncate">Log Out</span>
+            </button>
+        </div>
     </nav>
 </aside>
-
-{{-- Sidebar Overlay for mobile / tablet drawer --}}
-<div 
-    x-show="sidebarOpen"
-    x-cloak
-    @click="sidebarOpen = false"
-    class="fixed inset-0 bg-black/60 backdrop-blur-xs lg:hidden z-30 transition-opacity"
-    x-transition:enter="ease-out duration-200"
-    x-transition:enter-start="opacity-0"
-    x-transition:enter-end="opacity-100"
-    x-transition:leave="ease-in duration-150"
-    x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0"
-></div>
