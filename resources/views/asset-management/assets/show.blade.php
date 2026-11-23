@@ -9,9 +9,9 @@
 <div x-data="{ activeTab: 'overview', showUploadModal: false, showRetireModal: false }" class="space-y-6">
 
     {{-- Top Header & Quick Action Bar --}}
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm print:shadow-none print:border-none">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <div class="flex items-start gap-4">
-            <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="mt-1 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors print:hidden" title="Back to Registry">
+            <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="mt-1 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors" title="Back to Registry">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
@@ -31,12 +31,7 @@
         </div>
 
         {{-- Operational Quick Actions --}}
-        <div class="flex flex-wrap items-center gap-2 print:hidden">
-            <button onclick="window.print()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors">
-                <i class="fas fa-print"></i>
-                <span class="hidden sm:inline">Print Details</span>
-            </button>
-
+        <div class="flex flex-wrap items-center gap-2">
             @if(!$isReadOnlyStaff && auth()->user()?->can('uploadDocument', $asset))
                 <button @click="showUploadModal = true" class="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-xl font-medium text-sm transition-colors">
                     <i class="fas fa-file-upload"></i>
@@ -79,7 +74,7 @@
                 </div>
             </div>
             @if(!$isReadOnlyStaff)
-                <form action="{{ route('deployment.return', $activeDep->id) }}" method="POST" class="print:hidden">
+                <form action="{{ route('deployment.return', $activeDep->id) }}" method="POST">
                     @csrf
                     <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs rounded-lg shadow-sm whitespace-nowrap">
                         <i class="fas fa-arrow-rotate-left mr-1"></i> Process Return
@@ -186,7 +181,7 @@
 
     {{-- Details Tab Navigation (Streamlined to 4 Focused Tabs) --}}
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div class="border-b border-gray-200 px-4 bg-gray-50/50 flex flex-wrap gap-1 print:hidden">
+        <div class="border-b border-gray-200 px-4 bg-gray-50/50 flex flex-wrap gap-1">
             <button @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'border-blue-600 text-blue-600 bg-white shadow-sm' : 'border-transparent text-gray-600 hover:text-gray-900'" class="flex items-center gap-2 py-3 px-4 text-xs font-bold border-b-2 rounded-t-lg transition-colors">
                 <i class="fas fa-circle-info"></i>
                 <span>Equipment Overview</span>
@@ -569,19 +564,19 @@
                 @if($asset->attachments->count() > 0 || $asset->accessories->count() > 0)
                     <div class="space-y-3">
                         <h3 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2 flex items-center gap-2">
-                            <i class="fas fa-paperclip text-blue-600"></i> Linked Attachments & Accessories
+                            <i class="fas fa-puzzle-piece text-blue-600"></i> Linked Components & Parts
                         </h3>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                             @foreach($asset->attachments as $att)
                                 <div class="bg-gray-50 p-3 rounded-xl border border-gray-200 text-xs">
                                     <div class="font-bold text-gray-900">{{ $att->name }}</div>
-                                    <div class="text-gray-500 mt-0.5">Attachment (Qty: {{ $att->quantity ?? 1 }})</div>
+                                    <div class="text-gray-500 mt-0.5">Component / Part (Qty: {{ $att->quantity ?? 1 }})</div>
                                 </div>
                             @endforeach
                             @foreach($asset->accessories as $acc)
                                 <div class="bg-purple-50/50 p-3 rounded-xl border border-purple-200 text-xs">
                                     <div class="font-bold text-purple-950">{{ $acc->name }}</div>
-                                    <div class="text-purple-700 mt-0.5">Accessory (Qty: {{ $acc->quantity }})</div>
+                                    <div class="text-purple-700 mt-0.5">Component / Part (Qty: {{ $acc->quantity }})</div>
                                 </div>
                             @endforeach
                         </div>

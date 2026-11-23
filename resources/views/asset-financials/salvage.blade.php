@@ -107,11 +107,8 @@
                 </select>
             </div>
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition">
-                    Filter
-                </button>
                 @if(request()->anyFilled(['search', 'category_id', 'salvage_type']))
-                    <a href="{{ route('financials.salvage') }}" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition">
+                    <a href="{{ route('financials.salvage') }}" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold transition shadow-xs">
                         Reset
                     </a>
                 @endif
@@ -144,7 +141,22 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assets as $asset)
-                        <tr class="hover:bg-gray-50/80 transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}">
+                        @php
+                            $salvageDetail = [
+                                'name'               => $asset->name,
+                                'code'               => $asset->code,
+                                'category'           => $asset->category?->name ?? 'Uncategorized',
+                                'classification'     => $asset->is_capitalized_ppe ? 'PPE (Capitalized)' : 'Semi-Expendable (< ₱20k)',
+                                'acquisition_cost'   => '₱' . number_format($asset->acquisition_cost, 2),
+                                'calc_type'          => !$asset->is_capitalized_ppe ? 'Under ₱20k (No Salvage)' : (($asset->salvage_value !== null && $asset->salvage_value > 0) ? 'Custom Appraised' : 'Standard 10%'),
+                                'salvage_value'      => '₱' . number_format($asset->calculated_salvage_value, 2),
+                                'current_book_value' => '₱' . number_format($asset->current_book_value, 2),
+                                'notes'              => !$asset->is_capitalized_ppe ? 'Semi-expendable item (< ₱20k); does not carry salvage value.' : ($asset->salvage_notes ?: 'Standard 10% residual value under COA rules.'),
+                            ];
+                        @endphp
+                        <tr class="hover:bg-blue-50/40 cursor-pointer transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}"
+                            onclick='if(!event.target.closest("button, a, form, input, select")) openSalvageDetailsModal(@json($salvageDetail));'
+                            title="Click to view salvage value details">
                             <td class="px-4 py-3 align-middle text-left">
                                 <div class="flex items-center gap-2">
                                     <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
@@ -310,6 +322,61 @@
             </form>
         </div>
     </div>
+
+    {{-- Salvage Details Modal --}}
+    <x-modal id="salvage-details-modal" title="Salvage Value Details">
+        <div class="space-y-4 text-sm">
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-start justify-between gap-4">
+                <div>
+                    <span id="sal_detail_classification" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 mb-1.5"></span>
+                    <h4 id="sal_detail_name" class="text-base font-bold text-gray-900"></h4>
+                    <p id="sal_detail_meta" class="text-xs font-mono text-gray-600 mt-0.5"></p>
+                </div>
+                <div class="text-right shrink-0">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Salvage Value</p>
+                    <p id="sal_detail_salvage" class="text-xl font-bold text-emerald-700 font-mono"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Purchase Cost</p>
+                    <p id="sal_detail_cost" class="font-bold text-gray-900 font-mono mt-0.5"></p>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Calculation</p>
+                    <p id="sal_detail_calc" class="font-medium text-gray-900 mt-0.5"></p>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Current Value</p>
+                    <p id="sal_detail_book_value" class="font-bold text-gray-900 font-mono mt-0.5"></p>
+                </div>
+            </div>
+
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+                <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Appraisal Notes</p>
+                <p id="sal_detail_notes" class="text-gray-700"></p>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-gray-200">
+                <button type="button" onclick="closeModal('salvage-details-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Close</button>
+            </div>
+        </div>
+    </x-modal>
+
+    <script>
+        function openSalvageDetailsModal(s) {
+            document.getElementById('sal_detail_classification').textContent = s.classification || '';
+            document.getElementById('sal_detail_name').textContent = s.name || '';
+            document.getElementById('sal_detail_meta').textContent = (s.code || '') + ' • ' + (s.category || '');
+            document.getElementById('sal_detail_salvage').textContent = s.salvage_value || '₱0.00';
+            document.getElementById('sal_detail_cost').textContent = s.acquisition_cost || '₱0.00';
+            document.getElementById('sal_detail_calc').textContent = s.calc_type || '';
+            document.getElementById('sal_detail_book_value').textContent = s.current_book_value || '₱0.00';
+            document.getElementById('sal_detail_notes').textContent = s.notes || '';
+            openModal('salvage-details-modal');
+        }
+    </script>
 </div>
 @endsection
 

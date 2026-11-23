@@ -192,12 +192,8 @@
                 <option value="purchase_date" {{ request('sort_by') === 'purchase_date' ? 'selected' : '' }}>Sort: Purchase Date</option>
             </select>
 
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                Filter
-            </button>
-
             @if(request()->hasAny(['search', 'category_id', 'location_id', 'type_id', 'condition', 'status', 'sort_by']))
-                <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
+                <a href="{{ route('assets.index', ['tab' => 'assets']) }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold inline-flex items-center transition-colors shadow-xs">
                     Reset
                 </a>
             @endif
@@ -350,12 +346,8 @@
                 <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inactive</option>
             </select>
 
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                Filter
-            </button>
-
             @if(request()->hasAny(['search', 'status']))
-                <a href="{{ route('assets.index', ['tab' => 'categories']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
+                <a href="{{ route('assets.index', ['tab' => 'categories']) }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold inline-flex items-center transition-colors shadow-xs">
                     Reset
                 </a>
             @endif
@@ -476,12 +468,8 @@
                 @endforeach
             </select>
 
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-                Filter
-            </button>
-
             @if(request()->hasAny(['search', 'category_id']))
-                <a href="{{ route('assets.index', ['tab' => 'types']) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
+                <a href="{{ route('assets.index', ['tab' => 'types']) }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold inline-flex items-center transition-colors shadow-xs">
                     Reset
                 </a>
             @endif
@@ -905,13 +893,13 @@
                 <input type="hidden" name="has_accessories" value="0">
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" name="has_accessories" value="1" class="w-4 h-4 text-blue-600 rounded" {{ old('has_accessories') ? 'checked' : '' }}>
-                    <span class="text-sm text-gray-700">Has Accessories</span>
+                    <span class="text-sm text-gray-700">Has Components</span>
                 </label>
 
                 <input type="hidden" name="has_attachments" value="0">
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" name="has_attachments" value="1" class="w-4 h-4 text-blue-600 rounded" {{ old('has_attachments') ? 'checked' : '' }}>
-                    <span class="text-sm text-gray-700">Has Attachments</span>
+                    <span class="text-sm text-gray-700">Has Parts</span>
                 </label>
 
                 <input type="hidden" name="requires_operational_requirements" value="0">
@@ -986,13 +974,13 @@
                 <input type="hidden" name="has_accessories" value="0">
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" name="has_accessories" id="edit-type-has_accessories" value="1" class="w-4 h-4 text-blue-600 rounded">
-                    <span class="text-sm text-gray-700">Has Accessories</span>
+                    <span class="text-sm text-gray-700">Has Components</span>
                 </label>
 
                 <input type="hidden" name="has_attachments" value="0">
                 <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" name="has_attachments" id="edit-type-has_attachments" value="1" class="w-4 h-4 text-blue-600 rounded">
-                    <span class="text-sm text-gray-700">Has Attachments</span>
+                    <span class="text-sm text-gray-700">Has Parts</span>
                 </label>
 
                 <input type="hidden" name="requires_operational_requirements" value="0">

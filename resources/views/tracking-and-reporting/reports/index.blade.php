@@ -163,7 +163,7 @@
 
             {{-- Optional Filter Bar (if inventory) --}}
             @if($selectedType === 'inventory')
-                <div class="mt-6 pt-4 border-t border-gray-200/80 print:hidden">
+                <div class="mt-6 pt-4 border-t border-gray-200/80">
                     <form method="GET" action="{{ route('reports.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                         <input type="hidden" name="type" value="inventory">
                         <div>
@@ -190,10 +190,7 @@
                             </select>
                         </div>
                         <div class="md:col-span-2 flex items-center gap-2">
-                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-filter mr-1"></i> Filter Records
-                            </button>
-                            <a href="{{ route('reports.index', ['type' => 'inventory']) }}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
+                            <a href="{{ route('reports.index', ['type' => 'inventory']) }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition-colors shadow-xs">
                                 Reset
                             </a>
                         </div>
@@ -504,7 +501,7 @@
 
         {{-- Pagination & Summary Footer --}}
         @if(method_exists($data, 'hasPages') && $data->hasPages())
-            <div class="p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between print:hidden">
+            <div class="p-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
                 <div class="text-xs text-gray-600">
                     Showing entries {{ $data->firstItem() ?? 0 }} to {{ $data->lastItem() ?? 0 }} of {{ $data->total() ?? 0 }}
                 </div>

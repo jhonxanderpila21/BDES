@@ -171,4 +171,85 @@ class ExpensesLedgerTest extends TestCase
         $this->assertStringContainsString('Defibrillator Unit', $response->streamedContent());
         $this->assertStringContainsString('AED-001', $response->streamedContent());
     }
+
+    public function test_summary_card_kpis_remain_constant_when_filtering_by_category(): void
+    {
+        $category = AssetCategory::create(['name' => 'Marine', 'status' => 'active']);
+        $location = Location::create(['name' => 'Dock', 'status' => 'active']);
+
+        $asset = Asset::create([
+            'name'             => 'Patrol Boat',
+            'code'             => 'PAT-001',
+            'category_id'      => $category->id,
+            'location_id'      => $location->id,
+            'condition'        => 'good',
+            'status'           => 'available',
+            'acquisition_cost' => 100000.00,
+            'purchase_date'    => now()->toDateString(),
+        ]);
+
+        Maintenance::create([
+            'asset_id'     => $asset->id,
+            'type'         => 'corrective',
+            'description'  => 'Hull Repair',
+            'cost'         => 15000.00,
+            'status'       => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        $baseline = $this->actingAs($this->admin)->get(route('financials.expenses'));
+        $baseline->assertOk();
+        $baselineKpis = $baseline->viewData('kpis');
+
+        $filteredAsset = $this->actingAs($this->admin)->get(route('financials.expenses', ['category' => 'asset']));
+        $filteredAsset->assertOk();
+        $this->assertEquals($baselineKpis, $filteredAsset->viewData('kpis'));
+
+        $filteredMaint = $this->actingAs($this->admin)->get(route('financials.expenses', ['category' => 'maintenance']));
+        $filteredMaint->assertOk();
+        $this->assertEquals($baselineKpis, $filteredMaint->viewData('kpis'));
+
+        $filteredSupplies = $this->actingAs($this->admin)->get(route('financials.expenses', ['category' => 'supplies_and_parts']));
+        $filteredSupplies->assertOk();
+        $this->assertEquals($baselineKpis, $filteredSupplies->viewData('kpis'));
+    }
+
+    public function test_supplies_and_parts_filter_includes_supplies_accessories_and_attachments(): void
+    {
+        $category = AssetCategory::create(['name' => 'Vehicles', 'status' => 'active']);
+        $type = AssetType::create(['name' => 'Rescue Truck', 'category_id' => $category->id, 'status' => 'active']);
+
+        $req = OperationalRequirement::create([
+            'asset_type_id'    => $type->id,
+            'requirement_type' => 'Emergency Diesel Fuel',
+            'description'      => 'Diesel fuel reserve',
+            'unit'             => 'liters',
+            'current_level'    => 20,
+            'minimum_level'    => 5,
+            'maximum_capacity' => 100,
+        ]);
+
+        OperationalRequirementRestock::create([
+            'operational_requirement_id' => $req->id,
+            'quantity'                   => 20,
+            'unit_cost'                  => 65.00,
+            'total_cost'                 => 1300.00,
+            'restocked_by'               => $this->admin->id,
+            'restocked_at'               => now(),
+        ]);
+
+        \App\Models\Attachment::create([
+            'name'           => 'Tow Hook',
+            'type'           => 'attachment',
+            'quantity'       => 1,
+            'unit_cost'      => 2500.00,
+            'status'         => 'available',
+            'condition'      => 'good',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('financials.expenses', ['category' => 'supplies_and_parts']));
+        $response->assertOk();
+        $response->assertSee('Emergency Diesel Fuel');
+        $response->assertSee('Tow Hook');
+    }
 }

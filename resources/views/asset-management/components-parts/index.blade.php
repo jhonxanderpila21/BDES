@@ -146,12 +146,8 @@
             @endif
         </select>
 
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium">
-            Filter
-        </button>
-
         @if(request()->hasAny(['search', 'type', 'condition', 'asset_type', 'status', 'asset_id', 'sort_by']))
-            <a href="{{ route('attachments.index', ['tab' => $activeTab]) }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center">
+            <a href="{{ route('attachments.index', ['tab' => $activeTab]) }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold inline-flex items-center transition-colors shadow-xs">
                 Reset
             </a>
         @endif

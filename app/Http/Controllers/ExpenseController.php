@@ -26,7 +26,10 @@ class ExpenseController extends Controller
         ];
 
         $fullLedger = ExpenseLedgerService::getLedger($filters);
-        $kpis = ExpenseLedgerService::getSummaryKpis($fullLedger);
+        $kpiLedger = ($filters['category'] ?? 'all') === 'all'
+            ? $fullLedger
+            : ExpenseLedgerService::getLedger(array_merge($filters, ['category' => 'all']));
+        $kpis = ExpenseLedgerService::getSummaryKpis($kpiLedger);
 
         $page = (int) $request->get('page', 1);
         $expenses = ExpenseLedgerService::paginate($fullLedger, 15, $page, [

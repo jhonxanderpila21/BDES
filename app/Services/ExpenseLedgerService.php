@@ -22,15 +22,13 @@ class ExpenseLedgerService
     {
         $items = collect();
 
-        // 1. Capital Assets (acquisition_cost > 0)
+        // 1. Capital Assets (all existing assets)
         try {
-            $assets = Asset::with(['category', 'receipts'])
-                ->whereNotNull('acquisition_cost')
-                ->where('acquisition_cost', '>', 0)
-                ->get();
+            $assets = Asset::with(['category', 'receipts'])->get();
 
             foreach ($assets as $asset) {
                 $date = $asset->purchase_date ? Carbon::parse($asset->purchase_date) : $asset->created_at;
+                $cost = (float) ($asset->acquisition_cost ?? 0);
                 $items->push((object)[
                     'id'             => 'asset-' . $asset->id,
                     'type'           => 'asset',
@@ -40,8 +38,8 @@ class ExpenseLedgerService
                     'date'           => $date,
                     'formatted_date' => $date ? $date->format('M d, Y') : 'N/A',
                     'quantity'       => 1,
-                    'unit_cost'      => (float) $asset->acquisition_cost,
-                    'total_cost'     => (float) $asset->acquisition_cost,
+                    'unit_cost'      => $cost,
+                    'total_cost'     => $cost,
                     'recorded_by'    => 'Inventory System',
                     'notes'          => $asset->notes ?: ($asset->category?->name ?? 'Disaster Asset'),
                     'receipts'       => $asset->receipts ?? collect(),
@@ -51,24 +49,21 @@ class ExpenseLedgerService
             }
         } catch (\Throwable $e) {}
 
-        // 2. Accessories (AssetAccessory with unit_cost > 0)
+        // 2. Components & Parts (all existing AssetAccessory records)
         try {
             if (Schema::hasTable('asset_accessories')) {
-                $accessories = AssetAccessory::with(['asset', 'receipts'])
-                    ->whereNotNull('unit_cost')
-                    ->where('unit_cost', '>', 0)
-                    ->get();
+                $accessories = AssetAccessory::with(['asset', 'receipts'])->get();
 
                 foreach ($accessories as $acc) {
-                    $qty = max(1, (int) ($acc->quantity ?? 1));
-                    $unitCost = (float) $acc->unit_cost;
+                    $qty = (int) ($acc->quantity ?? 0);
+                    $unitCost = (float) ($acc->unit_cost ?? 0);
                     $total = $unitCost * $qty;
                     $date = $acc->created_at;
 
                     $items->push((object)[
                         'id'             => 'accessory-' . $acc->id,
-                        'type'           => 'accessory',
-                        'category_label' => 'Accessories',
+                        'type'           => 'component_part',
+                        'category_label' => 'Components & Parts',
                         'item_name'      => $acc->name,
                         'reference'      => 'ACC-' . str_pad($acc->id, 3, '0', STR_PAD_LEFT) . ($acc->asset ? ' (' . $acc->asset->code . ')' : ''),
                         'date'           => $date,
@@ -77,7 +72,7 @@ class ExpenseLedgerService
                         'unit_cost'      => $unitCost,
                         'total_cost'     => $total,
                         'recorded_by'    => 'Inventory Officer',
-                        'notes'          => 'Dedicated accessory for ' . ($acc->asset->name ?? 'general equipment'),
+                        'notes'          => 'Dedicated component/part for ' . ($acc->asset->name ?? 'general equipment'),
                         'receipts'       => $acc->receipts ?? collect(),
                         'receipts_count' => ($acc->receipts ?? collect())->count(),
                         'route'          => route('asset-accessories.index', ['search' => $acc->name]),
@@ -86,24 +81,21 @@ class ExpenseLedgerService
             }
         } catch (\Throwable $e) {}
 
-        // 3. Attachments (Attachment with unit_cost > 0)
+        // 3. Components & Parts (all existing Attachment records)
         try {
-            if (Schema::hasTable('attachments') && Schema::hasColumn('attachments', 'unit_cost')) {
-                $attachments = Attachment::with(['asset', 'receipts'])
-                    ->whereNotNull('unit_cost')
-                    ->where('unit_cost', '>', 0)
-                    ->get();
+            if (Schema::hasTable('attachments')) {
+                $attachments = Attachment::with(['asset', 'receipts'])->get();
 
                 foreach ($attachments as $att) {
-                    $qty = 1;
-                    $unitCost = (float) $att->unit_cost;
+                    $qty = (int) ($att->quantity ?? 1);
+                    $unitCost = (float) ($att->unit_cost ?? 0);
                     $total = $unitCost * $qty;
                     $date = $att->created_at;
 
                     $items->push((object)[
                         'id'             => 'attachment-' . $att->id,
-                        'type'           => 'attachment',
-                        'category_label' => 'Attachments',
+                        'type'           => 'component_part',
+                        'category_label' => 'Components & Parts',
                         'item_name'      => $att->name,
                         'reference'      => 'ATT-' . str_pad($att->id, 3, '0', STR_PAD_LEFT) . ($att->asset ? ' (' . $att->asset->code . ')' : ''),
                         'date'           => $date,
@@ -112,7 +104,7 @@ class ExpenseLedgerService
                         'unit_cost'      => $unitCost,
                         'total_cost'     => $total,
                         'recorded_by'    => 'Inventory Officer',
-                        'notes'          => $att->description ?: 'Equipment attachment',
+                        'notes'          => $att->description ?: 'Equipment component / part',
                         'receipts'       => $att->receipts ?? collect(),
                         'receipts_count' => ($att->receipts ?? collect())->count(),
                         'route'          => route('attachments.index', ['search' => $att->name]),
@@ -121,16 +113,15 @@ class ExpenseLedgerService
             }
         } catch (\Throwable $e) {}
 
-        // 4. Operational Requirements Restocks (operational_requirement_restocks)
+        // 4. Operational Requirements Restocks (all existing operational_requirement_restocks)
         try {
             if (Schema::hasTable('operational_requirement_restocks')) {
                 $restocks = OperationalRequirementRestock::with(['requirement', 'recordedBy', 'receipts'])->get();
 
                 foreach ($restocks as $restock) {
-                    $qty = max(1, (int) $restock->quantity);
-                    $unitCost = (float) $restock->unit_cost;
-                    $total = (float) ($restock->total_cost > 0 ? $restock->total_cost : ($unitCost * $qty));
-                    if ($total <= 0 && $unitCost <= 0) continue;
+                    $qty = (int) ($restock->quantity ?? 0);
+                    $unitCost = (float) ($restock->unit_cost ?? 0);
+                    $total = (float) (($restock->total_cost ?? 0) > 0 ? $restock->total_cost : ($unitCost * $qty));
 
                     $date = $restock->restocked_at ? Carbon::parse($restock->restocked_at) : $restock->created_at;
 
@@ -143,7 +134,7 @@ class ExpenseLedgerService
                         'date'           => $date,
                         'formatted_date' => $date ? $date->format('M d, Y') : 'N/A',
                         'quantity'       => $qty,
-                        'unit_cost'      => $unitCost > 0 ? $unitCost : ($total / $qty),
+                        'unit_cost'      => $unitCost > 0 ? $unitCost : ($qty > 0 ? ($total / $qty) : 0),
                         'total_cost'     => $total,
                         'recorded_by'    => $restock->recordedBy?->name ?? 'Supplies Custodian',
                         'notes'          => $restock->notes ?: ($restock->supplier ? 'Supplier: ' . $restock->supplier : 'Restock shipment'),
@@ -155,15 +146,12 @@ class ExpenseLedgerService
             }
         } catch (\Throwable $e) {}
 
-        // 5. Maintenance & Repairs (maintenances where cost > 0)
+        // 5. Maintenance & Repairs (all existing maintenances)
         try {
-            $maintenances = Maintenance::with(['asset', 'assignedUser', 'receipts'])
-                ->whereNotNull('cost')
-                ->where('cost', '>', 0)
-                ->get();
+            $maintenances = Maintenance::with(['asset', 'assignedUser', 'receipts'])->get();
 
             foreach ($maintenances as $m) {
-                $cost = (float) $m->cost;
+                $cost = (float) ($m->cost ?? 0);
                 $date = $m->completed_at ? Carbon::parse($m->completed_at) : ($m->scheduled_date ? Carbon::parse($m->scheduled_date) : $m->created_at);
 
                 $items->push((object)[
@@ -199,6 +187,10 @@ class ExpenseLedgerService
         if (!empty($filters['category']) && $filters['category'] !== 'all') {
             $target = strtolower($filters['category']);
             $items = $items->filter(function ($item) use ($target) {
+                if ($target === 'supplies_and_parts') {
+                    return in_array(strtolower($item->type), ['operational_requirement', 'component_part'], true);
+                }
+
                 return strtolower($item->type) === $target || strtolower($item->category_label) === $target;
             });
         }
@@ -288,7 +280,7 @@ class ExpenseLedgerService
             'assets'       => $ledger->where('type', 'asset')->sum('total_cost'),
             'maintenance'  => $ledger->where('type', 'maintenance')->sum('total_cost'),
             'supplies'     => $ledger->where('type', 'operational_requirement')->sum('total_cost'),
-            'accessories'  => $ledger->where('type', 'accessory')->sum('total_cost') + $ledger->where('type', 'attachment')->sum('total_cost'),
+            'accessories'  => $ledger->where('type', 'component_part')->sum('total_cost'),
         ];
 
         $withReceipts = $ledger->where('receipts_count', '>', 0)->count();

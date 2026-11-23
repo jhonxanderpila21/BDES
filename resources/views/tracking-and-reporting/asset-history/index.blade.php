@@ -102,12 +102,8 @@
         <input type="date" name="date_from" value="{{ request('date_from') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white" title="From Date">
         <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white" title="To Date">
 
-        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">
-            Filter
-        </button>
-
         @if(request()->hasAny(['search', 'event', 'user_id', 'date_from', 'date_to']))
-            <a href="{{ route('asset-history.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">
+            <a href="{{ route('asset-history.index') }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold transition-colors shadow-xs">
                 Reset
             </a>
         @endif
@@ -128,7 +124,22 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($logs as $log)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        @php
+                            $historyDetail = [
+                                'timestamp'   => $log->created_at->format('M d, Y h:i:s A'),
+                                'relative'    => $log->created_at->diffForHumans(),
+                                'actor'       => $log->user?->name ?? 'System Process',
+                                'role'        => ucwords(str_replace('_', ' ', $log->user?->role ?? 'automated')),
+                                'event'       => strtoupper(str_replace('_', ' ', $log->event)),
+                                'entity'      => class_basename($log->auditable_type) . ($log->auditable ? ': ' . ($log->auditable->code ?? $log->auditable->name ?? ('#' . $log->auditable_id)) : ' #' . $log->auditable_id),
+                                'description' => $log->description,
+                                'old_values'  => $log->old_values ? json_encode($log->old_values, JSON_PRETTY_PRINT) : null,
+                                'new_values'  => $log->new_values ? json_encode($log->new_values, JSON_PRETTY_PRINT) : null,
+                            ];
+                        @endphp
+                        <tr class="hover:bg-blue-50/40 cursor-pointer transition-colors"
+                            onclick='openHistoryDetailsModal(@json($historyDetail))'
+                            title="Click to view audit event details">
                             <td class="px-5 py-3.5 align-middle whitespace-nowrap text-xs text-gray-600 font-mono text-left">
                                 {{ $log->created_at->format('Y-m-d H:i:s') }}
                                 <span class="text-gray-400 block text-[11px] font-sans">{{ $log->created_at->diffForHumans() }}</span>
@@ -181,5 +192,64 @@
             {{ $logs->links() }}
         </div>
     </x-card>
+
+    {{-- Audit Event Details Modal --}}
+    <x-modal id="history-details-modal" title="Audit Event Details">
+        <div class="space-y-4 text-sm">
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-start justify-between gap-4">
+                <div>
+                    <span id="hist_detail_event" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-800 mb-1.5"></span>
+                    <h4 id="hist_detail_entity" class="text-base font-bold text-gray-900 font-mono"></h4>
+                    <p id="hist_detail_timestamp" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+                <div class="text-right shrink-0">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Actor</p>
+                    <p id="hist_detail_actor" class="font-bold text-gray-900"></p>
+                    <p id="hist_detail_role" class="text-xs text-gray-500"></p>
+                </div>
+            </div>
+
+            <div class="p-3 bg-white rounded-lg border border-gray-200">
+                <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Description</p>
+                <p id="hist_detail_description" class="text-gray-800"></p>
+            </div>
+
+            <div id="hist_detail_changes_wrap" class="grid grid-cols-1 md:grid-cols-2 gap-3 hidden">
+                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Previous Values</p>
+                    <pre id="hist_detail_old" class="text-xs font-mono text-gray-700 whitespace-pre-wrap break-all"></pre>
+                </div>
+                <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-200">
+                    <p class="text-xs font-semibold uppercase text-blue-700 mb-1">Updated Values</p>
+                    <pre id="hist_detail_new" class="text-xs font-mono text-gray-800 whitespace-pre-wrap break-all"></pre>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-gray-200">
+                <button type="button" onclick="closeModal('history-details-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Close</button>
+            </div>
+        </div>
+    </x-modal>
+
+    <script>
+        function openHistoryDetailsModal(item) {
+            document.getElementById('hist_detail_event').textContent = item.event || 'EVENT';
+            document.getElementById('hist_detail_entity').textContent = item.entity || '';
+            document.getElementById('hist_detail_timestamp').textContent = (item.timestamp || '') + (item.relative ? ' (' + item.relative + ')' : '');
+            document.getElementById('hist_detail_actor').textContent = item.actor || 'System Process';
+            document.getElementById('hist_detail_role').textContent = item.role || '';
+            document.getElementById('hist_detail_description').textContent = item.description || '';
+
+            const wrap = document.getElementById('hist_detail_changes_wrap');
+            if (item.old_values || item.new_values) {
+                document.getElementById('hist_detail_old').textContent = item.old_values || '—';
+                document.getElementById('hist_detail_new').textContent = item.new_values || '—';
+                wrap.classList.remove('hidden');
+            } else {
+                wrap.classList.add('hidden');
+            }
+            openModal('history-details-modal');
+        }
+    </script>
 </div>
 @endsection

@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             InspectionSeeder::class,
             AssetNeedSeeder::class,
             OperationalRequirementSeeder::class,
+            OperationalRequirementRestockSeeder::class,
             MaintenanceScheduleSeeder::class,
             ComponentsAndPartsSeeder::class,
             ReportedAssetSeeder::class,

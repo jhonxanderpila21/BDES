@@ -110,11 +110,8 @@
                 </select>
             </div>
             <div class="flex items-center gap-2">
-                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition">
-                    Filter
-                </button>
                 @if(request()->anyFilled(['search', 'category_id', 'status']))
-                    <a href="{{ route('financials.depreciation') }}" class="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium transition">
+                    <a href="{{ route('financials.depreciation') }}" class="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold transition shadow-xs">
                         Reset
                     </a>
                 @endif
@@ -148,7 +145,27 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($assets as $asset)
-                        <tr class="hover:bg-gray-50/80 transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}">
+                        @php
+                            $depDetail = [
+                                'name'                     => $asset->name,
+                                'code'                     => $asset->code,
+                                'category'                 => $asset->category?->name ?? 'Uncategorized',
+                                'classification'           => $asset->is_capitalized_ppe ? 'PPE (Capitalized)' : 'Semi-Expendable (< ₱20k)',
+                                'purchase_date'            => $asset->purchase_date?->format('M d, Y') ?? 'No date',
+                                'acquisition_cost'         => '₱' . number_format($asset->acquisition_cost, 2),
+                                'useful_life'              => $asset->is_capitalized_ppe ? ($asset->effective_useful_life . ' yrs (Age: ' . $asset->age_in_years . ' yrs)') : 'N/A (No Depreciation)',
+                                'salvage_value'            => '₱' . number_format($asset->is_capitalized_ppe ? $asset->calculated_salvage_value : 0, 2),
+                                'salvage_mode'             => $asset->is_capitalized_ppe ? ($asset->salvage_value ? 'Custom Appraised' : 'Standard 10%') : 'Under ₱20k',
+                                'annual_depreciation'      => '₱' . number_format($asset->is_capitalized_ppe ? $asset->annual_depreciation : 0, 2),
+                                'monthly_depreciation'     => '₱' . number_format($asset->is_capitalized_ppe ? $asset->monthly_depreciation : 0, 2) . '/mo',
+                                'accumulated_depreciation' => '₱' . number_format($asset->is_capitalized_ppe ? $asset->accumulated_depreciation : 0, 2),
+                                'depreciation_pct'         => ($asset->is_capitalized_ppe ? $asset->depreciation_percentage : 0) . '% depreciated',
+                                'current_book_value'       => '₱' . number_format($asset->current_book_value, 2),
+                            ];
+                        @endphp
+                        <tr class="hover:bg-blue-50/40 cursor-pointer transition {{ !$asset->is_capitalized_ppe ? 'bg-amber-50/20' : '' }}"
+                            onclick='if(!event.target.closest("button, a, form, input, select")) openDepreciationDetailsModal(@json($depDetail));'
+                            title="Click to view depreciation details">
                             <td class="px-4 py-3 align-middle text-left">
                                 <div class="flex items-center gap-2">
                                     <div class="font-semibold text-gray-900">{{ $asset->name }}</div>
@@ -336,6 +353,76 @@
             </form>
         </div>
     </div>
+
+    {{-- Depreciation Details Modal --}}
+    <x-modal id="depreciation-details-modal" title="Depreciation Details">
+        <div class="space-y-4 text-sm">
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-start justify-between gap-4">
+                <div>
+                    <span id="dep_detail_classification" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 mb-1.5"></span>
+                    <h4 id="dep_detail_name" class="text-base font-bold text-gray-900"></h4>
+                    <p id="dep_detail_meta" class="text-xs font-mono text-gray-600 mt-0.5"></p>
+                </div>
+                <div class="text-right shrink-0">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Current Book Value</p>
+                    <p id="dep_detail_book_value" class="text-xl font-bold text-emerald-700 font-mono"></p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Purchase Cost</p>
+                    <p id="dep_detail_cost" class="font-bold text-gray-900 font-mono mt-0.5"></p>
+                    <p id="dep_detail_purchase_date" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Useful Life</p>
+                    <p id="dep_detail_life" class="font-medium text-gray-900 mt-0.5"></p>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Annual Depreciation</p>
+                    <p id="dep_detail_annual" class="font-bold text-gray-900 font-mono mt-0.5"></p>
+                    <p id="dep_detail_monthly" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Accumulated Depreciation</p>
+                    <p id="dep_detail_accum" class="font-bold text-rose-600 font-mono mt-0.5"></p>
+                    <p id="dep_detail_pct" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+            </div>
+
+            <div class="p-3 bg-white rounded-lg border border-gray-200 flex items-center justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase text-gray-500">Salvage Value</p>
+                    <p id="dep_detail_salvage_mode" class="text-xs text-gray-500 mt-0.5"></p>
+                </div>
+                <p id="dep_detail_salvage" class="font-bold text-gray-900 font-mono"></p>
+            </div>
+
+            <div class="flex justify-end pt-2 border-t border-gray-200">
+                <button type="button" onclick="closeModal('depreciation-details-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Close</button>
+            </div>
+        </div>
+    </x-modal>
+
+    <script>
+        function openDepreciationDetailsModal(d) {
+            document.getElementById('dep_detail_classification').textContent = d.classification || '';
+            document.getElementById('dep_detail_name').textContent = d.name || '';
+            document.getElementById('dep_detail_meta').textContent = (d.code || '') + ' • ' + (d.category || '');
+            document.getElementById('dep_detail_book_value').textContent = d.current_book_value || '₱0.00';
+            document.getElementById('dep_detail_cost').textContent = d.acquisition_cost || '₱0.00';
+            document.getElementById('dep_detail_purchase_date').textContent = 'Purchased: ' + (d.purchase_date || 'N/A');
+            document.getElementById('dep_detail_life').textContent = d.useful_life || 'N/A';
+            document.getElementById('dep_detail_annual').textContent = d.annual_depreciation || '₱0.00';
+            document.getElementById('dep_detail_monthly').textContent = d.monthly_depreciation || '';
+            document.getElementById('dep_detail_accum').textContent = d.accumulated_depreciation || '₱0.00';
+            document.getElementById('dep_detail_pct').textContent = d.depreciation_pct || '';
+            document.getElementById('dep_detail_salvage').textContent = d.salvage_value || '₱0.00';
+            document.getElementById('dep_detail_salvage_mode').textContent = d.salvage_mode || '';
+            openModal('depreciation-details-modal');
+        }
+    </script>
 </div>
 @endsection
 

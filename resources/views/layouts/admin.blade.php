@@ -89,6 +89,28 @@
     <x-delete-confirm-modal />
 
     @include('partials.searchable-select-scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('form[method="GET"], form[method="get"]').forEach(function (form) {
+                let debounceTimer = null;
+                form.querySelectorAll('select, input[type="date"], input[type="checkbox"], input[type="radio"]').forEach(function (el) {
+                    if (!el.getAttribute('onchange')) {
+                        el.addEventListener('change', function () {
+                            form.submit();
+                        });
+                    }
+                });
+                form.querySelectorAll('input[type="text"], input[type="search"], input[type="number"]').forEach(function (el) {
+                    el.addEventListener('input', function () {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(function () {
+                            form.submit();
+                        }, 500);
+                    });
+                });
+            });
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

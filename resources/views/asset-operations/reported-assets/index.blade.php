@@ -117,12 +117,8 @@
             @endforeach
         </select>
 
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors">
-            Filter
-        </button>
-
         @if(request()->hasAny(['search', 'asset_category', 'reported_type', 'status', 'timeframe', 'date_from', 'date_to']))
-            <a href="{{ route('reported-assets.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium inline-flex items-center transition-colors">
+            <a href="{{ route('reported-assets.index') }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold inline-flex items-center transition-colors shadow-xs">
                 Reset
             </a>
         @endif

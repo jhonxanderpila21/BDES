@@ -123,14 +123,10 @@
                 <div class="flex items-center gap-2">
                     @if(!empty($filters['search']) || $filters['module'] !== 'all' || !empty($filters['deleted_by']) || $filters['date_filter'] !== 'all')
                         <a href="{{ route('archived-records.index') }}"
-                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors">
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg font-semibold transition-colors shadow-xs">
                             <i class="fas fa-times"></i> Reset Filters
                         </a>
                     @endif
-                    <button type="submit"
-                            class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors shadow-xs">
-                        <i class="fas fa-filter"></i> Apply Filters
-                    </button>
                 </div>
             </div>
         </form>
@@ -153,7 +149,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($records as $item)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        <tr class="hover:bg-blue-50/40 cursor-pointer transition-colors"
+                            onclick="if(!event.target.closest('button, a, form, input, select')) openArchiveViewModal('{{ $item->module_key }}', '{{ $item->raw_id }}');"
+                            title="Click to view archived record details">
                             {{-- Record ID --}}
                             <td class="px-3 py-3 font-mono font-bold text-gray-800 whitespace-nowrap">
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-800 text-xs">

@@ -72,7 +72,19 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($users as $user)
-                        <tr class="hover:bg-gray-50 transition-colors">
+                        @php
+                            $userDetail = [
+                                'name'         => $user->name,
+                                'username'     => $user->username,
+                                'phone_number' => $user->phone_number ?: 'Not provided',
+                                'role'         => $roleLabels[$user->role] ?? ucwords(str_replace('_', ' ', $user->role)),
+                                'status'       => $user->trashed() ? 'Archived (Deleted)' : ($user->is_active ? 'Active' : 'Inactive'),
+                                'created_at'   => $user->created_at?->format('M d, Y h:i A') ?? 'N/A',
+                            ];
+                        @endphp
+                        <tr class="hover:bg-blue-50/40 cursor-pointer transition-colors"
+                            onclick='if(!event.target.closest("button, a, form, input, select")) openUserDetailsModal(@json($userDetail));'
+                            title="Click to view user account details">
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-left">
                                 <div class="flex items-center gap-3">
                                     <div class="flex-shrink-0">
@@ -405,6 +417,45 @@
                 document.getElementById('edit-user-role').value = role || '';
                 window.openModal('edit-user-modal');
             }
+
+            function openUserDetailsModal(u) {
+                document.getElementById('user_detail_name').textContent = u.name || '';
+                document.getElementById('user_detail_username').textContent = '@' + (u.username || '');
+                document.getElementById('user_detail_role').textContent = u.role || '';
+                document.getElementById('user_detail_status').textContent = u.status || '';
+                document.getElementById('user_detail_phone').textContent = u.phone_number || 'Not provided';
+                document.getElementById('user_detail_created').textContent = u.created_at || 'N/A';
+                window.openModal('user-details-modal');
+            }
         </script>
+
+        <x-modal id="user-details-modal" title="User Account Details">
+            <div class="space-y-4 text-sm">
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-center justify-between gap-4">
+                    <div>
+                        <h4 id="user_detail_name" class="text-base font-bold text-gray-900"></h4>
+                        <p id="user_detail_username" class="text-xs font-mono text-gray-600 mt-0.5"></p>
+                    </div>
+                    <span id="user_detail_status" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-white rounded-lg border border-gray-200">
+                        <p class="text-xs font-semibold uppercase text-gray-500">System Role</p>
+                        <p id="user_detail_role" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div class="p-3 bg-white rounded-lg border border-gray-200">
+                        <p class="text-xs font-semibold uppercase text-gray-500">Phone Number</p>
+                        <p id="user_detail_phone" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                </div>
+                <div class="p-3 bg-white rounded-lg border border-gray-200">
+                    <p class="text-xs font-semibold uppercase text-gray-500">Account Created</p>
+                    <p id="user_detail_created" class="font-medium text-gray-900 mt-0.5"></p>
+                </div>
+                <div class="flex justify-end pt-2 border-t border-gray-200">
+                    <button type="button" onclick="closeModal('user-details-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Close</button>
+                </div>
+            </div>
+        </x-modal>
     @endpush
 @endsection

@@ -8,9 +8,9 @@
 @endphp
 <div class="space-y-6">
     {{-- Page Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm print:shadow-none print:border-none">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
         <div class="flex items-start gap-4">
-            <a href="{{ route('reported-assets.index') }}" class="mt-1 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors print:hidden" title="Back to List">
+            <a href="{{ route('reported-assets.index') }}" class="mt-1 p-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors" title="Back to List">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
@@ -32,7 +32,7 @@
         </div>
 
         {{-- Quick Actions --}}
-        <div class="flex flex-wrap items-center gap-2 print:hidden">
+        <div class="flex flex-wrap items-center gap-2">
             @if($isReadOnlyStaff)
                 <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
                     <i class="fas fa-shield-alt text-amber-600"></i>
@@ -65,10 +65,6 @@
                     <span class="hidden sm:inline">View Asset Details</span>
                 </a>
             @endif
-            <button onclick="window.print()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-colors">
-                <i class="fas fa-print"></i>
-                <span class="hidden sm:inline">Print Report</span>
-            </button>
         </div>
     </div>
 

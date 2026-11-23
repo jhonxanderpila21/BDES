@@ -90,11 +90,8 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-medium transition-colors shadow-sm">
-                    <i class="fas fa-filter mr-1.5"></i>Filter
-                </button>
                 @if(request()->anyFilled(['search', 'type']))
-                    <a href="{{ route('locations.index') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-sm font-medium transition-colors">
+                    <a href="{{ route('locations.index') }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-sm font-semibold transition-colors shadow-xs">
                         <i class="fas fa-undo mr-1.5"></i>Reset
                     </a>
                 @endif
