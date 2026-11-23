@@ -125,6 +125,12 @@
                 </div>
             @endforelse
         </div>
+
+        @if($notifications->hasPages())
+            <div class="px-5 py-4 border-t border-gray-200 bg-gray-50/50">
+                {{ $notifications->links() }}
+            </div>
+        @endif
     </x-card>
 @endsection
 

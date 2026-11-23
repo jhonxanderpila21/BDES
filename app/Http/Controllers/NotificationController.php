@@ -6,6 +6,7 @@ use App\Services\NotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 
 class NotificationController extends Controller
@@ -23,6 +24,21 @@ class NotificationController extends Controller
         $allNotifications = $this->notificationService->getAllNotifications();
         $filteredNotifications = $this->notificationService->getAllNotifications($category);
 
+        $perPage = 10;
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $currentItems = $filteredNotifications->forPage($currentPage, $perPage)->values();
+
+        $paginatedNotifications = new LengthAwarePaginator(
+            $currentItems,
+            $filteredNotifications->count(),
+            $perPage,
+            $currentPage,
+            [
+                'path'  => $request->url(),
+                'query' => $request->query(),
+            ]
+        );
+
         $counts = [
             'all'            => $allNotifications->count(),
             'unread'         => $allNotifications->where('is_read', false)->count(),
@@ -34,7 +50,7 @@ class NotificationController extends Controller
         ];
 
         return view('notifications.index', [
-            'notifications'  => $filteredNotifications,
+            'notifications'  => $paginatedNotifications,
             'activeCategory' => $category,
             'counts'         => $counts,
         ]);
