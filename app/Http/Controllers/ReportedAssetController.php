@@ -64,7 +64,7 @@ class ReportedAssetController extends Controller
 
         $reports = $query->orderBy('id', 'asc')->paginate(10)->withQueryString();
 
-        // Dashboard summary — counts per status
+        // Dashboard summary â€” counts per status
         $statusCounts = [];
         foreach (ReportedAssetService::statuses() as $status) {
             $statusCounts[$status] = ReportedAsset::where('status', $status)->count();
@@ -210,7 +210,7 @@ class ReportedAssetController extends Controller
             'notes'       => $notesText,
         ]);
 
-        return redirect()->back()->with('success', 'Assigned personnel updated successfully.');
+        return redirect()->back()->with('success', 'Assigned personnel successfully updated.');
     }
 
     /**
@@ -279,7 +279,7 @@ class ReportedAssetController extends Controller
         $reportedAsset->update($validated);
 
         return redirect()->route('reported-assets.index')
-            ->with('success', 'Report updated successfully!');
+            ->with('success', 'Report successfully updated!');
     }
 
     /**
@@ -295,7 +295,7 @@ class ReportedAssetController extends Controller
         $reportedAsset->delete();
 
         return redirect()->route('reported-assets.index')
-            ->with('success', 'Report deleted successfully!');
+            ->with('success', 'Report successfully deleted!');
     }
 
     /**
@@ -321,7 +321,7 @@ class ReportedAssetController extends Controller
 
         if (!$success) {
             return redirect()->back()->withErrors([
-                'new_status' => "Invalid status transition: {$reportedAsset->status} → {$validated['new_status']}.",
+                'new_status' => "Invalid status transition: {$reportedAsset->status} â†’ {$validated['new_status']}.",
             ]);
         }
 

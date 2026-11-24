@@ -50,6 +50,9 @@
             icon="fas fa-coins"
             color="emerald"
             subtitle="Estimated value after full use"
+            :href="route('financials.salvage')"
+            :active="!request()->anyFilled(['search', 'category_id', 'salvage_type'])"
+            tooltip="Show all salvage records"
         />
 
         <x-kpi-card
@@ -58,6 +61,9 @@
             icon="fas fa-sliders"
             color="blue"
             subtitle="Assets with custom appraised value"
+            :href="route('financials.salvage', ['salvage_type' => 'custom'])"
+            :active="request('salvage_type') === 'custom'"
+            tooltip="Filter by custom appraised assets"
         />
 
         <x-kpi-card
@@ -66,6 +72,9 @@
             icon="fas fa-calculator"
             color="purple"
             subtitle="Assets using standard 10% rule"
+            :href="route('financials.salvage', ['salvage_type' => 'standard'])"
+            :active="request('salvage_type') === 'standard'"
+            tooltip="Filter by standard 10% assets"
         />
 
         <x-kpi-card
@@ -74,6 +83,8 @@
             icon="fas fa-flag-checkered"
             color="amber"
             subtitle="Assets at end of lifespan"
+            :href="route('financials.depreciation')"
+            tooltip="View depreciation schedule"
         />
     </div>
 

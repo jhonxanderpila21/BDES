@@ -36,7 +36,7 @@ class ReceiptController extends Controller
 
         $receipt->delete();
 
-        return back()->with('success', 'Receipt removed successfully.');
+        return back()->with('success', 'Receipt successfully removed.');
     }
 }
 

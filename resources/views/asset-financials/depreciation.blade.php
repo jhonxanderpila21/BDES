@@ -50,6 +50,9 @@
             icon="fas fa-receipt"
             color="blue"
             subtitle="Original purchase cost of recorded assets"
+            :href="route('financials.depreciation')"
+            :active="!request()->anyFilled(['search', 'category_id', 'status'])"
+            tooltip="Show all recorded assets"
         />
 
         <x-kpi-card
@@ -58,6 +61,8 @@
             icon="fas fa-chart-line-down"
             color="rose"
             subtitle="Total value lost over time"
+            :href="route('financials.depreciation')"
+            tooltip="View depreciation schedule"
         />
 
         <x-kpi-card
@@ -66,6 +71,9 @@
             icon="fas fa-vault"
             color="emerald"
             subtitle="Current estimated net asset worth"
+            :href="route('financials.depreciation', ['status' => 'available'])"
+            :active="request('status') === 'available'"
+            tooltip="Filter by available assets"
         />
 
         <x-kpi-card
@@ -74,6 +82,8 @@
             icon="fas fa-calendar-days"
             color="amber"
             subtitle="Value lost per year"
+            :href="route('financials.salvage')"
+            tooltip="View salvage value records"
         />
     </div>
 

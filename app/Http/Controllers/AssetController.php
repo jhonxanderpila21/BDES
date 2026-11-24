@@ -477,7 +477,7 @@ class AssetController extends Controller
         });
 
         return redirect()->route('assets.index', ['tab' => 'assets'])
-            ->with('success', "Asset [{$asset->code}] updated successfully!");
+            ->with('success', "Asset [{$asset->code}] successfully updated!");
     }
 
     /**

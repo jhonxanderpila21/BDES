@@ -241,7 +241,7 @@ class DeploymentController extends Controller
         });
 
         return redirect()->route('deployment.index')
-            ->with('success', 'Asset deployment created successfully!');
+            ->with('success', 'Asset deployment successfully created!');
     }
 
     /**
@@ -353,7 +353,7 @@ class DeploymentController extends Controller
         });
 
         return redirect()->route('deployment.index')
-            ->with('success', 'Asset return recorded successfully and inventory status updated!');
+            ->with('success', 'Asset return successfully recorded and inventory status updated!');
     }
 
     /**
@@ -387,7 +387,7 @@ class DeploymentController extends Controller
         });
 
         return redirect()->route('deployment.index')
-            ->with('success', 'Deployment details updated successfully!');
+            ->with('success', 'Deployment details successfully updated!');
     }
 
     /**
@@ -411,6 +411,6 @@ class DeploymentController extends Controller
         });
 
         return redirect()->route('deployment.index')
-            ->with('success', 'Deployment record deleted successfully!');
+            ->with('success', 'Deployment record successfully deleted!');
     }
 }

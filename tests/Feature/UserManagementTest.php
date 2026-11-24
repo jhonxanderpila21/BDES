@@ -351,4 +351,62 @@ class UserManagementTest extends TestCase
             'has_conflict' => true,
         ]);
     }
+
+    public function test_add_user_blocks_duplicate_full_name_and_duplicate_phone_and_uses_phone_as_username(): void
+    {
+        $first = $this->actingAs($this->admin)->post(route('users.store'), [
+            '_form'        => 'add_user',
+            'first_name'   => 'Elena',
+            'last_name'    => 'Ramos',
+            'phone_number' => '09171234567',
+            'role'         => 'viewer',
+        ]);
+        $first->assertRedirect(route('users.index'));
+
+        $this->assertDatabaseHas('users', [
+            'name'                 => 'Elena Ramos',
+            'username'             => '09171234567',
+            'phone_number'         => '+639171234567',
+            'must_change_password' => true,
+        ]);
+
+        // Duplicate full name should be rejected
+        $dupName = $this->actingAs($this->admin)->post(route('users.store'), [
+            '_form'        => 'add_user',
+            'first_name'   => 'Elena',
+            'last_name'    => 'Ramos',
+            'phone_number' => '09179999999',
+            'role'         => 'viewer',
+        ]);
+        $dupName->assertSessionHasErrors(['first_name']);
+
+        // Duplicate phone number (even in +63 format) should be rejected
+        $dupPhone = $this->actingAs($this->admin)->post(route('users.store'), [
+            '_form'        => 'add_user',
+            'first_name'   => 'Clara',
+            'last_name'    => 'Ramos',
+            'username'     => '09171234568',
+            'phone_number' => '+639171234567',
+            'role'         => 'viewer',
+        ]);
+        $dupPhone->assertSessionHasErrors(['phone_number']);
+    }
+
+    public function test_users_index_displays_password_status_column(): void
+    {
+        User::factory()->create([
+            'name'                 => 'Temp User',
+            'must_change_password' => true,
+        ]);
+        User::factory()->create([
+            'name'                 => 'Updated User',
+            'must_change_password' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('users.index'));
+        $response->assertOk();
+        $response->assertSee('Password Status');
+        $response->assertSee('Not Yet Changed');
+        $response->assertSee('Changed');
+    }
 }

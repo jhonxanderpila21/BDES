@@ -121,6 +121,6 @@ class AssetDocumentController extends Controller
         AuditTrailService::log('updated', $asset, "Document [{$title}] removed from asset details.");
 
         return redirect()->route('assets.show', $asset)
-            ->with('success', "Document [{$title}] deleted successfully.");
+            ->with('success', "Document [{$title}] successfully deleted.");
     }
 }

@@ -69,11 +69,11 @@ class AssetTypeController extends Controller
                 'tab'              => 'assets',
                 'reopen_add_asset' => 1,
                 'selected_type_id' => $created->id,
-            ])->with('success', 'Asset type created successfully!');
+            ])->with('success', 'Asset type successfully created!');
         }
 
         return redirect()->route('assets.index', ['tab' => 'types'])
-            ->with('success', 'Asset type created successfully!');
+            ->with('success', 'Asset type successfully created!');
     }
 
     /**
@@ -125,7 +125,7 @@ class AssetTypeController extends Controller
         $assetType->update($validated);
 
         return redirect()->route('assets.index', ['tab' => 'types'])
-            ->with('success', 'Asset type updated successfully!');
+            ->with('success', 'Asset type successfully updated!');
     }
 
     /**
@@ -140,6 +140,6 @@ class AssetTypeController extends Controller
         $assetType->delete();
 
         return redirect()->route('assets.index', ['tab' => 'types'])
-            ->with('success', 'Asset type deleted successfully!');
+            ->with('success', 'Asset type successfully deleted!');
     }
 }

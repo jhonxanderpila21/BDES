@@ -20,7 +20,7 @@
         <!-- Username -->
         <div>
             <label for="username" class="block text-sm font-medium text-gray-700 mb-1.5">
-                Username
+                Phone Number / Username
             </label>
             <input
                 id="username"
@@ -30,7 +30,7 @@
                 required
                 autofocus
                 autocomplete="username"
-                placeholder="Enter your username"
+                placeholder="Enter your phone number or username"
                 class="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
             <x-input-error :messages="$errors->get('username')" class="mt-1.5 text-xs text-red-600" />

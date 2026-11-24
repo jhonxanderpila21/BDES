@@ -42,7 +42,7 @@ class AccessoryController extends Controller
             $input['name'] = strip_tags(trim($input['name']));
         }
         if (isset($input['unit_cost']) && is_string($input['unit_cost'])) {
-            $input['unit_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['unit_cost']));
+            $input['unit_cost'] = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $input['unit_cost']));
             if ($input['unit_cost'] === '') {
                 $input['unit_cost'] = null;
             }
@@ -60,7 +60,7 @@ class AccessoryController extends Controller
         Accessory::create($validated);
 
         return redirect()->route('accessories.index')
-            ->with('success', 'Accessory created successfully!');
+            ->with('success', 'Accessory successfully created!');
     }
 
     /**
@@ -89,7 +89,7 @@ class AccessoryController extends Controller
             $input['name'] = strip_tags(trim($input['name']));
         }
         if (isset($input['unit_cost']) && is_string($input['unit_cost'])) {
-            $input['unit_cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['unit_cost']));
+            $input['unit_cost'] = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $input['unit_cost']));
             if ($input['unit_cost'] === '') {
                 $input['unit_cost'] = null;
             }
@@ -107,7 +107,7 @@ class AccessoryController extends Controller
         $accessory->update($validated);
 
         return redirect()->route('accessories.index')
-            ->with('success', 'Accessory updated successfully!');
+            ->with('success', 'Accessory successfully updated!');
     }
 
     /**
@@ -122,6 +122,6 @@ class AccessoryController extends Controller
         $accessory->delete();
 
         return redirect()->route('accessories.index')
-            ->with('success', 'Accessory deleted successfully!');
+            ->with('success', 'Accessory successfully deleted!');
     }
 }

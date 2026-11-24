@@ -41,6 +41,10 @@
             :value="number_format($metrics['total_logs'])"
             icon="fas fa-list-check"
             color="blue"
+            subtitle="All recorded activity"
+            :href="route('asset-history.index')"
+            :active="!request()->anyFilled(['event', 'date_from', 'date_to', 'user_id', 'search'])"
+            tooltip="Show all audit events"
         />
 
         <x-kpi-card
@@ -48,6 +52,10 @@
             :value="number_format($metrics['today_logs'])"
             icon="fas fa-calendar-day"
             color="emerald"
+            subtitle="Events logged today"
+            :href="route('asset-history.index', ['date_from' => now()->toDateString(), 'date_to' => now()->toDateString()])"
+            :active="request('date_from') === now()->toDateString() && request('date_to') === now()->toDateString()"
+            tooltip="Filter by today's events"
         />
 
         <x-kpi-card
@@ -55,6 +63,10 @@
             :value="number_format($metrics['status_changes'])"
             icon="fas fa-arrows-rotate"
             color="amber"
+            subtitle="Asset status updates"
+            :href="route('asset-history.index', ['event' => 'status_changed'])"
+            :active="request('event') === 'status_changed'"
+            tooltip="Filter by status transitions"
         />
 
         <x-kpi-card
@@ -62,6 +74,10 @@
             :value="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? number_format($metrics['active_actors']) : strtoupper(str_replace('_', ' ', auth()->user()->role))"
             icon="fas fa-users-gear"
             color="purple"
+            :subtitle="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Filter my activity' : 'Your access level'"
+            :href="request('user_id') == auth()->id() ? route('asset-history.index') : route('asset-history.index', ['user_id' => auth()->id()])"
+            :active="request('user_id') == auth()->id()"
+            tooltip="Toggle filter for my own audit logs"
         />
     </div>
 
@@ -123,18 +139,67 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+                    @php
+                        $formatAuditVal = function ($val) use (&$formatAuditVal) {
+                            if ($val === null || $val === '') return '—';
+                            if (is_bool($val)) return $val ? 'Yes' : 'No';
+                            if (is_array($val)) {
+                                if (empty($val)) return '—';
+                                $parts = [];
+                                foreach ($val as $k => $v) {
+                                    $formatted = $formatAuditVal($v);
+                                    $parts[] = is_string($k) ? (ucwords(str_replace('_', ' ', $k)) . ': ' . $formatted) : $formatted;
+                                }
+                                return implode(', ', $parts);
+                            }
+                            if (is_object($val)) {
+                                return json_encode($val);
+                            }
+                            $str = (string) $val;
+                            if (preg_match('/^[a-z0-9_]+$/', $str) && str_contains($str, '_')) {
+                                return ucwords(str_replace('_', ' ', $str));
+                            }
+                            return $str;
+                        };
+                    @endphp
                     @forelse($logs as $log)
                         @php
+                            $oldArr = is_array($log->old_values) ? $log->old_values : [];
+                            $newArr = is_array($log->new_values) ? $log->new_values : [];
+                            $ignoredKeys = ['id', 'created_at', 'updated_at', 'deleted_at', 'remember_token', 'password'];
+                            $allKeys = array_values(array_diff(array_unique(array_merge(array_keys($oldArr), array_keys($newArr))), $ignoredKeys));
+                            $changesList = [];
+                            foreach ($allKeys as $k) {
+                                $changesList[] = [
+                                    'field' => ucwords(str_replace('_', ' ', preg_replace('/_id$/', '', (string) $k))),
+                                    'old'   => $formatAuditVal($oldArr[$k] ?? null),
+                                    'new'   => $formatAuditVal($newArr[$k] ?? null),
+                                ];
+                            }
+                            $baseType = class_basename($log->auditable_type);
+                            $entityLabel = $log->auditable
+                                ? ($log->auditable->name ?? $log->auditable->code ?? $log->auditable->requirement_type ?? ($baseType . ' #' . $log->auditable_id))
+                                : ($baseType . ' #' . $log->auditable_id);
+                            $entityUrl = match ($baseType) {
+                                'Asset'                  => $log->auditable ? route('assets.show', $log->auditable_id) : null,
+                                'ReportedAsset'          => $log->auditable ? route('reported-assets.show', $log->auditable_id) : null,
+                                'Deployment'             => route('deployment.index'),
+                                'Maintenance'            => route('maintenance.index'),
+                                'OperationalRequirement' => route('operational-requirements.index'),
+                                'Location'               => route('locations.index'),
+                                default                  => null,
+                            };
                             $historyDetail = [
                                 'timestamp'   => $log->created_at->format('M d, Y h:i:s A'),
                                 'relative'    => $log->created_at->diffForHumans(),
                                 'actor'       => $log->user?->name ?? 'System Process',
                                 'role'        => ucwords(str_replace('_', ' ', $log->user?->role ?? 'automated')),
                                 'event'       => strtoupper(str_replace('_', ' ', $log->event)),
-                                'entity'      => class_basename($log->auditable_type) . ($log->auditable ? ': ' . ($log->auditable->code ?? $log->auditable->name ?? ('#' . $log->auditable_id)) : ' #' . $log->auditable_id),
+                                'entity_type' => $baseType,
+                                'entity'      => $entityLabel,
+                                'entity_url'  => $entityUrl,
                                 'description' => $log->description,
-                                'old_values'  => $log->old_values ? json_encode($log->old_values, JSON_PRETTY_PRINT) : null,
-                                'new_values'  => $log->new_values ? json_encode($log->new_values, JSON_PRETTY_PRINT) : null,
+                                'changes'     => $changesList,
                             ];
                         @endphp
                         <tr class="hover:bg-blue-50/40 cursor-pointer transition-colors"
@@ -198,35 +263,47 @@
         <div class="space-y-4 text-sm">
             <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 flex items-start justify-between gap-4">
                 <div>
-                    <span id="hist_detail_event" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-800 mb-1.5"></span>
-                    <h4 id="hist_detail_entity" class="text-base font-bold text-gray-900 font-mono"></h4>
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span id="hist_detail_event" class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold uppercase bg-blue-100 text-blue-800"></span>
+                        <span id="hist_detail_entity_type" class="text-xs font-semibold text-gray-500 uppercase"></span>
+                    </div>
+                    <h4 id="hist_detail_entity" class="text-base font-bold text-gray-900"></h4>
                     <p id="hist_detail_timestamp" class="text-xs text-gray-500 mt-0.5"></p>
                 </div>
                 <div class="text-right shrink-0">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Actor</p>
+                    <p class="text-xs font-semibold uppercase text-gray-500">Recorded By</p>
                     <p id="hist_detail_actor" class="font-bold text-gray-900"></p>
                     <p id="hist_detail_role" class="text-xs text-gray-500"></p>
                 </div>
             </div>
 
             <div class="p-3 bg-white rounded-lg border border-gray-200">
-                <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Description</p>
+                <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Summary</p>
                 <p id="hist_detail_description" class="text-gray-800"></p>
             </div>
 
-            <div id="hist_detail_changes_wrap" class="grid grid-cols-1 md:grid-cols-2 gap-3 hidden">
-                <div class="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <p class="text-xs font-semibold uppercase text-gray-500 mb-1">Previous Values</p>
-                    <pre id="hist_detail_old" class="text-xs font-mono text-gray-700 whitespace-pre-wrap break-all"></pre>
-                </div>
-                <div class="p-3 bg-blue-50/50 rounded-lg border border-blue-200">
-                    <p class="text-xs font-semibold uppercase text-blue-700 mb-1">Updated Values</p>
-                    <pre id="hist_detail_new" class="text-xs font-mono text-gray-800 whitespace-pre-wrap break-all"></pre>
+            <div id="hist_detail_changes_wrap" class="hidden">
+                <p class="text-xs font-semibold uppercase text-gray-500 mb-1.5">Recorded Changes</p>
+                <div class="border border-gray-200 rounded-lg overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase">
+                            <tr>
+                                <th class="px-3 py-2 font-semibold">Field</th>
+                                <th class="px-3 py-2 font-semibold">Previous</th>
+                                <th class="px-3 py-2 font-semibold">Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hist_detail_changes_body" class="divide-y divide-gray-200 bg-white"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <div class="flex justify-end pt-2 border-t border-gray-200">
-                <button type="button" onclick="closeModal('history-details-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Close</button>
+            <div class="flex items-center justify-between pt-2 border-t border-gray-200">
+                <a id="hist_detail_link" href="#" class="hidden inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold transition-colors">
+                    <i class="fas fa-arrow-up-right-from-square"></i>
+                    <span>View Related Record</span>
+                </a>
+                <button type="button" onclick="closeModal('history-details-modal')" class="ml-auto px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Close</button>
             </div>
         </div>
     </x-modal>
@@ -234,6 +311,7 @@
     <script>
         function openHistoryDetailsModal(item) {
             document.getElementById('hist_detail_event').textContent = item.event || 'EVENT';
+            document.getElementById('hist_detail_entity_type').textContent = item.entity_type || '';
             document.getElementById('hist_detail_entity').textContent = item.entity || '';
             document.getElementById('hist_detail_timestamp').textContent = (item.timestamp || '') + (item.relative ? ' (' + item.relative + ')' : '');
             document.getElementById('hist_detail_actor').textContent = item.actor || 'System Process';
@@ -241,13 +319,31 @@
             document.getElementById('hist_detail_description').textContent = item.description || '';
 
             const wrap = document.getElementById('hist_detail_changes_wrap');
-            if (item.old_values || item.new_values) {
-                document.getElementById('hist_detail_old').textContent = item.old_values || '—';
-                document.getElementById('hist_detail_new').textContent = item.new_values || '—';
+            const tbody = document.getElementById('hist_detail_changes_body');
+            tbody.innerHTML = '';
+
+            if (Array.isArray(item.changes) && item.changes.length > 0) {
+                item.changes.forEach(function (c) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = '<td class="px-3 py-2 font-semibold text-gray-700"></td><td class="px-3 py-2 text-gray-500"></td><td class="px-3 py-2 font-medium text-blue-700"></td>';
+                    tr.children[0].textContent = c.field;
+                    tr.children[1].textContent = c.old;
+                    tr.children[2].textContent = c.new;
+                    tbody.appendChild(tr);
+                });
                 wrap.classList.remove('hidden');
             } else {
                 wrap.classList.add('hidden');
             }
+
+            const linkEl = document.getElementById('hist_detail_link');
+            if (item.entity_url) {
+                linkEl.href = item.entity_url;
+                linkEl.classList.remove('hidden');
+            } else {
+                linkEl.classList.add('hidden');
+            }
+
             openModal('history-details-modal');
         }
     </script>

@@ -35,7 +35,7 @@ class MaintenanceScheduleController extends Controller
         \App\Services\ReceiptService::attachFromRequest($schedule, $request);
 
         return redirect()->route('maintenance-schedules.index')
-            ->with('success', 'Preventive maintenance schedule created successfully!');
+            ->with('success', 'Preventive maintenance schedule successfully created!');
     }
 
     /**
@@ -51,7 +51,7 @@ class MaintenanceScheduleController extends Controller
         $maintenanceSchedule->update($validated);
 
         return redirect()->route('maintenance-schedules.index')
-            ->with('success', 'Preventive maintenance schedule updated successfully!');
+            ->with('success', 'Preventive maintenance schedule successfully updated!');
     }
 
     /**
@@ -89,7 +89,7 @@ class MaintenanceScheduleController extends Controller
         $maintenanceSchedule->delete();
 
         return redirect()->route('maintenance-schedules.index')
-            ->with('success', 'Preventive maintenance schedule deleted successfully!');
+            ->with('success', 'Preventive maintenance schedule successfully deleted!');
     }
 
     /**
@@ -110,7 +110,7 @@ class MaintenanceScheduleController extends Controller
             $input['notes'] = strip_tags(trim($input['notes']));
         }
         if (isset($input['cost']) && is_string($input['cost'])) {
-            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            $input['cost'] = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $input['cost']));
             if ($input['cost'] === '') {
                 $input['cost'] = null;
             }

@@ -93,7 +93,7 @@ class InspectionController extends Controller
         \App\Services\ReceiptService::attachFromRequest($inspection, $request);
 
         return redirect()->route('maintenance.index', ['tab' => 'inspections'])
-            ->with('success', 'Inspection record created successfully with supporting documents!');
+            ->with('success', 'Inspection record successfully created with supporting documents!');
     }
 
     public function update(Request $request, Inspection $inspection)
@@ -127,7 +127,7 @@ class InspectionController extends Controller
         $inspection->update($validated);
 
         return redirect()->route('maintenance.index', ['tab' => 'inspections'])
-            ->with('success', 'Inspection record updated successfully!');
+            ->with('success', 'Inspection record successfully updated!');
     }
 
     public function destroy(Request $request, Inspection $inspection)
@@ -137,6 +137,6 @@ class InspectionController extends Controller
         $inspection->delete();
 
         return redirect()->route('maintenance.index', ['tab' => 'inspections'])
-            ->with('success', 'Inspection record deleted successfully!');
+            ->with('success', 'Inspection record successfully deleted!');
     }
 }

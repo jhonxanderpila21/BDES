@@ -67,7 +67,7 @@ class FirstTimePasswordController extends Controller
         ])->save();
 
         return redirect()->route('dashboard')
-            ->with('status', 'Your password has been updated successfully. Welcome to BDES!');
+            ->with('status', 'Your password has been successfully updated. Welcome to BDES!');
     }
 }
 

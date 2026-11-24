@@ -69,11 +69,11 @@ class AssetDepreciationController extends Controller
         // Enforce capitalization threshold: Items below threshold cannot have depreciation or salvage value
         if (!$asset->is_capitalized_ppe) {
             $thresholdFormatted = number_format(\App\Services\PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD, 2);
-            return redirect()->back()->with('error', "Items with acquisition cost below ₱{$thresholdFormatted} are classified as Semi-Expendable Property and cannot have a depreciation schedule or salvage value.");
+            return redirect()->back()->with('error', "Items with acquisition cost below â‚±{$thresholdFormatted} are classified as Semi-Expendable Property and cannot have a depreciation schedule or salvage value.");
         }
 
         if ($request->has('salvage_value') && is_string($request->salvage_value)) {
-            $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
+            $clean = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $request->salvage_value));
             $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
         }
 
@@ -86,7 +86,7 @@ class AssetDepreciationController extends Controller
 
         $asset->update($validated);
 
-        return redirect()->back()->with('success', "Depreciation parameters for '{$asset->name}' updated successfully.");
+        return redirect()->back()->with('success', "Depreciation parameters for '{$asset->name}' successfully updated.");
     }
 
     /**

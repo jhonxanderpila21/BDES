@@ -92,11 +92,11 @@ class LocationController extends Controller
                 'tab'                  => 'assets',
                 'reopen_add_asset'     => 1,
                 'selected_location_id' => $created->id,
-            ])->with('success', 'Location created successfully!');
+            ])->with('success', 'Location successfully created!');
         }
 
         return redirect()->route('locations.index')
-            ->with('success', 'Location created successfully!');
+            ->with('success', 'Location successfully created!');
     }
 
     /**
@@ -130,7 +130,7 @@ class LocationController extends Controller
         $location->update($validated);
 
         return redirect()->route('locations.index')
-            ->with('success', 'Location updated successfully!');
+            ->with('success', 'Location successfully updated!');
     }
 
     /**
@@ -174,7 +174,7 @@ class LocationController extends Controller
         $location->delete();
 
         return redirect()->route('locations.index')
-            ->with('success', 'Location deleted successfully!');
+            ->with('success', 'Location successfully deleted!');
     }
 
     /**

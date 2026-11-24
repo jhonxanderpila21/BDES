@@ -37,7 +37,7 @@ class AssetAccessoryController extends Controller
         \App\Services\ReceiptService::attachFromRequest($accessory, $request);
 
         return redirect()->route('asset-accessories.index')
-            ->with('success', 'Asset accessory created successfully with supporting documents!');
+            ->with('success', 'Asset accessory successfully created with supporting documents!');
     }
 
     /**
@@ -72,7 +72,7 @@ class AssetAccessoryController extends Controller
         $assetAccessory->update($validated);
 
         return redirect()->route('asset-accessories.index')
-            ->with('success', 'Asset accessory updated successfully!');
+            ->with('success', 'Asset accessory successfully updated!');
     }
 
     /**
@@ -87,7 +87,7 @@ class AssetAccessoryController extends Controller
         $assetAccessory->delete();
 
         return redirect()->route('asset-accessories.index')
-            ->with('success', 'Asset accessory deleted successfully!');
+            ->with('success', 'Asset accessory successfully deleted!');
     }
 
     /**

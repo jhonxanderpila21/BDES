@@ -483,5 +483,22 @@ class AuditTrailTest extends TestCase
         $adminExportResponse->assertOk();
         $this->assertEquals('text/csv; charset=UTF-8', $adminExportResponse->headers->get('content-type'));
     }
+
+    public function test_asset_history_renders_nested_array_audit_values_without_error(): void
+    {
+        AuditLog::create([
+            'user_id'        => $this->user->id,
+            'event'          => 'updated',
+            'auditable_type' => Asset::class,
+            'auditable_id'   => Asset::first()?->id ?? 1,
+            'description'    => 'Updated nested metadata on asset.',
+            'old_values'     => ['metadata' => ['tags' => ['rescue', 'boat'], 'count' => 1]],
+            'new_values'     => ['metadata' => ['tags' => ['rescue', 'marine'], 'count' => 2]],
+        ]);
+
+        $response = $this->actingAs($this->user)->get(route('asset-history.index'));
+        $response->assertOk();
+        $response->assertSee('Updated nested metadata on asset.');
+    }
 }
 

@@ -58,6 +58,8 @@
             color="blue" 
             subtitle="Total registered items" 
             :href="route('attachments.index', ['tab' => 'all'])" 
+            :active="!request()->anyFilled(['status', 'search', 'type', 'condition', 'asset_type', 'asset_id'])"
+            tooltip="Show all components & parts"
         />
         <x-kpi-card 
             title="Units in Stock" 
@@ -65,6 +67,8 @@
             icon="fas fa-boxes-stacked" 
             color="indigo" 
             subtitle="Items currently in stock" 
+            :href="route('attachments.index', ['tab' => 'all', 'status' => 'Available'])"
+            tooltip="Filter by available stock"
         />
         <x-kpi-card 
             title="Available In-Service" 
@@ -72,6 +76,9 @@
             icon="fas fa-check-circle" 
             color="emerald" 
             subtitle="Ready to use" 
+            :href="route('attachments.index', ['tab' => 'all', 'status' => 'Available'])"
+            :active="request('status') === 'Available'"
+            tooltip="Filter by available in-service"
         />
         <x-kpi-card 
             title="Total Valuation" 
@@ -79,6 +86,8 @@
             icon="fas fa-coins" 
             color="purple" 
             subtitle="Total recorded value" 
+            :href="auth()->user()?->isAdmin() ? route('financials.expenses', ['category' => 'component_part']) : route('attachments.index', ['tab' => 'all'])"
+            tooltip="View components & parts valuation"
         />
     </div>
 

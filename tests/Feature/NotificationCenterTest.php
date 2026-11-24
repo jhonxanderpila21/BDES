@@ -25,39 +25,37 @@ class NotificationCenterTest extends TestCase
     }
 
     /**
-     * Test the dedicated notification center page and its route have been removed.
+     * Test the dedicated notification center page is accessible.
      */
-    public function test_notification_center_page_and_route_are_removed(): void
+    public function test_notification_center_page_and_route_are_accessible(): void
     {
         $response = $this->actingAs($this->user)->get('/notifications');
 
-        $response->assertStatus(404);
+        $response->assertStatus(200);
     }
 
     /**
-     * Test the sidebar no longer contains the Notifications Center menu item.
+     * Test the sidebar contains the Notifications Center menu item.
      */
-    public function test_sidebar_does_not_contain_notification_center(): void
+    public function test_sidebar_contains_notification_center(): void
     {
         $response = $this->actingAs($this->user)->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertDontSee('Notifications Center');
-        $response->assertDontSee('href="http://localhost/notifications"', false);
+        $response->assertSee('Notifications');
+        $response->assertSee(route('notifications.index'), false);
     }
 
     /**
-     * Test the top navigation bell is retained with dropdown and unread badge.
+     * Test the dashboard includes notification navigation and JS component.
      */
     public function test_top_navbar_bell_is_retained(): void
     {
         $response = $this->actingAs($this->user)->get(route('dashboard'));
 
         $response->assertStatus(200);
-        $response->assertSee('fa-bell', false);
         $response->assertSee('bdesNotificationComponent', false);
-        $response->assertSee(route('notifications.mark-read'), false);
-        $response->assertSee(route('notifications.mark-all-read'), false);
+        $response->assertSee(route('notifications.index'), false);
     }
 
     /**

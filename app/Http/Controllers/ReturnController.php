@@ -106,7 +106,7 @@ class ReturnController extends Controller
         });
 
         return redirect()->route('deployment.index')
-            ->with('success', 'Return recorded successfully and asset status updated!');
+            ->with('success', 'Return successfully recorded and asset status updated!');
     }
 
     public function update(Request $request, AssetReturn $return)
@@ -150,7 +150,7 @@ class ReturnController extends Controller
         });
 
         return redirect()->route('returns.index')
-            ->with('success', 'Return record updated successfully!');
+            ->with('success', 'Return record successfully updated!');
     }
 
     public function destroy(AssetReturn $return)
@@ -160,7 +160,7 @@ class ReturnController extends Controller
             $asset = $return->asset;
             $return->delete();
 
-            // Optional: reverting is a business-logic decision, not a syntax fix —
+            // Optional: reverting is a business-logic decision, not a syntax fix â€”
             // remove this block if a deleted return record should NOT re-deploy the asset.
             if ($asset) {
                 $asset->status = 'deployed';
@@ -169,6 +169,6 @@ class ReturnController extends Controller
         });
 
         return redirect()->route('returns.index')
-            ->with('success', 'Return record deleted successfully!');
+            ->with('success', 'Return record successfully deleted!');
     }
 }

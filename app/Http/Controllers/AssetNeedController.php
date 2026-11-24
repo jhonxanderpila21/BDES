@@ -82,7 +82,7 @@ class AssetNeedController extends Controller
         \App\Services\ReceiptService::attachFromRequest($need, $request);
 
         return redirect()->route('asset-needs.index')
-            ->with('success', 'Asset need created successfully!');
+            ->with('success', 'Asset need successfully created!');
     }
 
     /**
@@ -101,7 +101,7 @@ class AssetNeedController extends Controller
         $assetNeed->update($validated);
 
         return redirect()->route('asset-needs.index')
-            ->with('success', 'Asset need updated successfully!');
+            ->with('success', 'Asset need successfully updated!');
     }
 
     /**
@@ -114,7 +114,7 @@ class AssetNeedController extends Controller
         $assetNeed->delete();
 
         return redirect()->route('asset-needs.index')
-            ->with('success', 'Asset need deleted successfully!');
+            ->with('success', 'Asset need successfully deleted!');
     }
 
     /**

@@ -85,7 +85,7 @@ class ArchivedRecordController extends Controller
             $identifier = $record->code ?? $record->work_order_number ?? $record->name ?? "#{$record->id}";
 
             return redirect()->route('archived-records.index', $request->query())
-                ->with('success', "Record [{$identifier}] restored successfully to its active module with relationships intact.");
+                ->with('success', "Record [{$identifier}] successfully restored to its active module with relationships intact.");
         } catch (\Exception $e) {
             return redirect()->route('archived-records.index', $request->query())
                 ->with('error', "Failed to restore record: {$e->getMessage()}");

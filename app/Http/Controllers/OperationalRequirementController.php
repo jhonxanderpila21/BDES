@@ -267,7 +267,7 @@ class OperationalRequirementController extends Controller
         \App\Services\ReceiptService::attachFromRequest($requirement, $request);
 
         return redirect()->route('operational-requirements.index')
-            ->with('success', 'Operational requirement created successfully with supporting documents!');
+            ->with('success', 'Operational requirement successfully created with supporting documents!');
     }
 
     public function show(Request $request, OperationalRequirement $operationalRequirement)
@@ -341,7 +341,7 @@ class OperationalRequirementController extends Controller
         $operationalRequirement->update($validated);
 
         return redirect()->route('operational-requirements.index')
-            ->with('success', 'Operational requirement updated successfully!');
+            ->with('success', 'Operational requirement successfully updated!');
     }
 
     public function destroy(Request $request, OperationalRequirement $operationalRequirement)
@@ -351,7 +351,7 @@ class OperationalRequirementController extends Controller
         $operationalRequirement->delete();
 
         return redirect()->route('operational-requirements.index')
-            ->with('success', 'Operational requirement deleted successfully!');
+            ->with('success', 'Operational requirement successfully deleted!');
     }
 
     public function refill(Request $request, OperationalRequirement $operationalRequirement)

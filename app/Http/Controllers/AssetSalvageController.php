@@ -75,11 +75,11 @@ class AssetSalvageController extends Controller
         // Enforce capitalization threshold: Items below threshold cannot have a salvage value
         if (!$asset->is_capitalized_ppe) {
             $thresholdFormatted = number_format(\App\Services\PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD, 2);
-            return redirect()->back()->with('error', "Items with acquisition cost below ₱{$thresholdFormatted} are classified as Semi-Expendable Property and cannot have a salvage value record.");
+            return redirect()->back()->with('error', "Items with acquisition cost below â‚±{$thresholdFormatted} are classified as Semi-Expendable Property and cannot have a salvage value record.");
         }
 
         if ($request->has('salvage_value') && is_string($request->salvage_value)) {
-            $clean = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $request->salvage_value));
+            $clean = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $request->salvage_value));
             $request->merge(['salvage_value' => $clean === '' ? null : $clean]);
         }
         if ($request->has('salvage_notes')) {
@@ -98,7 +98,7 @@ class AssetSalvageController extends Controller
             'salvage_notes' => $validated['salvage_notes'] ?? null,
         ]);
 
-        return redirect()->back()->with('success', "Salvage value record for '{$asset->name}' updated successfully.");
+        return redirect()->back()->with('success', "Salvage value record for '{$asset->name}' successfully updated.");
     }
 
     /**
@@ -134,7 +134,7 @@ class AssetSalvageController extends Controller
 
             foreach ($assets as $asset) {
                 if (!$asset->is_capitalized_ppe) {
-                    $method = 'COA Semi-Expendable (₱0.00 Non-Salvageable)';
+                    $method = 'COA Semi-Expendable (â‚±0.00 Non-Salvageable)';
                 } else {
                     $method = ($asset->salvage_value !== null && $asset->salvage_value > 0)
                         ? 'Custom Appraised Valuation'

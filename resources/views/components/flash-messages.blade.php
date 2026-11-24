@@ -1,7 +1,7 @@
 {{--
     Single source of truth for global floating toast notifications.
     Rendered ONCE by the admin layout — does NOT affect page flow or layout.
-    Auto-dismisses within 4.5s with smooth exit animations, pause-on-hover, and manual close.
+    Auto-dismisses within 5s with smooth exit animations, pause-on-hover, and manual close.
     Provides global JS helper: window.bdesToast(message, type, duration, title).
 --}}
 @php
@@ -24,7 +24,7 @@
 
 <div id="bdes-toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 max-w-sm sm:max-w-md w-[calc(100vw-2.5rem)] pointer-events-none" aria-live="polite">
     @if($errors->any())
-        <div class="bdes-toast pointer-events-auto transform transition-all duration-300 ease-out translate-x-0 opacity-100 bg-white border border-rose-200 rounded-xl shadow-xl overflow-hidden" data-duration="6000" role="alert">
+        <div class="bdes-toast pointer-events-auto transform transition-all duration-300 ease-out translate-x-0 opacity-100 bg-white border border-rose-200 rounded-xl shadow-xl overflow-hidden" data-duration="5000" role="alert">
             <div class="p-3.5 sm:p-4 flex items-start gap-3">
                 <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 mt-0.5">
                     <i class="fas fa-circle-xmark text-base"></i>
@@ -89,7 +89,7 @@
                 'bar'       => 'bg-gray-500',
             ];
         @endphp
-        <div class="bdes-toast pointer-events-auto transform transition-all duration-300 ease-out translate-x-0 opacity-100 bg-white border {{ $typeConfig['border'] }} rounded-xl shadow-xl overflow-hidden" data-duration="4500" role="status">
+        <div class="bdes-toast pointer-events-auto transform transition-all duration-300 ease-out translate-x-0 opacity-100 bg-white border {{ $typeConfig['border'] }} rounded-xl shadow-xl overflow-hidden" data-duration="5000" role="status">
             <div class="p-3.5 sm:p-4 flex items-start gap-3">
                 <div class="w-8 h-8 rounded-lg {{ $typeConfig['iconBg'] }} flex items-center justify-center shrink-0 mt-0.5">
                     <i class="{{ $typeConfig['icon'] }} text-base"></i>
@@ -145,7 +145,7 @@
         }
     };
 
-    function initToastItem(toastEl, duration = 4500) {
+    function initToastItem(toastEl, duration = 5000) {
         if (!toastEl || toastEl.dataset.initialized === 'true') return;
         toastEl.dataset.initialized = 'true';
 
@@ -206,7 +206,7 @@
 
     // Initialize any server-rendered toasts
     document.querySelectorAll('#bdes-toast-container .bdes-toast').forEach(toast => {
-        const duration = parseInt(toast.dataset.duration, 10) || 4500;
+        const duration = parseInt(toast.dataset.duration, 10) || 5000;
         initToastItem(toast, duration);
     });
 
@@ -214,10 +214,10 @@
      * Global Toast Notification Function
      * @param {string} message - Notification text
      * @param {string} type - 'success', 'error', 'warning', 'info'
-     * @param {number} duration - Milliseconds before auto-exit (default 4500)
+     * @param {number} duration - Milliseconds before auto-exit (default 5000)
      * @param {string|null} customTitle - Optional title override
      */
-    window.bdesToast = function(message, type = 'info', duration = 4500, customTitle = null) {
+    window.bdesToast = function(message, type = 'info', duration = 5000, customTitle = null) {
         let container = document.getElementById('bdes-toast-container');
         if (!container) {
             container = document.createElement('div');

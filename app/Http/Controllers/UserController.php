@@ -66,7 +66,19 @@ class UserController extends Controller
 
         $users = $query->orderBy('name', 'asc')->paginate(10)->withQueryString();
 
-        return view('administration.users.index', compact('users'));
+        $existingNames = User::withTrashed()
+            ->pluck('name')
+            ->filter()
+            ->map(fn ($n) => strtolower(trim(preg_replace('/\s+/', ' ', $n))))
+            ->values();
+
+        $existingPhones = User::withTrashed()
+            ->pluck('phone_number')
+            ->filter()
+            ->map(fn ($p) => preg_replace('/^\+?63/', '0', trim($p)))
+            ->values();
+
+        return view('administration.users.index', compact('users', 'existingNames', 'existingPhones'));
     }
 
     public function store(Request $request)
@@ -102,6 +114,27 @@ class UserController extends Controller
             $input['phone_number'] = self::generateUniquePhoneNumber();
         }
 
+        // When submitted from the Add User modal UI, enforce unique full name and default username to phone number
+        if ($request->input('_form') === 'add_user') {
+            $nameParts = array_filter([
+                $input['first_name'] ?? '',
+                $input['middle_name'] ?? '',
+                $input['last_name'] ?? '',
+                $input['suffix'] ?? '',
+            ]);
+            $fullName = strtolower(trim(preg_replace('/\s+/', ' ', implode(' ', $nameParts))));
+
+            if ($fullName !== '' && User::withTrashed()->whereRaw('LOWER(name) = ?', [$fullName])->exists()) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'first_name' => 'A user with this full name already exists. Names must be unique.',
+                ]);
+            }
+
+            if (empty($input['username']) && ! empty($input['phone_number'])) {
+                $input['username'] = preg_replace('/^\+?63/', '0', $input['phone_number']);
+            }
+        }
+
         // Auto-generate username and email from first and last name if not provided
         if (empty($input['username']) && ! empty($input['first_name']) && ! empty($input['last_name'])) {
             $input['username'] = self::generateBaseUsername($input['first_name'], $input['last_name']);
@@ -110,8 +143,8 @@ class UserController extends Controller
             $input['email'] = self::generateBaseEmail($input['first_name'], $input['last_name']);
         }
 
-        // Automatically resolve any uniqueness collision with existing users (including soft-deleted)
-        if (! empty($input['username'])) {
+        // Automatically resolve any uniqueness collision with existing users (only when not using phone-as-username on add_user)
+        if (! empty($input['username']) && $request->input('_form') !== 'add_user') {
             $input['username'] = self::makeUniqueUsername($input['username']);
         }
         if (! empty($input['email'])) {
@@ -120,7 +153,7 @@ class UserController extends Controller
 
         $request->merge($input);
 
-        $nameRegex = '/^[a-zA-Z\s\-\'\.ñÑáéíóúÁÉÍÓÚ]+$/u';
+        $nameRegex = '/^[a-zA-Z\s\-\'\.Ã±Ã‘Ã¡Ã©Ã­Ã³ÃºÃÃ‰ÃÃ“Ãš]+$/u';
 
         $validated = $request->validate([
             'first_name'   => ['required', 'string', 'max:50', 'regex:' . $nameRegex],
@@ -204,7 +237,7 @@ class UserController extends Controller
         }
         $request->merge($input);
 
-        $nameRegex = '/^[a-zA-Z\s\-\'\.ñÑáéíóúÁÉÍÓÚ]+$/u';
+        $nameRegex = '/^[a-zA-Z\s\-\'\.Ã±Ã‘Ã¡Ã©Ã­Ã³ÃºÃÃ‰ÃÃ“Ãš]+$/u';
 
         $validated = $request->validate([
             'first_name'   => ['required', 'string', 'max:50', 'regex:' . $nameRegex],
@@ -223,6 +256,20 @@ class UserController extends Controller
             'phone_number.regex'  => 'Please enter a valid Philippine mobile number (e.g., +639171234567 or 09171234567).',
             'phone_number.unique' => 'This phone number is already registered to another user.',
         ]);
+
+        $nameParts = array_filter([
+            $validated['first_name'],
+            $validated['middle_name'] ?? '',
+            $validated['last_name'],
+            $validated['suffix'] ?? '',
+        ]);
+        $fullName = strtolower(trim(preg_replace('/\s+/', ' ', implode(' ', $nameParts))));
+
+        if (User::withTrashed()->where('id', '!=', $user->id)->whereRaw('LOWER(name) = ?', [$fullName])->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'first_name' => 'A user with this full name already exists. Names must be unique.',
+            ]);
+        }
 
         $phoneChanged = ($validated['phone_number'] ?? null) !== $user->phone_number;
 
@@ -252,7 +299,7 @@ class UserController extends Controller
         }
 
         return redirect()->route('users.index')
-            ->with('success', 'User updated successfully!');
+            ->with('success', 'User successfully updated!');
     }
 
     public function destroy(User $user)
@@ -288,7 +335,7 @@ class UserController extends Controller
         $user->restore();
 
         return redirect()->route('users.index', ['status' => 'archived'])
-            ->with('success', "User account for {$user->name} restored successfully.");
+            ->with('success', "User account for {$user->name} successfully restored.");
     }
 
     /**

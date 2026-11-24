@@ -323,7 +323,7 @@ class MaintenanceController extends Controller
         // Normalize text and cost inputs
         $input = $request->all();
         if (isset($input['cost']) && is_string($input['cost'])) {
-            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            $input['cost'] = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $input['cost']));
             if ($input['cost'] === '') {
                 $input['cost'] = null;
             }
@@ -437,7 +437,7 @@ class MaintenanceController extends Controller
         });
 
         return redirect()->route('maintenance.index', ['tab' => 'logs'])
-            ->with('success', "Work Order [{$maintenance->work_order_number}] created successfully!");
+            ->with('success', "Work Order [{$maintenance->work_order_number}] successfully created!");
     }
 
     /**
@@ -451,7 +451,7 @@ class MaintenanceController extends Controller
         // Normalize text and cost inputs
         $input = $request->all();
         if (isset($input['cost']) && is_string($input['cost'])) {
-            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            $input['cost'] = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $input['cost']));
             if ($input['cost'] === '') {
                 $input['cost'] = null;
             }
@@ -554,7 +554,7 @@ class MaintenanceController extends Controller
         });
 
         return redirect()->route('maintenance.index', ['tab' => 'logs'])
-            ->with('success', "Work Order [{$maintenance->work_order_number}] updated successfully!");
+            ->with('success', "Work Order [{$maintenance->work_order_number}] successfully updated!");
     }
 
     /**
@@ -567,7 +567,7 @@ class MaintenanceController extends Controller
 
         $input = $request->all();
         if (isset($input['cost']) && is_string($input['cost'])) {
-            $input['cost'] = trim(str_replace([',', '₱', '$', 'PHP', ' '], '', $input['cost']));
+            $input['cost'] = trim(str_replace([',', 'â‚±', '$', 'PHP', ' '], '', $input['cost']));
             if ($input['cost'] === '') {
                 $input['cost'] = null;
             }
@@ -662,7 +662,7 @@ class MaintenanceController extends Controller
             AuditTrailService::log(
                 'status_changed',
                 $maintenance,
-                "Work Order [{$maintenance->work_order_number}] verified and completed. Final Condition: {$finalCondition}, Status: {$finalStatus}, Cost: ₱" . number_format($maintenance->cost ?? 0, 2),
+                "Work Order [{$maintenance->work_order_number}] verified and completed. Final Condition: {$finalCondition}, Status: {$finalStatus}, Cost: â‚±" . number_format($maintenance->cost ?? 0, 2),
                 ['status' => 'in_progress'],
                 [
                     'status' => 'completed',
@@ -675,7 +675,7 @@ class MaintenanceController extends Controller
         });
 
         return redirect()->route('maintenance.index', ['tab' => 'logs'])
-            ->with('success', "Work Order [{$maintenance->work_order_number}] verified and completed successfully!");
+            ->with('success', "Work Order [{$maintenance->work_order_number}] verified and successfully completed!");
     }
 
     /**
@@ -708,7 +708,7 @@ class MaintenanceController extends Controller
         });
 
         return redirect()->route('maintenance.index', ['tab' => 'logs'])
-            ->with('success', 'Maintenance record deleted successfully!');
+            ->with('success', 'Maintenance record successfully deleted!');
     }
 
     /**
@@ -771,7 +771,7 @@ class MaintenanceController extends Controller
                 'total_cost'     => $itemTotalCost,
             ]);
 
-            $summaryList[] = "{$qty}x {$partName}" . ($unitCost > 0 ? " (₱" . number_format($itemTotalCost, 2) . ")" : "");
+            $summaryList[] = "{$qty}x {$partName}" . ($unitCost > 0 ? " (â‚±" . number_format($itemTotalCost, 2) . ")" : "");
         }
 
         if (!empty($summaryList)) {
@@ -897,6 +897,6 @@ class MaintenanceController extends Controller
             );
         });
 
-        return redirect()->back()->with('success', "Personnel assigned to Work Order [{$maintenance->work_order_number}] updated successfully.");
+        return redirect()->back()->with('success', "Personnel assigned to Work Order [{$maintenance->work_order_number}] successfully updated.");
     }
 }

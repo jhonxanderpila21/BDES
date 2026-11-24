@@ -274,7 +274,7 @@ class AttachmentController extends Controller
         \App\Services\ReceiptService::attachFromRequest($attachment, $request);
 
         return redirect()->route('attachments.index', ['tab' => 'attachments'])
-            ->with('success', 'Attachment created successfully with supporting documents!');
+            ->with('success', 'Attachment successfully created with supporting documents!');
     }
 
     /**
@@ -341,7 +341,7 @@ class AttachmentController extends Controller
         $attachment->update($validated);
 
         return redirect()->route('attachments.index', ['tab' => 'attachments'])
-            ->with('success', 'Attachment updated successfully!');
+            ->with('success', 'Attachment successfully updated!');
     }
 
     /**
@@ -356,6 +356,6 @@ class AttachmentController extends Controller
         $attachment->delete();
 
         return redirect()->route('attachments.index', ['tab' => 'attachments'])
-            ->with('success', 'Attachment deleted successfully!');
+            ->with('success', 'Attachment successfully deleted!');
     }
 }

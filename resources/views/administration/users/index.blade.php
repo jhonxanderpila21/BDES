@@ -63,23 +63,27 @@
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Username</th>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone Number</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Phone Number / Username</th>
                         <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Password Status</th>
                         <th class="px-6 py-3.5 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     @forelse($users as $user)
                         @php
+                            $displayPhone = $user->phone_number
+                                ? preg_replace('/^\+?63/', '0', $user->phone_number)
+                                : null;
                             $userDetail = [
-                                'name'         => $user->name,
-                                'username'     => $user->username,
-                                'phone_number' => $user->phone_number ?: 'Not provided',
-                                'role'         => $roleLabels[$user->role] ?? ucwords(str_replace('_', ' ', $user->role)),
-                                'status'       => $user->trashed() ? 'Archived (Deleted)' : ($user->is_active ? 'Active' : 'Inactive'),
-                                'created_at'   => $user->created_at?->format('M d, Y h:i A') ?? 'N/A',
+                                'name'            => $user->name,
+                                'username'        => $user->username,
+                                'phone_number'    => $displayPhone ?: 'Not provided',
+                                'role'            => $roleLabels[$user->role] ?? ucwords(str_replace('_', ' ', $user->role)),
+                                'status'          => $user->trashed() ? 'Archived (Deleted)' : ($user->is_active ? 'Active' : 'Inactive'),
+                                'password_status' => $user->must_change_password ? 'Not Yet Changed' : 'Changed',
+                                'created_at'      => $user->created_at?->format('M d, Y h:i A') ?? 'N/A',
                             ];
                         @endphp
                         <tr class="hover:bg-blue-50/40 cursor-pointer transition-colors"
@@ -95,11 +99,12 @@
                                     <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">{{ $user->username }}</td>
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-gray-600 text-left">
-                                @if($user->phone_number)
+                                @if($displayPhone)
                                     <div class="flex items-center gap-2">
-                                        <span class="font-medium text-gray-800">{{ $user->phone_number }}</span>
+                                        <span class="font-medium text-gray-800">
+                                            {{ $displayPhone }}@if($user->username && $user->username !== $displayPhone) <span class="text-gray-400 font-normal">/ {{ $user->username }}</span>@endif
+                                        </span>
                                         @if($user->phone_verified_at)
                                             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200" title="Verified at {{ $user->phone_verified_at->format('M d, Y h:i A') }}">
                                                 <i class="fas fa-circle-check text-[10px]"></i> Verified
@@ -111,7 +116,7 @@
                                         @endif
                                     </div>
                                 @else
-                                    <span class="text-xs text-gray-400 italic">{{ $user->email ?: 'Not set' }}</span>
+                                    <span class="text-xs text-gray-500">Not set <span class="text-gray-400">/ {{ $user->username }}</span></span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
@@ -124,6 +129,13 @@
                                     <x-badge :variant="$user->is_active ? 'success' : 'secondary'" size="sm">
                                         {{ $user->is_active ? 'Active' : 'Inactive' }}
                                     </x-badge>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
+                                @if($user->must_change_password)
+                                    <x-badge variant="warning" size="sm">Not Yet Changed</x-badge>
+                                @else
+                                    <x-badge variant="success" size="sm">Changed</x-badge>
                                 @endif
                             </td>
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-sm text-right">
@@ -208,6 +220,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="First Name" required>
                     <input type="text" name="first_name" id="add-user-first-name" placeholder="e.g., Juan" value="{{ old('first_name') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <span id="add-user-name-error" class="hidden text-[11px] text-rose-600 font-medium mt-1"></span>
                 </x-form-group>
 
                 <x-form-group label="Middle Name (Optional)">
@@ -233,9 +246,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-form-group label="Username" required>
                     <div class="relative">
-                        <input type="text" name="username" id="add-user-username" placeholder="e.g., delacruzjuan" value="{{ old('username') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="text" name="username" id="add-user-username" placeholder="09171234567" value="{{ old('username') }}" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                     </div>
-                    <span id="add-user-username-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-generated based on Last and First Name.</span>
+                    <span id="add-user-username-hint" class="text-[11px] text-gray-500 mt-1 block">Auto-filled from Phone Number.</span>
                 </x-form-group>
 
                 <x-form-group label="Phone Number" required>
@@ -244,12 +257,13 @@
                             type="tel"
                             name="phone_number"
                             id="add-user-phone"
-                            placeholder="+639171234567"
+                            placeholder="09171234567"
                             value="{{ old('phone_number', '+63') }}"
                             required
                             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                     </div>
+                    <span id="add-user-phone-error" class="hidden text-[11px] text-rose-600 font-medium mt-1"></span>
                     <span class="text-[11px] text-gray-500 mt-1 block">Supports +639XXXXXXXXX or 09XXXXXXXXX format.</span>
                 </x-form-group>
             </div>
@@ -273,7 +287,7 @@
             </div>
 
             <div class="flex gap-3 mt-6">
-                <x-button variant="primary" type="submit" class="flex-1">Create User</x-button>
+                <x-button variant="primary" type="submit" id="add-user-submit-btn" class="flex-1">Create User</x-button>
                 <x-button variant="secondary" type="button" onclick="window.closeModal('add-user-modal')" class="flex-1">Cancel</x-button>
             </div>
         </form>
@@ -338,20 +352,77 @@
 
     @push('scripts')
         <script>
-            // Existing usernames to prevent collisions instantly in real-time
+            // Existing usernames, names, and phone numbers for instant uniqueness checks
             const existingUsernames = new Set(@json(\App\Models\User::withTrashed()->pluck('username')->filter()->map(fn($u) => strtolower($u))));
+            const existingNames = new Set(@json($existingNames ?? []));
+            const existingPhones = new Set(@json($existingPhones ?? []));
 
             const addFirstNameInput = document.getElementById('add-user-first-name');
+            const addMiddleNameInput = document.getElementById('add-user-middle-name');
             const addLastNameInput = document.getElementById('add-user-last-name');
+            const addSuffixInput = document.getElementById('add-user-suffix');
+            const addPhoneInput = document.getElementById('add-user-phone');
             const addUsernameInput = document.getElementById('add-user-username');
             const addUsernameHint = document.getElementById('add-user-username-hint');
+            const addNameError = document.getElementById('add-user-name-error');
+            const addPhoneError = document.getElementById('add-user-phone-error');
+            const addSubmitBtn = document.getElementById('add-user-submit-btn');
 
             let usernameManuallyChanged = {{ old('username') ? 'true' : 'false' }};
+
+            function normalizePhoneLocal(val) {
+                const digits = (val || '').replace(/[^0-9+]/g, '');
+                if (digits.startsWith('+63')) return '0' + digits.slice(3);
+                if (digits.startsWith('63') && digits.length >= 12) return '0' + digits.slice(2);
+                return digits;
+            }
+
+            function validateAddUserUniqueness() {
+                const parts = [
+                    (addFirstNameInput?.value || '').trim(),
+                    (addMiddleNameInput?.value || '').trim(),
+                    (addLastNameInput?.value || '').trim(),
+                    (addSuffixInput?.value || '').trim(),
+                ].filter(Boolean);
+                const fullName = parts.join(' ').replace(/\s+/g, ' ').toLowerCase();
+                const hasDuplicateName = fullName.length > 0 && existingNames.has(fullName);
+
+                if (addNameError) {
+                    if (hasDuplicateName) {
+                        addNameError.textContent = 'This full name is already registered. Names must be unique.';
+                        addNameError.classList.remove('hidden');
+                    } else {
+                        addNameError.textContent = '';
+                        addNameError.classList.add('hidden');
+                    }
+                }
+
+                const localPhone = normalizePhoneLocal(addPhoneInput?.value || '');
+                const hasDuplicatePhone = localPhone.length >= 10 && existingPhones.has(localPhone);
+
+                if (addPhoneError) {
+                    if (hasDuplicatePhone) {
+                        addPhoneError.textContent = 'This phone number is already registered.';
+                        addPhoneError.classList.remove('hidden');
+                    } else {
+                        addPhoneError.textContent = '';
+                        addPhoneError.classList.add('hidden');
+                    }
+                }
+
+                if (addSubmitBtn) {
+                    const blocked = hasDuplicateName || hasDuplicatePhone;
+                    addSubmitBtn.disabled = blocked;
+                    addSubmitBtn.classList.toggle('opacity-50', blocked);
+                    addSubmitBtn.classList.toggle('cursor-not-allowed', blocked);
+                }
+            }
 
             function openAddUserModal() {
                 if (!{!! json_encode(old('_form') === 'add_user') !!}) {
                     usernameManuallyChanged = false;
                 }
+                validateAddUserUniqueness();
                 window.openModal('add-user-modal');
             }
 
@@ -365,45 +436,28 @@
             });
 
             function autoGenerateCredentials() {
-                const firstName = (addFirstNameInput?.value || '').trim();
-                const lastName = (addLastNameInput?.value || '').trim();
-
-                if (!firstName || !lastName) {
-                    if (!usernameManuallyChanged && addUsernameInput) {
-                        addUsernameInput.value = '';
-                        if (addUsernameHint) addUsernameHint.innerHTML = '<span class="text-[11px] text-gray-500">Auto-generated from First and Last Name.</span>';
-                    }
-                    return;
-                }
-
-                // Sanitize to alphanumeric characters
-                const cleanFirst = firstName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
-                const cleanLast = lastName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '');
-
-                const baseUser = (cleanLast && cleanFirst) ? (cleanLast + cleanFirst) : (cleanLast || cleanFirst || 'user');
-
-                let candidateUser = baseUser;
-                let counter = 1;
-
-                while (existingUsernames.has(candidateUser)) {
-                    counter++;
-                    candidateUser = baseUser + counter;
-                }
-
+                const localPhone = normalizePhoneLocal(addPhoneInput?.value || '');
                 if (!usernameManuallyChanged && addUsernameInput) {
-                    addUsernameInput.value = candidateUser;
-                    if (addUsernameHint) {
-                        if (counter > 1) {
-                            addUsernameHint.innerHTML = '<span class="text-amber-600 font-medium text-[11px]"><i class="fas fa-shield-alt mr-1"></i> Suffix <strong>' + counter + '</strong> auto-applied to avoid conflict with existing ' + baseUser + '.</span>';
-                        } else {
-                            addUsernameHint.innerHTML = '<span class="text-emerald-600 font-medium text-[11px]"><i class="fas fa-check-circle mr-1"></i> Unique username auto-generated.</span>';
+                    if (localPhone && localPhone !== '+') {
+                        addUsernameInput.value = localPhone;
+                        if (addUsernameHint) {
+                            addUsernameHint.innerHTML = '<span class="text-emerald-600 font-medium text-[11px]"><i class="fas fa-phone mr-1"></i> Using phone number as username.</span>';
+                        }
+                    } else {
+                        addUsernameInput.value = '';
+                        if (addUsernameHint) {
+                            addUsernameHint.innerHTML = '<span class="text-[11px] text-gray-500">Auto-filled from Phone Number.</span>';
                         }
                     }
                 }
+                validateAddUserUniqueness();
             }
 
-            addFirstNameInput?.addEventListener('input', autoGenerateCredentials);
-            addLastNameInput?.addEventListener('input', autoGenerateCredentials);
+            addFirstNameInput?.addEventListener('input', validateAddUserUniqueness);
+            addMiddleNameInput?.addEventListener('input', validateAddUserUniqueness);
+            addLastNameInput?.addEventListener('input', validateAddUserUniqueness);
+            addSuffixInput?.addEventListener('change', validateAddUserUniqueness);
+            addPhoneInput?.addEventListener('input', autoGenerateCredentials);
 
             function openEditUserModal(id, firstName, middleName, lastName, suffix, username, phoneNumber, role) {
                 const form = document.getElementById('edit-user-form');
@@ -413,10 +467,35 @@
                 document.getElementById('edit-user-last-name').value = lastName || '';
                 document.getElementById('edit-user-suffix').value = suffix || '';
                 document.getElementById('edit-user-username').value = username || '';
-                document.getElementById('edit-user-phone').value = phoneNumber || '';
+                document.getElementById('edit-user-phone').value = phoneNumber ? phoneNumber.replace(/^\+?63/, '0') : '';
                 document.getElementById('edit-user-role').value = role || '';
                 window.openModal('edit-user-modal');
             }
+
+            // Auto-clear +63 prefix on backspace/delete so user can immediately type 09...
+            ['add-user-phone', 'edit-user-phone'].forEach(function (id) {
+                const phoneInput = document.getElementById(id);
+                if (!phoneInput) return;
+
+                phoneInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Backspace' || e.key === 'Delete') {
+                        const val = phoneInput.value.trim();
+                        if (val === '+63' || val === '+6' || val === '+' || val === '63') {
+                            e.preventDefault();
+                            phoneInput.value = '';
+                        }
+                    }
+                });
+
+                phoneInput.addEventListener('input', function (e) {
+                    if (e.inputType && e.inputType.startsWith('delete')) {
+                        const val = phoneInput.value.trim();
+                        if (val === '+6' || val === '+' || val === '63') {
+                            phoneInput.value = '';
+                        }
+                    }
+                });
+            });
 
             function openUserDetailsModal(u) {
                 document.getElementById('user_detail_name').textContent = u.name || '';
@@ -424,6 +503,7 @@
                 document.getElementById('user_detail_role').textContent = u.role || '';
                 document.getElementById('user_detail_status').textContent = u.status || '';
                 document.getElementById('user_detail_phone').textContent = u.phone_number || 'Not provided';
+                document.getElementById('user_detail_password_status').textContent = u.password_status || 'N/A';
                 document.getElementById('user_detail_created').textContent = u.created_at || 'N/A';
                 window.openModal('user-details-modal');
             }
@@ -448,9 +528,15 @@
                         <p id="user_detail_phone" class="font-medium text-gray-900 mt-0.5"></p>
                     </div>
                 </div>
-                <div class="p-3 bg-white rounded-lg border border-gray-200">
-                    <p class="text-xs font-semibold uppercase text-gray-500">Account Created</p>
-                    <p id="user_detail_created" class="font-medium text-gray-900 mt-0.5"></p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-white rounded-lg border border-gray-200">
+                        <p class="text-xs font-semibold uppercase text-gray-500">Password Status</p>
+                        <p id="user_detail_password_status" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
+                    <div class="p-3 bg-white rounded-lg border border-gray-200">
+                        <p class="text-xs font-semibold uppercase text-gray-500">Account Created</p>
+                        <p id="user_detail_created" class="font-medium text-gray-900 mt-0.5"></p>
+                    </div>
                 </div>
                 <div class="flex justify-end pt-2 border-t border-gray-200">
                     <button type="button" onclick="closeModal('user-details-modal')" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium">Close</button>

@@ -471,7 +471,8 @@ class ArchivedRecordsSeeder extends Seeder
                 'name'              => 'Intern Trainee Carlo Mendoza',
                 'first_name'        => 'Carlo',
                 'last_name'         => 'Mendoza',
-                'username'          => 'cmendoza_trainee',
+                'username'          => '09171000099',
+                'phone_number'      => '+639171000099',
                 'email'             => 'cmendoza_trainee@bdes.gov',
                 'role'              => 'viewer',
                 'password'          => Hash::make('password'),
@@ -484,11 +485,13 @@ class ArchivedRecordsSeeder extends Seeder
         ];
 
         foreach ($archivedUsers as $item) {
-            $user = User::withTrashed()->firstOrNew(['username' => $item['username']]);
+            $user = User::withTrashed()->firstOrNew(['email' => $item['email']]);
             $user->fill([
                 'name'              => $item['name'],
                 'first_name'        => $item['first_name'],
                 'last_name'         => $item['last_name'],
+                'username'          => $item['username'],
+                'phone_number'      => $item['phone_number'],
                 'email'             => $item['email'],
                 'role'              => $item['role'],
                 'password'          => $item['password'],

@@ -3,9 +3,9 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class PasswordResetTest extends TestCase
@@ -21,53 +21,58 @@ class PasswordResetTest extends TestCase
 
     public function test_reset_password_link_can_be_requested(): void
     {
-        Notification::fake();
+        $user = User::factory()->create([
+            'phone_number' => '+639171234567',
+        ]);
 
-        $user = User::factory()->create();
+        $response = $this->post('/forgot-password', ['phone_number' => '09171234567']);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
-
-        Notification::assertSentTo($user, ResetPassword::class);
+        $response->assertSessionHas('status');
+        $this->assertDatabaseHas('password_reset_tokens', [
+            'email' => '+639171234567',
+        ]);
     }
 
     public function test_reset_password_screen_can_be_rendered(): void
     {
-        Notification::fake();
+        $user = User::factory()->create([
+            'phone_number' => '+639171234567',
+        ]);
 
-        $user = User::factory()->create();
+        $this->post('/forgot-password', ['phone_number' => '09171234567']);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        $response = $this->get('/reset-password/sample-token?phone_number=' . urlencode('+639171234567'));
 
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-            $response = $this->get('/reset-password/'.$notification->token);
-
-            $response->assertStatus(200);
-
-            return true;
-        });
+        $response->assertStatus(200);
     }
 
     public function test_password_can_be_reset_with_valid_token(): void
     {
-        Notification::fake();
+        $user = User::factory()->create([
+            'phone_number' => '+639171234567',
+        ]);
 
-        $user = User::factory()->create();
+        $plainToken = 'test-reset-token-123456';
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => '+639171234567'],
+            [
+                'token'      => Hash::make($plainToken),
+                'created_at' => now(),
+            ]
+        );
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        $response = $this->post('/reset-password', [
+            'token'                 => $plainToken,
+            'phone_number'          => '09171234567',
+            'password'              => 'NewPassword123!',
+            'password_confirmation' => 'NewPassword123!',
+        ]);
 
-        Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
-            $response = $this->post('/reset-password', [
-                'token' => $notification->token,
-                'email' => $user->email,
-                'password' => 'password',
-                'password_confirmation' => 'password',
-            ]);
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('login'));
 
-            $response
-                ->assertSessionHasNoErrors()
-                ->assertRedirect(route('login'));
-
-            return true;
-        });
+        $user->refresh();
+        $this->assertTrue(Hash::check('NewPassword123!', $user->password));
     }
 }

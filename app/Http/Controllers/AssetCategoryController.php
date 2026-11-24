@@ -58,11 +58,11 @@ class AssetCategoryController extends Controller
                 'tab'                  => 'assets',
                 'reopen_add_asset'     => 1,
                 'selected_category_id' => $created->id,
-            ])->with('success', 'Category created successfully!');
+            ])->with('success', 'Category successfully created!');
         }
 
         return redirect()->route('assets.index', ['tab' => 'categories'])
-            ->with('success', 'Category created successfully!');
+            ->with('success', 'Category successfully created!');
     }
 
     /**
@@ -104,7 +104,7 @@ class AssetCategoryController extends Controller
         $assetCategory->update($validated);
 
         return redirect()->route('assets.index', ['tab' => 'categories'])
-            ->with('success', 'Category updated successfully!');
+            ->with('success', 'Category successfully updated!');
     }
 
     /**
@@ -119,6 +119,6 @@ class AssetCategoryController extends Controller
         $assetCategory->delete();
 
         return redirect()->route('assets.index', ['tab' => 'categories'])
-            ->with('success', 'Category deleted successfully!');
+            ->with('success', 'Category successfully deleted!');
     }
 }
