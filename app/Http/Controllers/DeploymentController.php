@@ -364,7 +364,7 @@ class DeploymentController extends Controller
         $this->authorizeEditor($request);
         Gate::authorize('update', $deployment);
 
-        $validated = $request->validate([
+        $validated = $request->validate(array_merge([
             'destination'          => ['required', 'string', 'max:255'],
             'assigned_team'        => ['nullable', 'string', 'max:255'],
             'responsible_person'   => ['nullable', 'string', 'max:255'],
@@ -372,16 +372,17 @@ class DeploymentController extends Controller
             'expected_return_date' => ['nullable', 'date', 'after_or_equal:deployment_date'],
             'purpose'              => ['nullable', 'string'],
             'status'               => ['nullable', 'string', 'in:active,pending_return,returned'],
-        ], [
+        ], \App\Services\ReceiptService::rules()), array_merge([
             'expected_return_date.after_or_equal' => 'The expected return date must be on or after the deployment date.',
-        ]);
+        ], \App\Services\ReceiptService::messages()));
 
         // Status is managed exclusively via the deployment dispatch and return verification flows.
         // It cannot be changed via edit, preserving returned status and asset consistency.
-        unset($validated['status']);
+        unset($validated['status'], $validated['receipts'], $validated['receipt_reference_number']);
 
-        DB::transaction(function () use ($validated, $deployment) {
+        DB::transaction(function () use ($validated, $deployment, $request) {
             $deployment->update($validated);
+            \App\Services\ReceiptService::attachFromRequest($deployment, $request);
 
             AuditTrailService::log('updated', $deployment, "Deployment #{$deployment->id} details updated.");
         });

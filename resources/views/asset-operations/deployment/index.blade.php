@@ -189,16 +189,34 @@
                             {{-- Deployment Status --}}
                             <td class="px-6 py-4 align-middle whitespace-nowrap text-center">
                                 @php
-                                    $statusVariant = match($deployment->status) {
-                                        'active' => 'info',
-                                        'pending_return' => 'warning',
-                                        'returned' => 'success',
-                                        default => 'info'
-                                    };
-                                    $statusLabel = match($deployment->status) {
-                                        'returned' => 'Available',
-                                        default => ucfirst(str_replace('_', ' ', $deployment->status))
-                                    };
+                                    $returnCond = strtolower($deployment->returnRecord?->condition ?? '');
+                                    $assetCond = strtolower($deployment->asset?->condition ?? '');
+                                    $assetStat = strtolower($deployment->asset?->status ?? '');
+                                    $isNonDeployableReturn = $deployment->status === 'returned' && (
+                                        in_array($returnCond, ['poor', 'fair'], true)
+                                        || in_array($assetCond, ['poor', 'fair'], true)
+                                        || in_array($assetStat, ['out_of_service', 'under_maintenance', 'retired', 'lost'], true)
+                                    );
+
+                                    if ($deployment->status === 'returned') {
+                                        if ($returnCond === 'poor' || $assetCond === 'poor' || $assetStat === 'out_of_service') {
+                                            $statusVariant = 'danger';
+                                            $statusLabel = 'Out of Service';
+                                        } elseif ($returnCond === 'fair' || $assetCond === 'fair' || $assetStat === 'under_maintenance') {
+                                            $statusVariant = 'warning';
+                                            $statusLabel = 'Maintenance';
+                                        } else {
+                                            $statusVariant = 'success';
+                                            $statusLabel = 'Available';
+                                        }
+                                    } else {
+                                        $statusVariant = match($deployment->status) {
+                                            'active' => 'info',
+                                            'pending_return' => 'warning',
+                                            default => 'info'
+                                        };
+                                        $statusLabel = ucfirst(str_replace('_', ' ', $deployment->status));
+                                    }
                                 @endphp
                                 <x-badge variant="{{ $statusVariant }}" size="sm">
                                     {{ $statusLabel }}
@@ -224,11 +242,6 @@
                                                 <x-badge variant="{{ $condColor }}" size="sm">
                                                     {{ ucfirst($cond) }}
                                                 </x-badge>
-                                                @if($deployment->returnRecord->status && $deployment->returnRecord->status !== 'received')
-                                                    <x-badge variant="warning" size="sm">
-                                                        {{ ucfirst(str_replace('_', ' ', $deployment->returnRecord->status)) }}
-                                                    </x-badge>
-                                                @endif
                                             </div>
                                         </div>
                                     @else
@@ -243,7 +256,7 @@
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                                 <div class="flex items-center justify-end gap-1.5">
                                     @if(!$isReadOnlyStaff)
-                                        {{-- If currently deployed: show Return button (Blue); otherwise show Deploy button (Green) --}}
+                                        {{-- If currently deployed: show Return button (Blue); otherwise show Deploy button (Green) only if asset is deployable --}}
                                         @if($deployment->status !== 'returned')
                                             <button 
                                                 type="button"
@@ -254,7 +267,7 @@
                                                 <i class="fas fa-undo"></i>
                                                 <span>Return</span>
                                             </button>
-                                        @else
+                                        @elseif(!$isNonDeployableReturn)
                                             <button 
                                                 type="button"
                                                 onclick="openCreateDeploymentModal({{ $deployment->asset_id ?? 'null' }})" 
@@ -601,7 +614,7 @@
     {{-- MODAL 4: Edit Deployment                                 --}}
     {{-- ======================================================== --}}
     <x-modal id="edit-deployment-modal" title="Edit Deployment Record">
-        <form id="editDeploymentForm" method="POST" class="space-y-4">
+        <form id="editDeploymentForm" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             @method('PUT')
 
@@ -645,6 +658,22 @@
             <x-form-group label="Purpose">
                 <textarea name="purpose" id="edit_purpose" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"></textarea>
             </x-form-group>
+
+            {{-- Existing Attached Pictures / Documents --}}
+            <div id="edit_receipts_container" class="hidden p-3 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5">
+                    <i class="fas fa-images text-blue-600"></i> Attached Pictures / Documents
+                </span>
+                <div id="edit_receipts_list" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+            </div>
+
+            {{-- Upload Additional Picture / Signed Form --}}
+            <x-receipt-input 
+                label="Attach Picture / Signed Borrowing Slip (Optional)" 
+                help="Upload additional photos or documents (PDF, JPG, PNG, WEBP, up to 5 files, 5 MB each)." 
+                :showReference="false" 
+                icon="fas fa-file-signature" 
+            />
 
             <div class="flex gap-3 mt-6">
                 <x-button variant="primary" type="submit" class="flex-1">
@@ -756,10 +785,12 @@
                     <p id="details_purpose" class="text-xs text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-200 mt-1 leading-relaxed"></p>
                 </div>
 
-                {{-- Attached Borrowing Documents / Signed Slips --}}
-                <div id="details_receipts_container" class="hidden pt-1">
-                    <span class="text-xs text-gray-500 block mb-1.5 font-medium">Attached Requisition Slip / Documents</span>
-                    <div id="details_receipts_list" class="flex flex-wrap gap-2"></div>
+                {{-- Attached Borrowing Documents / Signed Slips / Pictures --}}
+                <div id="details_receipts_container" class="hidden pt-2 border-t border-gray-100">
+                    <span class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-1.5 mb-2">
+                        <i class="fas fa-images text-blue-600"></i> Attached Pictures / Documents
+                    </span>
+                    <div id="details_receipts_list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
                 </div>
             </div>
 
@@ -948,6 +979,42 @@
             }
             @endif
 
+            function renderDeploymentReceiptsHtml(receipts) {
+                if (!receipts || receipts.length === 0) return '';
+                return receipts.map(r => {
+                    const url = r.file_url || (r.id ? ('/receipts/' + r.id) : ('/storage/' + r.file_path));
+                    const fileName = r.file_name || r.original_name || 'Attached Picture / Document';
+                    const isImg = Boolean(r.is_image || (r.mime_type && r.mime_type.startsWith('image/')) || /\.(jpe?g|png|webp|gif)$/i.test(fileName));
+                    const sizeText = r.formatted_size ? ` (${r.formatted_size})` : '';
+
+                    if (isImg) {
+                        return `
+                            <a href="${url}" target="_blank" class="group block rounded-xl overflow-hidden border border-gray-200 bg-white hover:border-blue-400 hover:shadow-sm transition-all">
+                                <div class="w-full h-36 bg-gray-100 overflow-hidden flex items-center justify-center">
+                                    <img src="${url}" alt="${fileName}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200">
+                                </div>
+                                <div class="px-3 py-2 flex items-center justify-between gap-2 bg-white border-t border-gray-100">
+                                    <div class="truncate text-xs font-semibold text-gray-900">
+                                        <i class="fas fa-image text-blue-600 mr-1"></i>${fileName}${sizeText}
+                                    </div>
+                                    <i class="fas fa-arrow-up-right-from-square text-[11px] text-blue-600 flex-shrink-0"></i>
+                                </div>
+                            </a>
+                        `;
+                    }
+
+                    return `
+                        <a href="${url}" target="_blank" class="flex items-center justify-between gap-2 p-3 rounded-xl bg-white hover:bg-blue-50/50 border border-gray-200 hover:border-blue-300 text-xs font-semibold text-blue-700 transition-colors">
+                            <div class="flex items-center gap-2 truncate">
+                                <i class="fas fa-file-pdf text-rose-500 text-base"></i>
+                                <span class="truncate">${fileName}${sizeText}</span>
+                            </div>
+                            <i class="fas fa-arrow-up-right-from-square text-[11px] text-gray-400 flex-shrink-0"></i>
+                        </a>
+                    `;
+                }).join('');
+            }
+
             function openDeploymentDetailsModal(deployment) {
                 currentDeploymentModalData = deployment;
 
@@ -960,10 +1027,21 @@
 
                 // Status Badge
                 const status = deployment.status || 'active';
+                const retCond = (deployment.return_record && deployment.return_record.condition ? deployment.return_record.condition : '').toLowerCase();
+                const astCond = (asset.condition || '').toLowerCase();
+                const astStat = (asset.status || '').toLowerCase();
+
+                let returnedBadgeHtml = '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Available</span>';
+                if (retCond === 'poor' || astCond === 'poor' || astStat === 'out_of_service') {
+                    returnedBadgeHtml = '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-rose-100 text-rose-800 border border-rose-200">Out of Service</span>';
+                } else if (retCond === 'fair' || astCond === 'fair' || astStat === 'under_maintenance') {
+                    returnedBadgeHtml = '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">Maintenance</span>';
+                }
+
                 const statusBadges = {
                     'active': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 border border-blue-200">Active in Field</span>',
                     'pending_return': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800 border border-amber-200">Pending Return</span>',
-                    'returned': '<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">Available</span>'
+                    'returned': returnedBadgeHtml
                 };
                 let statusHtml = statusBadges[status] || `<span class="px-2.5 py-1 text-xs font-bold rounded-full bg-gray-100 text-gray-800">${status}</span>`;
 
@@ -1017,19 +1095,13 @@
                 }
                 document.getElementById('details_purpose').textContent = deployment.purpose || 'None provided';
 
-                // Attached receipts / borrow slip
+                // Attached receipts / borrow slip / pictures
                 const receiptsContainer = document.getElementById('details_receipts_container');
                 const receiptsList = document.getElementById('details_receipts_list');
                 if (receiptsContainer && receiptsList) {
                     if (deployment.receipts && deployment.receipts.length > 0) {
                         receiptsContainer.classList.remove('hidden');
-                        receiptsList.innerHTML = deployment.receipts.map(r => `
-                            <a href="${r.file_url || ('/storage/' + r.file_path)}" target="_blank" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-xs font-medium text-blue-700 transition-colors">
-                                <i class="fas fa-file text-gray-500"></i>
-                                <span>${r.original_name || 'Signed Form / Document'}</span>
-                                <i class="fas fa-arrow-up-right-from-square text-[10px] text-gray-400"></i>
-                            </a>
-                        `).join('');
+                        receiptsList.innerHTML = renderDeploymentReceiptsHtml(deployment.receipts);
                     } else {
                         receiptsContainer.classList.add('hidden');
                         receiptsList.innerHTML = '';
@@ -1128,13 +1200,46 @@
                 const statusBadge = document.getElementById('edit_status_display');
                 if (statusBadge) {
                     const st = deployment.status || 'active';
-                    statusBadge.textContent = st === 'returned' ? 'AVAILABLE' : st.replace(/_/g, ' ').toUpperCase();
-                    statusBadge.className = 'font-bold text-xs uppercase px-2.5 py-0.5 rounded-full inline-block mt-0.5 ' + 
-                        (st === 'returned' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 
-                        (st === 'pending_return' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-blue-100 text-blue-800 border border-blue-200'));
+                    const retCond = (deployment.return_record && deployment.return_record.condition ? deployment.return_record.condition : '').toLowerCase();
+                    const astCond = (deployment.asset && deployment.asset.condition ? deployment.asset.condition : '').toLowerCase();
+                    const astStat = (deployment.asset && deployment.asset.status ? deployment.asset.status : '').toLowerCase();
+
+                    let label = st.replace(/_/g, ' ').toUpperCase();
+                    let badgeStyle = 'bg-blue-100 text-blue-800 border border-blue-200';
+
+                    if (st === 'returned') {
+                        if (retCond === 'poor' || astCond === 'poor' || astStat === 'out_of_service') {
+                            label = 'OUT OF SERVICE';
+                            badgeStyle = 'bg-rose-100 text-rose-800 border border-rose-200';
+                        } else if (retCond === 'fair' || astCond === 'fair' || astStat === 'under_maintenance') {
+                            label = 'MAINTENANCE';
+                            badgeStyle = 'bg-amber-100 text-amber-800 border border-amber-200';
+                        } else {
+                            label = 'AVAILABLE';
+                            badgeStyle = 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+                        }
+                    } else if (st === 'pending_return') {
+                        badgeStyle = 'bg-amber-100 text-amber-800 border border-amber-200';
+                    }
+
+                    statusBadge.textContent = label;
+                    statusBadge.className = 'font-bold text-xs uppercase px-2.5 py-0.5 rounded-full inline-block mt-0.5 ' + badgeStyle;
                 }
 
                 document.getElementById('edit_purpose').value = deployment.purpose || '';
+
+                // Populate existing attached pictures / documents in Edit modal
+                const editReceiptsContainer = document.getElementById('edit_receipts_container');
+                const editReceiptsList = document.getElementById('edit_receipts_list');
+                if (editReceiptsContainer && editReceiptsList) {
+                    if (deployment.receipts && deployment.receipts.length > 0) {
+                        editReceiptsContainer.classList.remove('hidden');
+                        editReceiptsList.innerHTML = renderDeploymentReceiptsHtml(deployment.receipts);
+                    } else {
+                        editReceiptsContainer.classList.add('hidden');
+                        editReceiptsList.innerHTML = '';
+                    }
+                }
 
                 window.openModal('edit-deployment-modal');
             }

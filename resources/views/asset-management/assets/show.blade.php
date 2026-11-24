@@ -434,7 +434,7 @@
                     <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
                         <i class="fas fa-truck text-blue-600"></i> Field Dispatch & Mission Records
                     </h3>
-                    @if(!$isReadOnlyStaff && $asset->status === 'available')
+                    @if(!$isReadOnlyStaff && $asset->status === 'available' && !in_array($asset->condition, ['fair', 'poor'], true))
                         <a href="{{ route('deployment.create', ['asset_id' => $asset->id]) }}" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-colors">
                             <i class="fas fa-plus mr-1"></i> New Deployment
                         </a>
