@@ -29,6 +29,12 @@ class Receipt extends Model
         'file_size' => 'integer',
     ];
 
+    protected $appends = [
+        'file_url',
+        'is_image',
+        'formatted_size',
+    ];
+
     protected static function booted(): void
     {
         // Remove the physical file once no other receipt row references it
@@ -54,6 +60,11 @@ class Receipt extends Model
     public function uploader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'uploaded_by');
+    }
+
+    public function getFileUrlAttribute(): string
+    {
+        return route('receipts.show', $this->id);
     }
 
     public function getIsImageAttribute(): bool
