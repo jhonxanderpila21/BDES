@@ -142,9 +142,9 @@
             </div>
 
             {{-- Search & Filters for Merged Maintenance Logs --}}
-            <x-card class="mb-6">
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="flex-1">
+            <x-card class="mb-6 overflow-visible rounded-2xl">
+            <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+                <div class="flex-1 min-w-[220px]">
                     <form action="{{ route('maintenance.index') }}" method="GET" id="searchLogForm">
                         <input type="hidden" name="tab" value="logs">
                         @if(request('record_type'))<input type="hidden" name="record_type" value="{{ request('record_type') }}">@endif
@@ -156,7 +156,7 @@
                 </div>
 
                 {{-- Record Type Filter (Requirement 2) --}}
-                <div x-data="{ open: false }" class="relative">
+                <div x-data="{ open: false }" class="relative shrink-0">
                     @php
                         $currentRecordType = request('record_type', 'all');
                         $recordTypeLabels = [
@@ -165,11 +165,11 @@
                             'schedules'   => 'Schedules (SCHED)',
                         ];
                     @endphp
-                    <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ $currentRecordType !== 'all' ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
+                    <button type="button" @click="open = !open" class="flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium border rounded-xl transition-colors whitespace-nowrap {{ $currentRecordType !== 'all' ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">
                         <span>{{ $recordTypeLabels[$currentRecordType] ?? 'Record Type' }}</span>
                         <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1">
                         <a href="{{ route('maintenance.index', array_merge(request()->except('record_type', 'logs_page'), ['tab' => 'logs', 'record_type' => 'all'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentRecordType === 'all' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Records</a>
                         <a href="{{ route('maintenance.index', array_merge(request()->except('record_type', 'logs_page'), ['tab' => 'logs', 'record_type' => 'schedules'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ $currentRecordType === 'schedules' ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">
                             <i class="fas fa-calendar-check text-purple-500 mr-1.5"></i>Maintenance Schedules (SCHED)
@@ -181,12 +181,12 @@
                 </div>
 
                 {{-- Type Filter --}}
-                <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ request('type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
+                <div x-data="{ open: false }" class="relative shrink-0">
+                    <button type="button" @click="open = !open" class="flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium border rounded-xl transition-colors whitespace-nowrap {{ request('type') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">
                         <span>{{ request('type') ? ucfirst(request('type')) : 'Maintenance Type' }}</span>
                         <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1">
                         <a href="{{ route('maintenance.index', array_merge(request()->except('type', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !request('type') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Types</a>
                         @foreach($maintenanceTypes as $t)
                             <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'type' => $t])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('type') === $t ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ ucfirst($t) }}</a>
@@ -194,8 +194,22 @@
                     </div>
                 </div>
 
+                {{-- Priority Filter --}}
+                <div x-data="{ open: false }" class="relative shrink-0">
+                    <button type="button" @click="open = !open" class="flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium border rounded-xl transition-colors whitespace-nowrap {{ request('priority') ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">
+                        <span>{{ request('priority') ? ucfirst(request('priority')) : 'Priority' }}</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1">
+                        <a href="{{ route('maintenance.index', array_merge(request()->except('priority', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !request('priority') ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Priorities</a>
+                        @foreach($priorityLevels as $lvl)
+                            <a href="{{ route('maintenance.index', array_merge(request()->except('logs_page'), ['tab' => 'logs', 'priority' => $lvl])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ request('priority') === $lvl ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">{{ ucfirst($lvl) }}</a>
+                        @endforeach
+                    </div>
+                </div>
+
                 {{-- Status Filter --}}
-                <div x-data="{ open: false }" class="relative">
+                <div x-data="{ open: false }" class="relative shrink-0">
                     @php
                         $currentStatus = request('status');
                         $statusLabels = [
@@ -210,11 +224,11 @@
                             'Overdue'          => 'Overdue',
                         ];
                     @endphp
-                    <button @click="open = !open" class="flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors {{ $currentStatus ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 hover:bg-gray-50' }}">
+                    <button type="button" @click="open = !open" class="flex items-center justify-between gap-2 px-4 py-2 text-sm font-medium border rounded-xl transition-colors whitespace-nowrap {{ $currentStatus ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50' }}">
                         <span>{{ $currentStatus ? ($statusLabels[$currentStatus] ?? ucfirst(str_replace('_', ' ', $currentStatus))) : 'Status' }}</span>
                         <i class="fas fa-chevron-down text-xs"></i>
                     </button>
-                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-1">
+                    <div x-show="open" @click.away="open = false" x-cloak class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-gray-200 z-50 py-1">
                         <a href="{{ route('maintenance.index', array_merge(request()->except('status', 'logs_page'), ['tab' => 'logs'])) }}" class="block px-4 py-2 text-sm hover:bg-gray-50 {{ !$currentStatus ? 'text-blue-600 font-semibold' : 'text-gray-700' }}">All Statuses</a>
                         <div class="border-t border-gray-100 my-1"></div>
                         <div class="px-4 py-1 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Work Order Statuses</div>
@@ -229,6 +243,12 @@
                         @endforeach
                     </div>
                 </div>
+
+                @if(request()->hasAny(['search', 'record_type', 'type', 'priority', 'status']))
+                    <a href="{{ route('maintenance.index', ['tab' => 'logs']) }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap shrink-0">
+                        Reset
+                    </a>
+                @endif
             </div>
             </x-card>
 
@@ -239,8 +259,8 @@
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 <th class="px-3.5 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Asset</th>
-                                <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
-                                <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Priority</th>
+                                <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
+                                <th class="px-3 py-3 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Priority</th>
                                 <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Task & Assigned</th>
                                 <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Parts &amp; Materials</th>
                                 <th class="px-3 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Service Dates</th>
@@ -269,30 +289,48 @@
                                     </td>
 
                                     {{-- Type Column --}}
-                                    <td class="px-3 py-3 whitespace-nowrap">
-                                        @if(!empty($item->is_schedule))
-                                            <x-badge variant="primary" size="sm">Preventive</x-badge>
-                                        @else
-                                            <x-badge variant="info" size="sm">{{ ucfirst($item->type) }}</x-badge>
-                                        @endif
+                                    <td class="px-3 py-3 align-middle whitespace-nowrap text-center">
+                                        @php
+                                            $typeLabel = !empty($item->is_schedule) ? 'preventive' : strtolower($item->type ?? 'routine');
+                                            $typeBadge = match($typeLabel) {
+                                                'preventive' => 'bg-purple-100 text-purple-800 border border-purple-200',
+                                                'corrective', 'repair' => 'bg-amber-100 text-amber-800 border border-amber-200',
+                                                'emergency'  => 'bg-rose-100 text-rose-800 border border-rose-200',
+                                                'inspection' => 'bg-teal-100 text-teal-800 border border-teal-200',
+                                                'overhaul'   => 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+                                                default      => 'bg-blue-100 text-blue-800 border border-blue-200',
+                                            };
+                                        @endphp
+                                        <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full {{ $typeBadge }}">
+                                            {{ ucfirst($typeLabel) }}
+                                        </span>
                                     </td>
 
                                     {{-- Priority Column --}}
-                                    <td class="px-3 py-3 whitespace-nowrap">
+                                    <td class="px-3 py-3 align-middle whitespace-nowrap text-center">
                                         @if(!empty($item->is_schedule))
-                                            <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                                            @php
+                                                $intervalBadge = match(strtolower($item->interval_type ?? '')) {
+                                                    'monthly'   => 'bg-indigo-100 text-indigo-800 border border-indigo-200',
+                                                    'quarterly' => 'bg-teal-100 text-teal-800 border border-teal-200',
+                                                    'yearly', 'annual' => 'bg-violet-100 text-violet-800 border border-violet-200',
+                                                    default     => 'bg-slate-100 text-slate-700 border border-slate-200',
+                                                };
+                                            @endphp
+                                            <span class="inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full {{ $intervalBadge }}">
                                                 {{ $item->interval_type }}
                                             </span>
                                         @else
                                             @php
                                                 $priBadge = match($item->priority ?? 'medium') {
-                                                     'urgent' => 'bg-rose-100 text-rose-800',
-                                                     'high'   => 'bg-amber-100 text-amber-800',
-                                                     'low'    => 'bg-blue-100 text-blue-800',
-                                                     default  => 'bg-gray-100 text-gray-800',
+                                                     'urgent' => 'bg-red-600 text-white border border-red-700',
+                                                     'high'   => 'bg-orange-100 text-orange-800 border border-orange-300',
+                                                     'medium' => 'bg-amber-100 text-amber-800 border border-amber-300',
+                                                     'low'    => 'bg-sky-100 text-sky-800 border border-sky-300',
+                                                     default  => 'bg-amber-100 text-amber-800 border border-amber-300',
                                                 };
                                             @endphp
-                                            <span class="inline-block px-2 py-0.5 text-[10px] font-bold uppercase rounded {{ $priBadge }}">
+                                            <span class="inline-block px-2.5 py-0.5 text-[10px] font-bold uppercase rounded-full {{ $priBadge }}">
                                                 {{ $item->priority ?? 'medium' }}
                                             </span>
                                         @endif
@@ -494,7 +532,7 @@
                 </div>
 
                 {{-- Search & Filters for Inspections --}}
-                <x-card class="mb-6">
+                <x-card class="mb-6 overflow-visible rounded-2xl">
                 <div class="flex flex-col sm:flex-row gap-4">
                     <div class="flex-1">
                         <form action="{{ route('maintenance.index') }}" method="GET" id="searchInspectionForm">
@@ -2026,10 +2064,11 @@
                 
                 const priBadge = document.getElementById('view_maint_priority_badge');
                 priBadge.textContent = (item.priority || 'medium').toUpperCase();
-                priBadge.className = 'px-2 py-0.5 text-xs font-bold uppercase rounded ' + (
-                    item.priority === 'urgent' ? 'bg-rose-100 text-rose-800' :
-                    item.priority === 'high' ? 'bg-amber-100 text-amber-800' :
-                    item.priority === 'low' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
+                priBadge.className = 'px-2.5 py-0.5 text-xs font-bold uppercase rounded-full ' + (
+                    item.priority === 'urgent' ? 'bg-red-600 text-white border border-red-700' :
+                    item.priority === 'high' ? 'bg-orange-100 text-orange-800 border border-orange-300' :
+                    item.priority === 'low' ? 'bg-sky-100 text-sky-800 border border-sky-300' :
+                    'bg-amber-100 text-amber-800 border border-amber-300'
                 );
 
                 const statBadge = document.getElementById('view_maint_status_badge');

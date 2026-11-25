@@ -9,7 +9,10 @@
     'bodyClass' => '',
 ])
 
-<div {{ $attributes->merge(['class' => 'bg-white rounded-xl shadow-sm border border-[#E5E7EB] overflow-hidden ' . $class]) }}>
+@php
+    $overflowClass = str_contains($class, 'overflow-visible') ? '' : 'overflow-hidden';
+@endphp
+<div {{ $attributes->merge(['class' => 'bg-white rounded-xl shadow-sm border border-[#E5E7EB] ' . $overflowClass . ' ' . $class]) }}>
     @if($title || $actions || isset($header))
         <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 {{ $headerClass }}">
             @if(isset($header))

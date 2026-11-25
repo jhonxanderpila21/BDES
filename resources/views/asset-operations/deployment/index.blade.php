@@ -70,7 +70,7 @@
     </div>
 
     {{-- Filters & Search --}}
-    <x-card class="mb-6">
+    <x-card class="mb-6 overflow-visible rounded-2xl">
     <div class="flex flex-col sm:flex-row gap-4">
         <div class="flex-1">
             <form action="{{ route('deployment.index') }}" method="GET" id="searchForm">
