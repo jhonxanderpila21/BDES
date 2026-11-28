@@ -157,8 +157,8 @@ class NotificationService
                     'priority' => $priority,
                     'badge' => $isOverdue ? 'Schedule Overdue' : 'Schedule Due',
                     'icon' => 'fas fa-calendar-check',
-                    'icon_bg' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
-                    'color' => $priority === 'high' ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600',
+                    'icon_bg' => 'bg-rose-50 text-rose-600',
+                    'color' => 'bg-rose-50 text-rose-600',
                     'url' => $s->asset_id ? route('assets.show', $s->asset_id) : route('maintenance.index', ['tab' => 'schedules']),
                     'timestamp' => $dueDate ? $dueDate->diffForHumans() : 'Due now',
                     'date' => $dueDate ?? $today,
@@ -331,20 +331,13 @@ class NotificationService
             report($e);
         }
 
-        // Sort by priority (High first), then unread first, then by date descending
+        // Sort unread first, then by newest date descending
         $sorted = $notifications->sort(function ($a, $b) {
             // Unread before read
             if ($a['is_read'] !== $b['is_read']) {
                 return $a['is_read'] ? 1 : -1;
             }
-            // High priority before medium/low
-            $priorityOrder = ['high' => 1, 'medium' => 2, 'low' => 3];
-            $pA = $priorityOrder[$a['priority']] ?? 9;
-            $pB = $priorityOrder[$b['priority']] ?? 9;
-            if ($pA !== $pB) {
-                return $pA <=> $pB;
-            }
-            // Date descending
+            // Date descending (newest notifications at the top)
             return $b['date'] <=> $a['date'];
         })->values();
 

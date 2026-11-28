@@ -57,30 +57,30 @@
     </div>
 
     {{-- Notifications Feed Card --}}
-    <x-card>
+    <x-card :padding="false">
         <div class="divide-y divide-gray-200">
             @forelse($notifications as $item)
                 <div class="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors {{ $item['is_read'] ? 'bg-white hover:bg-gray-50/70' : 'bg-blue-100/75 hover:bg-blue-100 border-l-4 border-l-blue-600' }}">
                     <div class="flex items-start gap-3.5 min-w-0">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm {{ $item['color'] ?? 'bg-blue-50 text-blue-600' }}">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-sm {{ $item['color'] ?? 'bg-rose-50 text-rose-600' }}">
                             <i class="{{ $item['icon'] ?? 'fas fa-bell' }}"></i>
                         </div>
 
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
-                                <a href="{{ route('notifications.view-record', $item['id']) }}" class="text-sm {{ $item['is_read'] ? 'font-semibold text-gray-800' : 'font-extrabold text-gray-900' }} hover:text-blue-600 transition-colors">
+                                <a href="{{ route('notifications.view-record', $item['id']) }}" class="text-sm {{ $item['is_read'] ? 'font-bold text-gray-900' : 'font-extrabold text-gray-900' }} hover:text-blue-600 transition-colors">
                                     {{ $item['title'] }}
                                 </a>
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($item['priority'] ?? '') === 'high' ? 'bg-rose-100 text-rose-700' : (($item['category'] ?? '') === 'equipment' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700') }}">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider {{ ($item['category'] ?? '') === 'equipment' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
                                     {{ $item['badge'] ?? $item['category_label'] ?? 'Update' }}
                                 </span>
                             </div>
 
-                            <p class="text-xs sm:text-sm {{ $item['is_read'] ? 'text-gray-500' : 'text-gray-800 font-medium' }} mt-1 leading-relaxed">
+                            <p class="text-xs sm:text-sm {{ $item['is_read'] ? 'text-gray-700' : 'text-gray-900 font-medium' }} mt-1 leading-relaxed">
                                 {{ $item['message'] ?? $item['description'] }}
                             </p>
 
-                            <div class="flex items-center gap-3 mt-2 text-[11px] {{ $item['is_read'] ? 'text-gray-400' : 'text-gray-600 font-medium' }}">
+                            <div class="flex items-center gap-3 mt-2 text-[11px] {{ $item['is_read'] ? 'text-gray-500' : 'text-gray-700 font-medium' }}">
                                 <span><i class="far fa-clock mr-1"></i>{{ $item['timestamp'] }}</span>
                                 <span>&bull;</span>
                                 <span>{{ $item['category_label'] ?? ucfirst($item['category'] ?? 'General') }}</span>
@@ -89,21 +89,6 @@
                     </div>
 
                     <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
-                        @if(!$item['is_read'])
-                            <form action="{{ route('notifications.mark-read') }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="id" value="{{ $item['id'] }}">
-                                <button
-                                    type="submit"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-medium text-gray-700 transition-colors"
-                                    title="Mark as read"
-                                >
-                                    <i class="fas fa-check text-blue-600 text-[11px]"></i>
-                                    <span>Mark Read</span>
-                                </button>
-                            </form>
-                        @endif
-
                         <a
                             href="{{ route('notifications.view-record', $item['id']) }}"
                             class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors shadow-xs"
