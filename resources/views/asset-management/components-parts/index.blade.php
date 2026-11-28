@@ -193,7 +193,7 @@
                             $classification = $isAccessory ? 'Accessory' : ($item->type ?: 'General');
                             $forAssetType = $isAccessory ? ($item->asset_type ?: 'Any') : ($item->assetType->name ?? 'Any');
                         @endphp
-                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group {{ $isAccessory && ($item->status === 'Not Available' || $item->quantity <= 0) ? 'opacity-75' : '' }}" onclick="{{ $isAccessory ? 'openViewAccessoryModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\');' : 'openViewAttachmentModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\', \'' . addslashes($item->assetType->name ?? '') . '\');' }}" title="Quick View">
+                        <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer group" onclick="{{ $isAccessory ? 'openViewAccessoryModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\');' : 'openViewAttachmentModal(' . json_encode($item) . ', \'' . addslashes($item->asset->name ?? '') . '\', \'' . addslashes($item->asset->code ?? '') . '\', \'' . addslashes($item->assetType->name ?? '') . '\');' }}" title="Quick View">
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center gap-2.5">
                                     <i class="fas fa-puzzle-piece text-blue-500 text-sm group-hover:scale-110 transition-transform"></i>
@@ -268,14 +268,6 @@
                                         @endif
                                     @else
                                         @if(!$isReadOnlyStaff)
-                                            <button 
-                                                type="button"
-                                                onclick="event.stopPropagation(); openAdjustModal({{ $item->id }}, @js($item->accessory_name), {{ $item->quantity }})"
-                                                class="p-1.5 rounded hover:bg-gray-100 text-blue-600 hover:text-blue-800 transition-colors" 
-                                                title="Adjust Quantity"
-                                            >
-                                                <i class="fas fa-sliders-h"></i>
-                                            </button>
                                             <button 
                                                 type="button"
                                                 onclick="event.stopPropagation(); openEditAccessoryModal({{ json_encode($item) }})"
