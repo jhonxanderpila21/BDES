@@ -237,8 +237,10 @@
                                     @endif
                                 </span>
                             </td>
-                            <td class="px-5 py-3.5 align-middle text-xs text-gray-800 max-w-md text-left">
-                                {{ $log->description }}
+                            <td class="px-5 py-3.5 align-middle text-xs text-gray-800 max-w-[260px] text-left">
+                                <span class="block truncate">
+                                    {{ \Illuminate\Support\Str::limit(preg_replace('/\.\s*(Reason|Assigned custodian|Notes):.*$/i', '.', (string) $log->description), 48) }}
+                                </span>
                             </td>
                         </tr>
                     @empty
