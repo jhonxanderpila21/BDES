@@ -79,11 +79,11 @@
         <div>
         {{-- Top-Left Brand Logo Header (aligned with top navbar height) --}}
         <div class="px-3.5 h-[68px] border-b border-white/10 flex items-center" :class="sidebarCollapsed ? 'justify-center' : ''">
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0" title="BDES - Disaster Assets">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0" title="BDES - Barangay Assets">
                 <img src="{{ asset('images/bdes-logo.png') }}" alt="BDES Logo" class="w-10 h-10 object-cover aspect-square rounded-full ring-2 ring-white/20 shadow-sm shrink-0">
                 <div class="min-w-0" x-show="!sidebarCollapsed" x-cloak>
                     <h2 class="text-base font-extrabold text-white tracking-wide leading-tight truncate">BDES</h2>
-                    <p class="text-xs font-medium text-[#60A5FA] leading-tight truncate">Disaster Assets</p>
+                    <p class="text-xs font-medium text-[#60A5FA] leading-tight truncate">Barangay Assets</p>
                 </div>
             </a>
         </div>

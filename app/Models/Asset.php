@@ -243,6 +243,7 @@ class Asset extends Model
         return $this->useful_life_years > 0 ? $this->useful_life_years : 5;
     }
 
+    
     public function getCalculatedSalvageValueAttribute(): float
     {
         // Enforce Philippine Statutory Limit: Items below ₱50,000 (Semi-Expendable) cannot have salvage value
