@@ -322,14 +322,14 @@
                     type="button"
                     title="Tracking & Reporting"
                     @click="if (sidebarCollapsed) { window.location.href = '{{ route('asset-history.index') }}'; } else { open = !open; }"
-                    :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between px-3 py-2'"
-                    class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-wider transition-colors select-none text-left {{ $headerClass($isTrackingActive) }}"
+                    :class="sidebarCollapsed ? 'justify-center px-2 py-2.5' : 'justify-between gap-3 px-3 py-2'"
+                    class="w-full flex items-center rounded-lg text-xs font-bold uppercase tracking-normal transition-colors select-none text-left {{ $headerClass($isTrackingActive) }}"
                 >
-                    <div class="flex items-center" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
-                        <i class="fas fa-chart-pie w-5 text-center {{ $headerIconClass($isTrackingActive) }}"></i>
-                        <span x-show="!sidebarCollapsed" class="truncate">Tracking & Reporting</span>
+                    <div class="flex items-center min-w-0" :class="sidebarCollapsed ? 'justify-center' : 'gap-2.5'">
+                        <i class="fas fa-chart-pie w-5 text-center shrink-0 {{ $headerIconClass($isTrackingActive) }}"></i>
+                        <span x-show="!sidebarCollapsed" class="whitespace-nowrap">Tracking & Reporting</span>
                     </div>
-                    <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-[10px] {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
+                    <i x-show="!sidebarCollapsed" class="fas fa-chevron-down text-[10px] ml-2 shrink-0 {{ $chevronClass }} transition-transform duration-200" :class="{'rotate-180': open}"></i>
                 </button>
 
                 <div

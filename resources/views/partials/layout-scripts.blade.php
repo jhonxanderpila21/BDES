@@ -1,13 +1,13 @@
 <script>
     document.addEventListener('alpine:init', () => {
         const computeProportionalSidebarWidth = () => {
-            return Math.round(Math.min(Math.max(window.innerWidth * 0.16, 185), 256));
+            return Math.round(Math.min(Math.max(window.innerWidth * 0.185, 268), 284));
         };
 
         Alpine.data('adminLayout', () => ({
             sidebarOpen: true,
             sidebarCollapsed: localStorage.getItem('bdes_sidebar_collapsed') === 'true',
-            sidebarWidth: parseInt(localStorage.getItem('bdes_sidebar_width_custom')) || computeProportionalSidebarWidth(),
+            sidebarWidth: Math.max(parseInt(localStorage.getItem('bdes_sidebar_width_custom')) || 0, computeProportionalSidebarWidth()),
             windowWidth: window.innerWidth,
             isResizing: false,
             toggleSidebar() {
