@@ -43,7 +43,7 @@
             color="blue"
             subtitle="All recorded activity"
             :href="route('asset-history.index')"
-            :active="!request()->anyFilled(['event', 'date_from', 'date_to', 'user_id', 'search'])"
+            :active="!request()->anyFilled(['event', 'date_from', 'date_to', 'user_id', 'search', 'filter'])"
             tooltip="Show all audit events"
         />
 
@@ -74,10 +74,10 @@
             :value="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? number_format($metrics['active_actors']) : strtoupper(str_replace('_', ' ', auth()->user()->role))"
             icon="fas fa-users-gear"
             color="purple"
-            :subtitle="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Filter my activity' : 'Your access level'"
-            :href="request('user_id') == auth()->id() ? route('asset-history.index') : route('asset-history.index', ['user_id' => auth()->id()])"
-            :active="request('user_id') == auth()->id()"
-            tooltip="Toggle filter for my own audit logs"
+            :subtitle="(auth()->user()->isAdmin() || $isReadOnlyStaff) ? 'Users with recorded activity' : 'Your access level'"
+            :href="request('filter') === 'active_actors' ? route('asset-history.index') : route('asset-history.index', ['filter' => 'active_actors'])"
+            :active="request('filter') === 'active_actors'"
+            tooltip="Show each active actor's latest activity"
         />
     </div>
 
@@ -118,7 +118,7 @@
         <input type="date" name="date_from" value="{{ request('date_from') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white" title="From Date">
         <input type="date" name="date_to" value="{{ request('date_to') }}" class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white" title="To Date">
 
-        @if(request()->hasAny(['search', 'event', 'user_id', 'date_from', 'date_to']))
+        @if(request()->hasAny(['search', 'event', 'user_id', 'date_from', 'date_to', 'filter']))
             <a href="{{ route('asset-history.index') }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-semibold transition-colors shadow-xs">
                 Reset
             </a>

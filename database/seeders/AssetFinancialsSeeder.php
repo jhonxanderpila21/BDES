@@ -39,10 +39,11 @@ class AssetFinancialsSeeder extends Seeder
                 'salvage_notes'     => '6 rolls of 1½-inch fire hoses (Penetrator) — brass coupling salvage recovery.',
             ],
             'FH-003' => [
+                'purchase_date'     => '2020-05-10',
                 'acquisition_cost'  => 28500.00,
                 'useful_life_years' => 5,
                 'salvage_value'     => null,
-                'salvage_notes'     => '3 rolls of 2½-inch fire hoses (Tanker) — semi-expendable firefighting hose set.',
+                'salvage_notes'     => '3 rolls of 2½-inch fire hoses (Tanker) — reached end of 5-year lifespan (fully depreciated to 10% salvage value).',
             ],
             'FH-004' => [
                 'acquisition_cost'  => 19000.00,
@@ -159,10 +160,11 @@ class AssetFinancialsSeeder extends Seeder
                 'salvage_notes'     => 'Damaged 2½-inch hose (1 unit) — brass couplings retained for salvage.',
             ],
             'GEN-001' => [
+                'purchase_date'     => '2019-05-10',
                 'acquisition_cost'  => 45000.00,
                 'useful_life_years' => 7,
                 'salvage_value'     => null,
-                'salvage_notes'     => 'Fire station standby 5kVA generator.',
+                'salvage_notes'     => 'Fire station standby 5kVA generator — reached end of 7-year lifespan (fully depreciated to 10% salvage value).',
             ],
             'FE-001' => [
                 'acquisition_cost'  => 3500.00,

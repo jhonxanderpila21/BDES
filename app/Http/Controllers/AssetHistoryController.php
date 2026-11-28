@@ -31,6 +31,14 @@ class AssetHistoryController extends Controller
             $query->where('user_id', $request->user_id);
         }
 
+        if ($request->input('filter') === 'active_actors' && $canViewAllLogs) {
+            $latestIdsPerActor = AuditLog::whereNotNull('user_id')
+                ->selectRaw('MAX(id) as max_id')
+                ->groupBy('user_id')
+                ->pluck('max_id');
+            $query->whereIn('id', $latestIdsPerActor);
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {

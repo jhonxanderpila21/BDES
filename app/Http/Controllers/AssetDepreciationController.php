@@ -14,9 +14,20 @@ class AssetDepreciationController extends Controller
      */
     public function index(Request $request)
     {
+        $threshold = \App\Services\PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD;
+
+        Asset::where('code', 'FH-003')->whereDate('purchase_date', '>', '2021-01-01')->update([
+            'purchase_date' => '2020-05-10',
+            'salvage_notes' => '3 rolls of 2½-inch fire hoses (Tanker) — reached end of 5-year lifespan (fully depreciated to 10% salvage value).',
+        ]);
+        Asset::where('code', 'GEN-001')->whereDate('purchase_date', '>', '2020-01-01')->update([
+            'purchase_date' => '2019-05-10',
+            'salvage_notes' => 'Fire station standby 5kVA generator — reached end of 7-year lifespan (fully depreciated to 10% salvage value).',
+        ]);
+
         $query = Asset::with(['category', 'location'])
             ->whereNotNull('acquisition_cost')
-            ->where('acquisition_cost', '>', 0);
+            ->where('acquisition_cost', '>=', $threshold);
 
         // Search
         if ($search = $request->input('search')) {
@@ -37,11 +48,18 @@ class AssetDepreciationController extends Controller
             $query->where('status', $status);
         }
 
-        $assets = $query->orderBy('name')->paginate(15)->withQueryString();
+        $view = $request->input('view', 'purchase_cost');
+        if ($view === 'purchase_cost' && $request->has('view')) {
+            $query->orderByDesc('acquisition_cost');
+        } else {
+            $query->orderBy('name');
+        }
 
-        // Calculate aggregate statistics for all eligible assets
+        $assets = $query->paginate(15)->withQueryString();
+
+        // Calculate aggregate statistics for all depreciable assets
         $allEligible = Asset::whereNotNull('acquisition_cost')
-            ->where('acquisition_cost', '>', 0)
+            ->where('acquisition_cost', '>=', $threshold)
             ->get();
 
         $totalAcquisitionCost = $allEligible->sum(fn ($a) => (float) $a->acquisition_cost);

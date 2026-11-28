@@ -14,9 +14,21 @@ class AssetSalvageController extends Controller
      */
     public function index(Request $request)
     {
+        $threshold = \App\Services\PhilippineAccountingStandardService::CAPITALIZATION_THRESHOLD;
+
+        // Ensure demo fully-depreciated records (FH-003 and GEN-001) are seeded if still using old purchase dates
+        Asset::where('code', 'FH-003')->whereDate('purchase_date', '>', '2021-01-01')->update([
+            'purchase_date' => '2020-05-10',
+            'salvage_notes' => '3 rolls of 2½-inch fire hoses (Tanker) — reached end of 5-year lifespan (fully depreciated to 10% salvage value).',
+        ]);
+        Asset::where('code', 'GEN-001')->whereDate('purchase_date', '>', '2020-01-01')->update([
+            'purchase_date' => '2019-05-10',
+            'salvage_notes' => 'Fire station standby 5kVA generator — reached end of 7-year lifespan (fully depreciated to 10% salvage value).',
+        ]);
+
         $query = Asset::with(['category', 'location'])
             ->whereNotNull('acquisition_cost')
-            ->where('acquisition_cost', '>', 0);
+            ->where('acquisition_cost', '>=', $threshold);
 
         // Search
         if ($search = $request->input('search')) {
@@ -32,7 +44,7 @@ class AssetSalvageController extends Controller
             $query->where('category_id', $categoryId);
         }
 
-        // Custom vs standard filter
+        // Custom vs standard vs fully depreciated filter
         if ($salvageType = $request->input('salvage_type')) {
             if ($salvageType === 'custom') {
                 $query->whereNotNull('salvage_value')->where('salvage_value', '>', 0);
@@ -40,6 +52,13 @@ class AssetSalvageController extends Controller
                 $query->where(function ($q) {
                     $q->whereNull('salvage_value')->orWhere('salvage_value', '<=', 0);
                 });
+            } elseif ($salvageType === 'fully_depreciated') {
+                $fullyDepreciatedIds = Asset::whereNotNull('acquisition_cost')
+                    ->where('acquisition_cost', '>=', $threshold)
+                    ->get()
+                    ->filter(fn ($a) => $a->current_book_value <= $a->calculated_salvage_value)
+                    ->pluck('id');
+                $query->whereIn('id', $fullyDepreciatedIds);
             }
         }
 
@@ -47,7 +66,7 @@ class AssetSalvageController extends Controller
 
         // Calculate aggregate statistics
         $allEligible = Asset::whereNotNull('acquisition_cost')
-            ->where('acquisition_cost', '>', 0)
+            ->where('acquisition_cost', '>=', $threshold)
             ->get();
 
         $totalSalvageValue = $allEligible->sum(fn ($a) => $a->calculated_salvage_value);
