@@ -34,15 +34,21 @@
     --bdes-white: #FFFFFF;
 }
 
-/* System-Wide Base Styling */
+/* System-Wide Base Styling — Fluid Viewport Scaling Across All Laptops */
+html {
+    font-size: clamp(11px, 0.98vw, 16px);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
     background-color: var(--bdes-soft-white) !important;
     color: var(--bdes-charcoal);
-    font-size: 14px;
+    font-size: 0.875rem;
     line-height: 1.5;
 }
 
-/* Enforce 14px minimum readable typography across content, tables, forms, and UI elements */
+/* Enforce readable proportional typography across content, tables, forms, and UI elements */
 main,
 main p,
 main span,
@@ -61,7 +67,7 @@ main a,
 .text-\[12px\],
 .text-\[13px\],
 .text-\[14px\] {
-    font-size: 14px !important;
+    font-size: 0.875rem !important;
     line-height: 1.45 !important;
 }
 

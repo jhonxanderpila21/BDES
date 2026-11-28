@@ -9,8 +9,8 @@
 <div class="space-y-6">
     {{-- Page Header --}}
     <x-page-header
-        title="Asset Locations & Facilities"
-        subtitle="Manage warehouses, depots, stations, and storage facilities holding emergency response equipment."
+        title="Asset Locations"
+        subtitle="Manage warehouses, depots, stations, and storage locations holding emergency response equipment."
         icon="fas fa-warehouse"
         :read-only-badge="false"
         :breadcrumbs="[
@@ -32,56 +32,34 @@
     {{-- KPI Summary Deck --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <x-kpi-card
-            title="Total Facilities"
+            title="Total Locations"
             :value="$stats['total_locations'] ?? $locations->total()"
             icon="fas fa-map-marked-alt"
             color="blue"
             :href="route('locations.index')"
-        />
-
-        <x-kpi-card
-            title="Assets Kept"
-            :value="$stats['total_assets'] ?? 0"
-            icon="fas fa-boxes-stacked"
-            color="indigo"
-            :href="route('assets.index', ['tab' => 'assets'])"
-            tooltip="View all assets in registry"
-        />
-
-        <x-kpi-card
-            title="Ready for Deployment"
-            :value="$stats['available_assets'] ?? 0"
-            icon="fas fa-check-circle"
-            color="emerald"
-            :href="route('assets.index', ['tab' => 'assets', 'status' => 'available'])"
-            tooltip="View ready assets"
-        />
-
-        <x-kpi-card
-            title="Storage Capacity"
-            :value="number_format($stats['total_capacity'] ?? 0)"
-            icon="fas fa-layer-group"
-            color="amber"
-            subtitle="slots"
-            :href="route('locations.index')"
+            :active="!request('filter')"
+            tooltip="Show all locations"
         />
     </div>
 
     {{-- Search & Filters --}}
     <div class="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
         <form action="{{ route('locations.index') }}" method="GET" class="flex flex-col sm:flex-row gap-3">
+            @if(request('filter'))
+                <input type="hidden" name="filter" value="{{ request('filter') }}">
+            @endif
             <div class="flex-1">
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
                         <i class="fas fa-search text-sm"></i>
                     </span>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search facilities by name, type, address..." class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search locations by name, type, address..." class="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
                 </div>
             </div>
 
             <div class="w-full sm:w-48">
                 <select name="type" onchange="this.form.submit()" class="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                    <option value="">All Facility Types</option>
+                    <option value="">All Location Types</option>
                     <option value="depot" {{ request('type') === 'depot' ? 'selected' : '' }}>Depot</option>
                     <option value="field" {{ request('type') === 'field' ? 'selected' : '' }}>Field Station</option>
                     <option value="office" {{ request('type') === 'office' ? 'selected' : '' }}>Office</option>
@@ -90,7 +68,7 @@
             </div>
 
             <div class="flex items-center gap-2">
-                @if(request()->anyFilled(['search', 'type']))
+                @if(request()->anyFilled(['search', 'type', 'filter']))
                     <a href="{{ route('locations.index') }}" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-sm font-semibold transition-colors shadow-xs">
                         <i class="fas fa-undo mr-1.5"></i>Reset
                     </a>
@@ -105,7 +83,7 @@
             <table class="w-full text-left border-collapse">
                 <thead class="bg-gray-50 border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location / Facility</th>
+                        <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
                         <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Type</th>
                         <th class="px-6 py-3.5 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Physical Address</th>
                         <th class="px-6 py-3.5 text-center text-xs font-bold text-gray-700 uppercase tracking-wider">Assets Kept</th>
@@ -211,13 +189,13 @@
                                         {{-- Delete Button with Deletion Protection --}}
                                         @if($location->assets_count > 0)
                                             <button type="button" 
-                                                    onclick="window.bdesToast('Cannot delete facility [{{ addslashes($location->name) }}] because {{ $location->assets_count }} asset(s) are currently kept here. Please relocate or reassign all assets to another facility first.', 'warning', 5000, 'Deletion Blocked');" 
+                                                    onclick="window.bdesToast('Cannot delete location [{{ addslashes($location->name) }}] because {{ $location->assets_count }} asset(s) are currently kept here. Please relocate or reassign all assets to another location first.', 'warning', 5000, 'Deletion Blocked');" 
                                                     class="p-2 rounded-lg text-gray-300 hover:text-gray-400 cursor-not-allowed transition-colors" 
                                                     title="Deletion blocked: {{ $location->assets_count }} asset(s) currently stored">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         @else
-                                            <form action="{{ route('locations.destroy', $location) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Facility: {{ addslashes($location->name) }}', 'This action will permanently delete this location from the facility registry. Ensure no active operations rely on it.');">
+                                            <form action="{{ route('locations.destroy', $location) }}" method="POST" class="inline-block" onsubmit="return confirmSecureDelete(event, this, 'Location: {{ addslashes($location->name) }}', 'This action will permanently delete this location from the location registry. Ensure no active operations rely on it.');">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="p-2 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors" title="Delete Location">
@@ -232,7 +210,7 @@
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-12 text-center">
-                                <x-empty-state icon="fas fa-warehouse" title="No asset locations found" description="No storage facilities match your current search criteria." />
+                                <x-empty-state icon="fas fa-warehouse" title="No asset locations found" description="No storage locations match your current search criteria." />
                             </td>
                         </tr>
                     @endforelse
@@ -245,14 +223,14 @@
     </x-card>
 
     {{-- Location Stored Assets Details Modal --}}
-    <x-modal id="location-assets-modal" title="Facility Stored Assets" maxWidth="5xl">
+    <x-modal id="location-assets-modal" title="Location Stored Assets" maxWidth="5xl">
         <div class="space-y-6">
-            {{-- Facility Header Card --}}
+            {{-- Location Header Card --}}
             <div class="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                         <div class="flex flex-wrap items-center gap-2">
-                            <h3 id="modal_location_name" class="text-lg font-bold text-gray-900">Facility Name</h3>
+                            <h3 id="modal_location_name" class="text-lg font-bold text-gray-900">Location Name</h3>
                             <span id="modal_location_type_badge" class="px-2 py-0.5 rounded text-xs font-bold uppercase bg-blue-100 text-blue-800">Storage</span>
                         </div>
                         <p id="modal_location_address" class="text-xs text-gray-500 mt-1 flex items-center gap-1.5">
@@ -284,7 +262,7 @@
                 <div class="flex items-center justify-between mb-3">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-gray-700 flex items-center gap-2">
                         <i class="fas fa-boxes-stacked text-blue-600"></i>
-                        <span>Assets Kept in this Facility</span>
+                        <span>Assets Kept in this Location</span>
                     </h4>
                     <div class="flex items-center gap-2">
                         @if(!$isReadOnlyStaff)
@@ -338,7 +316,7 @@
 
     @if(!$isReadOnlyStaff)
         {{-- Relocate Asset Modal --}}
-        <x-modal id="relocate-asset-modal" title="Relocate Equipment to Another Facility">
+        <x-modal id="relocate-asset-modal" title="Relocate Equipment to Another Location">
             <form id="relocate-asset-form" action="{{ route('locations.relocate-asset') }}" method="POST" class="space-y-4">
                 @csrf
                 <div id="relocate_hidden_asset_ids_container">
@@ -369,23 +347,23 @@
                             </div>
                             <div class="mt-2 text-xs text-gray-500 pt-2 border-t border-blue-200/60 flex items-center gap-1.5">
                                 <i class="fas fa-warehouse text-gray-400"></i>
-                                <span>Current Facility: <strong id="relocate_current_location_name" class="text-gray-800 font-semibold">—</strong></span>
+                                <span>Current Location: <strong id="relocate_current_location_name" class="text-gray-800 font-semibold">—</strong></span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {{-- Destination Facility --}}
-                <x-form-group label="Destination Facility / Location" required>
+                {{-- Destination Location --}}
+                <x-form-group label="Destination Location" required>
                     <select name="location_id" id="relocate_destination_select" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white">
-                        <option value="">Select destination storage facility...</option>
+                        <option value="">Select destination storage location...</option>
                         @foreach($allLocations as $loc)
                             <option value="{{ $loc->id }}" data-name="{{ $loc->name }}">
                                 {{ $loc->name }} ({{ ucfirst($loc->type ?? 'storage') }}) &bull; {{ $loc->assets_count }} {{ $loc->storage_capacity ? '/ ' . $loc->storage_capacity . ' capacity' : 'assets' }}
                             </option>
                         @endforeach
                     </select>
-                    <p class="text-[11px] text-gray-400 mt-1">Specify which storage facility, warehouse, or station will hold this equipment.</p>
+                    <p class="text-[11px] text-gray-400 mt-1">Specify which storage location, warehouse, or station will hold this equipment.</p>
                 </x-form-group>
 
                 {{-- Transfer Reason & Notes --}}
@@ -397,7 +375,7 @@
                 <div class="flex items-center gap-2 pt-1">
                     <input type="checkbox" id="relocate_return_to_source" name="return_to_source" value="1" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
                     <label for="relocate_return_to_source" class="text-xs text-gray-600 cursor-pointer">
-                        Stay in the source facility view after relocation
+                        Stay in the source location view after relocation
                     </label>
                 </div>
 
@@ -417,7 +395,7 @@
             <form class="space-y-4" action="{{ route('locations.store') }}" method="POST">
                 @csrf
                 <x-form-group label="Location Name" required>
-                    <input type="text" name="name" value="{{ old('name') }}" placeholder="e.g., Main Storage Facility" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <input type="text" name="name" value="{{ old('name') }}" placeholder="e.g., Main Storage Location" required class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
                 </x-form-group>
 
                 <x-form-group label="Location Type" required>
@@ -438,7 +416,7 @@
                 </x-form-group>
 
                 <div class="flex gap-3 mt-6">
-                    <x-button variant="primary" type="submit" class="flex-1">Create Facility</x-button>
+                    <x-button variant="primary" type="submit" class="flex-1">Create Location</x-button>
                     <x-button variant="secondary" type="button" onclick="window.closeModal('add-location-modal')" class="flex-1">Cancel</x-button>
                 </div>
             </form>
@@ -545,7 +523,7 @@
                 <tr>
                     <td colspan="${canRelocate ? 6 : 5}" class="px-4 py-8 text-center text-gray-400 italic text-xs">
                         <i class="fas fa-boxes-stacked text-2xl text-gray-300 mb-2 block"></i>
-                        No assets are currently stored in this facility.
+                        No assets are currently stored in this location.
                     </td>
                 </tr>
             `;
@@ -596,7 +574,7 @@
                                     <button type="button" 
                                             onclick="openSingleRelocateModal(${asset.id}, '${escapeJs(asset.code)}', '${escapeJs(asset.name)}', '${escapeJs(asset.status || '')}')" 
                                             class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors"
-                                            title="Relocate this equipment to another facility">
+                                            title="Relocate this equipment to another location">
                                         <i class="fas fa-truck-ramp-box text-[10px]"></i>
                                         <span>Relocate</span>
                                     </button>

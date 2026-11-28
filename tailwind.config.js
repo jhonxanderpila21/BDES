@@ -11,6 +11,13 @@ export default {
 
     theme: {
         extend: {
+            screens: {
+                sm: '640px',
+                md: '768px',
+                lg: '860px',
+                xl: '1150px',
+                '2xl': '1400px',
+            },
             colors: {
                 bdes: {
                     navy: '#003366',

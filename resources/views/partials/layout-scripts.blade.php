@@ -1,9 +1,13 @@
 <script>
     document.addEventListener('alpine:init', () => {
+        const computeProportionalSidebarWidth = () => {
+            return Math.round(Math.min(Math.max(window.innerWidth * 0.16, 185), 256));
+        };
+
         Alpine.data('adminLayout', () => ({
             sidebarOpen: true,
             sidebarCollapsed: localStorage.getItem('bdes_sidebar_collapsed') === 'true',
-            sidebarWidth: Math.min(Math.max(parseInt(localStorage.getItem('bdes_sidebar_width')) || 256, 200), 480),
+            sidebarWidth: parseInt(localStorage.getItem('bdes_sidebar_width_custom')) || computeProportionalSidebarWidth(),
             windowWidth: window.innerWidth,
             isResizing: false,
             toggleSidebar() {
@@ -24,9 +28,9 @@
                 const startWidth = this.sidebarWidth;
                 const doResize = (moveEvent) => {
                     if (!this.isResizing) return;
-                    const newWidth = Math.min(Math.max(startWidth + (moveEvent.clientX - startX), 200), 480);
+                    const newWidth = Math.min(Math.max(startWidth + (moveEvent.clientX - startX), 185), 480);
                     this.sidebarWidth = newWidth;
-                    localStorage.setItem('bdes_sidebar_width', newWidth);
+                    localStorage.setItem('bdes_sidebar_width_custom', newWidth);
                 };
                 const stopResize = () => {
                     this.isResizing = false;
@@ -37,12 +41,15 @@
                 window.addEventListener('mouseup', stopResize);
             },
             resetSidebarWidth() {
-                this.sidebarWidth = 256;
-                localStorage.setItem('bdes_sidebar_width', 256);
+                localStorage.removeItem('bdes_sidebar_width_custom');
+                this.sidebarWidth = computeProportionalSidebarWidth();
             },
             init() {
                 window.addEventListener('resize', () => {
                     this.windowWidth = window.innerWidth;
+                    if (!localStorage.getItem('bdes_sidebar_width_custom')) {
+                        this.sidebarWidth = computeProportionalSidebarWidth();
+                    }
                 });
             }
         }));

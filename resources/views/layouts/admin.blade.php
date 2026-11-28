@@ -10,8 +10,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     @include('partials.layout-scripts')
     <style>
+        html {
+            font-size: clamp(11px, 0.98vw, 16px);
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
         body {
-            font-size: 14px !important;
+            font-size: 0.875rem !important;
             line-height: 1.5;
         }
         main,
@@ -36,7 +41,7 @@
         .text-\[13px\],
         .text-\[14px\],
         .text-\[15px\] {
-            font-size: 14px !important;
+            font-size: 0.875rem !important;
             line-height: 1.45 !important;
         }
         main h1, .text-3xl, .text-2xl {

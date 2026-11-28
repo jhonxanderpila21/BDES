@@ -39,6 +39,17 @@ class LocationController extends Controller
             $query->where('type', $request->type);
         }
 
+        $filter = $request->input('filter');
+        if ($filter === 'assets_kept') {
+            $query->has('assets');
+        } elseif ($filter === 'ready') {
+            $query->whereHas('assets', function ($q) {
+                $q->where('status', 'available');
+            });
+        } elseif ($filter === 'capacity') {
+            $query->orderByDesc('storage_capacity');
+        }
+
         $locations = $query->orderBy('name')->paginate(10)->withQueryString();
 
         $stats = [

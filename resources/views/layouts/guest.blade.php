@@ -17,9 +17,14 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <style>
+            html {
+                font-size: clamp(11px, 0.98vw, 16px);
+                -webkit-text-size-adjust: 100%;
+                text-size-adjust: 100%;
+            }
             body, p, span, label, input, select, textarea, button, a,
             .text-xs, .text-sm, .text-\[10px\], .text-\[11px\], .text-\[12px\] {
-                font-size: 14px !important;
+                font-size: 0.875rem !important;
                 line-height: 1.45 !important;
             }
             h1, .text-2xl {
